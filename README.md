@@ -37,10 +37,14 @@ Add MeshX to your `mix.exs`:
 ```elixir
 defp deps do
   [
-    {:meshx_runtime, "~> 0.1.0"}
+    {:meshx_runtime, git: "https://github.com/dl-alexandre/meshx.git"}
   ]
 end
 ```
+
+> **Note:** MeshX is not yet published to Hex. Installation is via `git`
+> dependency only until all umbrella apps can be published coherently. See
+> [`docs/RELEASE.md`](docs/RELEASE.md) for the planned Hex publish order.
 
 Start a node and send a packet:
 
