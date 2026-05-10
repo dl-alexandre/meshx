@@ -37,6 +37,24 @@ The following order resolves the dependency graph from leaves to root:
 Once step 6 is complete, the full runtime is available on Hex. Step 7
 provides the BLE bridge for platforms that need it.
 
+## Platform-Specific Dependencies
+
+### Python — Not a Core Dependency
+
+**Python is not required for MeshX core, protocol, store, noise, or TCP/UDP
+transports.** It is only needed when using the BLE transport on Linux.
+
+`meshx_transport_ble` ships a BlueZ-backed bridge at
+`priv/bin/meshx_bluez_bridge` (a Python 3 script) that communicates with
+Elixir via stdin/stdout. Using the BLE transport on Linux requires:
+
+- **Python 3** (tested on 3.10+)
+- **`dbus-next`** (install via `pip install dbus-next`)
+- **BlueZ** with `bluetoothd` running and permission to access the adapter
+
+See [`docs/BLE_BRIDGE.md`](BLE_BRIDGE.md) for operational details and the
+`--health-check` command to validate a target host before deployment.
+
 ## Version Policy
 
 All child apps share the same version number. A release bumps every app's
