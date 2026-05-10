@@ -1,0 +1,5 @@
+%{
+  "decibel": {:hex, :decibel, "0.2.4", "ed0f0bc2ef76becf2b3a17ef8d43cecb39e2ff762ee7202dbdbddc35f1500e45", [:mix], [{:typedstruct, "~> 0.5.0", [hex: :typedstruct, repo: "hexpm", optional: false]}], "hexpm", "cbc36710a2eba5d40f0203740a629de6813bdc82de7b86c1ecc48b36e06e1090"},
+  "jason": {:hex, :jason, "1.4.5", "2e3a008590b0b8d7388c20293e9dcc9cf3e5d642fd2a114e4cbbb52e595d940a", [:mix], [{:decimal, "~> 1.0 or ~> 2.0 or ~> 3.0", [hex: :decimal, repo: "hexpm", optional: true]}], "hexpm", "b0c823996102bcd0239b3c2444eb00409b72f6a140c1950bc8b457d836b30684"},
+  "typedstruct": {:hex, :typedstruct, "0.5.4", "d1d33d58460a74f413e9c26d55e66fd633abd8ac0fb12639add9a11a60a0462a", [:make, :mix], [], "hexpm", "ffaef36d5dbaebdbf4ed07f7fb2ebd1037b2c1f757db6fb8e7bcbbfabbe608d8"},
+}

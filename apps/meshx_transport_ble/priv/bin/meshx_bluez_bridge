@@ -1,0 +1,827 @@
+#!/usr/bin/env python3
+"""
+BlueZ-backed MeshX BLE bridge.
+
+The process speaks the same stdin/stdout protocol as
+MeshxTransportBLE.PortBridge: newline-delimited base64 Erlang external terms.
+It requires Linux, BlueZ, and the Python package `dbus-next`.
+
+Commands from Elixir:
+  {:send_frame, peer_id, frame, opts}
+  {:broadcast_frame, frame, opts}
+
+Events to Elixir:
+  {:peer_up, peer_id, metadata}
+  {:peer_down, peer_id}
+  {:frame, peer_id, frame}
+"""
+
+from __future__ import annotations
+
+import argparse
+import asyncio
+import base64
+import random
+import struct
+import sys
+from dataclasses import dataclass
+from typing import Any
+
+
+DEFAULT_SERVICE_UUID = "8f4f1201-6f3d-4f9c-9e3b-7f4a4f0f1000"
+DEFAULT_RX_UUID = "8f4f1202-6f3d-4f9c-9e3b-7f4a4f0f1000"
+DEFAULT_TX_UUID = "8f4f1203-6f3d-4f9c-9e3b-7f4a4f0f1000"
+
+
+class Atom(str):
+    pass
+
+
+class ETFDecoder:
+    def __init__(self, data: bytes):
+        self.data = data
+        self.offset = 0
+
+    def decode(self) -> Any:
+        version = self._byte()
+        if version != 131:
+            raise ValueError("invalid ETF version")
+        return self._term()
+
+    def _byte(self) -> int:
+        if self.offset >= len(self.data):
+            raise ValueError("truncated ETF")
+        value = self.data[self.offset]
+        self.offset += 1
+        return value
+
+    def _read(self, length: int) -> bytes:
+        end = self.offset + length
+        if end > len(self.data):
+            raise ValueError("truncated ETF")
+        value = self.data[self.offset:end]
+        self.offset = end
+        return value
+
+    def _term(self) -> Any:
+        tag = self._byte()
+
+        if tag == 97:  # SMALL_INTEGER_EXT
+            return self._byte()
+        if tag == 98:  # INTEGER_EXT
+            return struct.unpack(">i", self._read(4))[0]
+        if tag == 100:  # ATOM_EXT
+            return Atom(self._read(struct.unpack(">H", self._read(2))[0]).decode("latin1"))
+        if tag == 107:  # STRING_EXT
+            return self._read(struct.unpack(">H", self._read(2))[0])
+        if tag == 104:  # SMALL_TUPLE_EXT
+            return tuple(self._term() for _ in range(self._byte()))
+        if tag == 105:  # LARGE_TUPLE_EXT
+            return tuple(self._term() for _ in range(struct.unpack(">I", self._read(4))[0]))
+        if tag == 106:  # NIL_EXT
+            return []
+        if tag == 108:  # LIST_EXT
+            length = struct.unpack(">I", self._read(4))[0]
+            items = [self._term() for _ in range(length)]
+            tail = self._term()
+            if tail != []:
+                raise ValueError("improper lists are not supported")
+            return items
+        if tag == 109:  # BINARY_EXT
+            return self._read(struct.unpack(">I", self._read(4))[0])
+        if tag == 116:  # MAP_EXT
+            length = struct.unpack(">I", self._read(4))[0]
+            return {self._term(): self._term() for _ in range(length)}
+        if tag == 118:  # ATOM_UTF8_EXT
+            return Atom(self._read(struct.unpack(">H", self._read(2))[0]).decode("utf-8"))
+        if tag == 119:  # SMALL_ATOM_UTF8_EXT
+            return Atom(self._read(self._byte()).decode("utf-8"))
+
+        raise ValueError(f"unsupported ETF tag {tag}")
+
+
+def encode_term(term: Any) -> bytes:
+    return b"\x83" + _encode_value(term)
+
+
+def _encode_value(value: Any) -> bytes:
+    if isinstance(value, Atom):
+        data = str(value).encode("utf-8")
+        if len(data) < 256:
+            return bytes([119, len(data)]) + data
+        return bytes([118]) + struct.pack(">H", len(data)) + data
+
+    if isinstance(value, bool):
+        return _encode_value(Atom("true" if value else "false"))
+
+    if value is None:
+        return _encode_value(Atom("nil"))
+
+    if isinstance(value, int):
+        if 0 <= value < 256:
+            return bytes([97, value])
+        return bytes([98]) + struct.pack(">i", value)
+
+    if isinstance(value, bytes):
+        return bytes([109]) + struct.pack(">I", len(value)) + value
+
+    if isinstance(value, str):
+        data = value.encode("utf-8")
+        return bytes([109]) + struct.pack(">I", len(data)) + data
+
+    if isinstance(value, tuple):
+        encoded = b"".join(_encode_value(item) for item in value)
+        if len(value) < 256:
+            return bytes([104, len(value)]) + encoded
+        return bytes([105]) + struct.pack(">I", len(value)) + encoded
+
+    if isinstance(value, list):
+        encoded = b"".join(_encode_value(item) for item in value)
+        return bytes([108]) + struct.pack(">I", len(value)) + encoded + bytes([106])
+
+    if isinstance(value, dict):
+        encoded = b"".join(_encode_value(k) + _encode_value(v) for k, v in value.items())
+        return bytes([116]) + struct.pack(">I", len(value)) + encoded
+
+    raise TypeError(f"unsupported ETF value {value!r}")
+
+
+def decode_line(line: bytes) -> Any:
+    return ETFDecoder(base64.b64decode(line.strip())).decode()
+
+
+def emit(event: tuple[Any, ...]) -> None:
+    sys.stdout.buffer.write(base64.b64encode(encode_term(event)) + b"\n")
+    sys.stdout.buffer.flush()
+
+
+def as_text(value: Any) -> str:
+    if isinstance(value, bytes):
+        return value.decode("utf-8")
+    return str(value)
+
+
+def normalize_uuid(value: str) -> str:
+    return value.lower()
+
+
+def unwrap(value: Any) -> Any:
+    return getattr(value, "value", value)
+
+
+@dataclass
+class Peer:
+    peer_id: str
+    path: str
+    address: str
+    name: str | None = None
+    rssi: int | None = None
+    rx_char: str | None = None
+
+
+class Reassembler:
+    def __init__(self) -> None:
+        self.pending: dict[tuple[str, int], dict[str, Any]] = {}
+
+    def push(self, peer_id: str, chunk: bytes) -> bytes | None:
+        if not chunk.startswith(b"MXB1") or len(chunk) < 12:
+            return chunk
+
+        stream_id, seq, total = struct.unpack(">IHH", chunk[4:12])
+        if total == 0 or seq >= total:
+            return None
+
+        payload = chunk[12:]
+        key = (peer_id, stream_id)
+        entry = self.pending.get(key)
+        if entry is None or entry["total"] != total:
+            entry = {"total": total, "parts": {}}
+            self.pending[key] = entry
+
+        entry["parts"][seq] = payload
+
+        if len(entry["parts"]) != total:
+            return None
+
+        self.pending.pop(key, None)
+        return b"".join(entry["parts"][i] for i in range(total))
+
+
+def chunk_frame(frame: bytes, mtu: int, stream_id: int | None = None) -> list[bytes]:
+    chunk_size = max(1, int(mtu) - 12)
+    stream_id = stream_id or random.randint(1, 0xFFFFFFFF)
+    chunks = [frame[i : i + chunk_size] for i in range(0, len(frame), chunk_size)] or [b""]
+    return [
+        b"MXB1" + struct.pack(">IHH", stream_id, seq, len(chunks)) + payload
+        for seq, payload in enumerate(chunks)
+    ]
+
+
+class MeshxBluezBridge:
+    def __init__(self, args: argparse.Namespace):
+        self.args = args
+        self.service_uuid = normalize_uuid(args.service_uuid)
+        self.rx_uuid = normalize_uuid(args.rx_uuid)
+        self.tx_uuid = normalize_uuid(args.tx_uuid)
+        self.bus = None
+        self.adapter_path: str | None = None
+        self.objects: dict[str, dict[str, dict[str, Any]]] = {}
+        self.peers: dict[str, Peer] = {}
+        self.reassembler = Reassembler()
+
+    async def run(self) -> None:
+        from dbus_next import BusType, Variant
+        from dbus_next.aio import MessageBus
+
+        self.Variant = Variant
+        self.bus = await MessageBus(bus_type=BusType.SYSTEM).connect()
+        await self.refresh_objects()
+        self.adapter_path = await self.select_adapter()
+        await self.power_adapter()
+        await self.register_gatt_application()
+        await self.register_advertisement()
+        await self.watch_bluez()
+        await self.seed_existing_peers()
+
+        if self.args.scan:
+            await self.start_discovery()
+
+        await self.command_loop()
+
+    async def health_check(self) -> None:
+        from dbus_next import BusType, Variant
+        from dbus_next.aio import MessageBus
+
+        self.Variant = Variant
+        self.bus = await MessageBus(bus_type=BusType.SYSTEM).connect()
+        await self.refresh_objects()
+        adapter_path = await self.select_adapter()
+        interfaces = self.objects.get(adapter_path, {})
+        missing = [
+            name
+            for name in [
+                "org.bluez.Adapter1",
+                "org.bluez.GattManager1",
+                "org.bluez.LEAdvertisingManager1",
+            ]
+            if name not in interfaces
+        ]
+
+        if missing:
+            raise RuntimeError(f"BlueZ adapter {adapter_path} is missing interfaces: {', '.join(missing)}")
+
+        print(f"ok: {adapter_path} supports MeshX BLE bridge requirements", flush=True)
+
+    async def refresh_objects(self) -> None:
+        manager = await self.bluez_object_manager("/")
+        self.objects = await manager.call_get_managed_objects()
+
+    async def bluez_object_manager(self, path: str) -> Any:
+        obj = await self.proxy(path)
+        return obj.get_interface("org.freedesktop.DBus.ObjectManager")
+
+    async def proxy(self, path: str) -> Any:
+        assert self.bus is not None
+        introspection = await self.bus.introspect("org.bluez", path)
+        return self.bus.get_proxy_object("org.bluez", path, introspection)
+
+    async def select_adapter(self) -> str:
+        for path, interfaces in self.objects.items():
+            if "org.bluez.Adapter1" not in interfaces:
+                continue
+            if self.args.adapter is None or path.endswith("/" + self.args.adapter):
+                return path
+        raise RuntimeError(f"BlueZ adapter not found: {self.args.adapter or 'default'}")
+
+    async def power_adapter(self) -> None:
+        props = await self.properties(self.adapter_path)
+        await props.call_set("org.bluez.Adapter1", "Powered", self.Variant("b", True))
+
+    async def properties(self, path: str) -> Any:
+        obj = await self.proxy(path)
+        return obj.get_interface("org.freedesktop.DBus.Properties")
+
+    async def register_gatt_application(self) -> None:
+        from dbus_next.service import ServiceInterface, dbus_property, method
+
+        bridge = self
+
+        class ObjectManager(ServiceInterface):
+            def __init__(self) -> None:
+                super().__init__("org.freedesktop.DBus.ObjectManager")
+
+            @method()
+            def GetManagedObjects(self) -> "a{oa{sa{sv}}}":
+                return bridge.gatt_objects()
+
+        class Service(ServiceInterface):
+            def __init__(self) -> None:
+                super().__init__("org.bluez.GattService1")
+
+            @dbus_property()
+            def UUID(self) -> "s":
+                return bridge.service_uuid
+
+            @dbus_property()
+            def Primary(self) -> "b":
+                return True
+
+        class RXCharacteristic(ServiceInterface):
+            def __init__(self) -> None:
+                super().__init__("org.bluez.GattCharacteristic1")
+
+            @dbus_property()
+            def UUID(self) -> "s":
+                return bridge.rx_uuid
+
+            @dbus_property()
+            def Service(self) -> "o":
+                return "/org/meshx/service0"
+
+            @dbus_property()
+            def Flags(self) -> "as":
+                return ["write", "write-without-response"]
+
+            @method()
+            def WriteValue(self, value: "ay", options: "a{sv}") -> None:
+                peer_id = bridge.peer_id_from_options(options)
+                frame = bridge.reassembler.push(peer_id, bytes(value))
+                if frame is not None:
+                    emit((Atom("frame"), peer_id, frame))
+
+        class TXCharacteristic(ServiceInterface):
+            def __init__(self) -> None:
+                super().__init__("org.bluez.GattCharacteristic1")
+
+            @dbus_property()
+            def UUID(self) -> "s":
+                return bridge.tx_uuid
+
+            @dbus_property()
+            def Service(self) -> "o":
+                return "/org/meshx/service0"
+
+            @dbus_property()
+            def Flags(self) -> "as":
+                return ["notify"]
+
+            @method()
+            def StartNotify(self) -> None:
+                return None
+
+            @method()
+            def StopNotify(self) -> None:
+                return None
+
+        assert self.bus is not None
+        self.bus.export("/org/meshx", ObjectManager())
+        self.bus.export("/org/meshx/service0", Service())
+        self.bus.export("/org/meshx/service0/rx", RXCharacteristic())
+        self.bus.export("/org/meshx/service0/tx", TXCharacteristic())
+
+        obj = await self.proxy(self.adapter_path)
+        manager = obj.get_interface("org.bluez.GattManager1")
+        await manager.call_register_application("/org/meshx", {})
+
+    def gatt_objects(self) -> dict[str, dict[str, dict[str, Any]]]:
+        variant = self.Variant
+        return {
+            "/org/meshx/service0": {
+                "org.bluez.GattService1": {
+                    "UUID": variant("s", self.service_uuid),
+                    "Primary": variant("b", True),
+                }
+            },
+            "/org/meshx/service0/rx": {
+                "org.bluez.GattCharacteristic1": {
+                    "UUID": variant("s", self.rx_uuid),
+                    "Service": variant("o", "/org/meshx/service0"),
+                    "Flags": variant("as", ["write", "write-without-response"]),
+                }
+            },
+            "/org/meshx/service0/tx": {
+                "org.bluez.GattCharacteristic1": {
+                    "UUID": variant("s", self.tx_uuid),
+                    "Service": variant("o", "/org/meshx/service0"),
+                    "Flags": variant("as", ["notify"]),
+                }
+            },
+        }
+
+    def peer_id_from_options(self, options: dict[str, Any]) -> str:
+        device = unwrap(options.get("device"))
+        if device:
+            for peer in self.peers.values():
+                if peer.path == device:
+                    return peer.peer_id
+            return str(device)
+        return "unknown"
+
+    async def register_advertisement(self) -> None:
+        from dbus_next.service import ServiceInterface, dbus_property, method
+
+        bridge = self
+
+        class Advertisement(ServiceInterface):
+            def __init__(self) -> None:
+                super().__init__("org.bluez.LEAdvertisement1")
+
+            @dbus_property()
+            def Type(self) -> "s":
+                return "peripheral"
+
+            @dbus_property()
+            def ServiceUUIDs(self) -> "as":
+                return [bridge.service_uuid]
+
+            @dbus_property()
+            def LocalName(self) -> "s":
+                return bridge.args.local_name
+
+            @dbus_property()
+            def Includes(self) -> "as":
+                return ["tx-power"]
+
+            @method()
+            def Release(self) -> None:
+                return None
+
+        assert self.bus is not None
+        self.bus.export("/org/meshx/advertisement0", Advertisement())
+
+        obj = await self.proxy(self.adapter_path)
+        manager = obj.get_interface("org.bluez.LEAdvertisingManager1")
+        await manager.call_register_advertisement("/org/meshx/advertisement0", {})
+
+    async def watch_bluez(self) -> None:
+        manager = await self.bluez_object_manager("/")
+        manager.on_interfaces_added(lambda path, ifaces: asyncio.create_task(self.interfaces_added(path, ifaces)))
+        manager.on_interfaces_removed(lambda path, ifaces: asyncio.create_task(self.interfaces_removed(path, ifaces)))
+
+    async def seed_existing_peers(self) -> None:
+        for path, interfaces in self.objects.items():
+            await self.maybe_track_device(path, interfaces)
+
+    async def interfaces_added(self, path: str, interfaces: dict[str, Any]) -> None:
+        self.objects[path] = interfaces
+        await self.maybe_track_device(path, interfaces)
+        await self.maybe_track_characteristic(path, interfaces)
+
+    async def interfaces_removed(self, path: str, _interfaces: list[str]) -> None:
+        stale = [peer_id for peer_id, peer in self.peers.items() if path.startswith(peer.path)]
+        for peer_id in stale:
+            self.peers.pop(peer_id, None)
+            emit((Atom("peer_down"), peer_id))
+
+    async def maybe_track_device(self, path: str, interfaces: dict[str, Any]) -> None:
+        device = interfaces.get("org.bluez.Device1")
+        if not device:
+            return
+
+        uuids = [normalize_uuid(v) for v in unwrap(device.get("UUIDs", []))]
+        if self.service_uuid not in uuids:
+            return
+
+        address = unwrap(device.get("Address", path))
+        peer_id = str(address).upper()
+        name = unwrap(device.get("Alias", device.get("Name", None)))
+        rssi = unwrap(device.get("RSSI", None))
+        peer = self.peers.get(peer_id) or Peer(peer_id=peer_id, path=path, address=address)
+        peer.name = name
+        peer.rssi = rssi
+        self.peers[peer_id] = peer
+        await self.resolve_peer_characteristics(peer)
+
+        emit(
+            (
+                Atom("peer_up"),
+                peer_id,
+                {
+                    "address": str(address),
+                    "path": path,
+                    "name": str(name or ""),
+                    "rssi": int(rssi or 0),
+                    "mtu": int(self.args.mtu),
+                    "service_uuid": self.service_uuid,
+                    "platform": "bluez",
+                },
+            )
+        )
+
+    async def maybe_track_characteristic(self, path: str, interfaces: dict[str, Any]) -> None:
+        char = interfaces.get("org.bluez.GattCharacteristic1")
+        if not char:
+            return
+        uuid = normalize_uuid(unwrap(char.get("UUID", "")))
+        if uuid != self.rx_uuid:
+            return
+        service_path = unwrap(char.get("Service", ""))
+        for peer in self.peers.values():
+            if str(service_path).startswith(peer.path) or path.startswith(peer.path):
+                peer.rx_char = path
+
+    async def resolve_peer_characteristics(self, peer: Peer) -> None:
+        for path, interfaces in self.objects.items():
+            char = interfaces.get("org.bluez.GattCharacteristic1")
+            if not char or not path.startswith(peer.path):
+                continue
+            if normalize_uuid(unwrap(char.get("UUID", ""))) == self.rx_uuid:
+                peer.rx_char = path
+                return
+
+    async def start_discovery(self) -> None:
+        obj = await self.proxy(self.adapter_path)
+        adapter = obj.get_interface("org.bluez.Adapter1")
+        await adapter.call_set_discovery_filter(
+            {"UUIDs": self.Variant("as", [self.service_uuid]), "Transport": self.Variant("s", "le")}
+        )
+        await adapter.call_start_discovery()
+
+    async def command_loop(self) -> None:
+        while True:
+            line = await asyncio.to_thread(sys.stdin.buffer.readline)
+            if not line:
+                return
+            try:
+                command = decode_line(line)
+            except Exception as exc:
+                print(f"meshx_bluez_bridge decode error: {exc}", file=sys.stderr, flush=True)
+                continue
+
+            await self.handle_command(command)
+
+    async def handle_command(self, command: Any) -> None:
+        if not isinstance(command, tuple) or not command:
+            return
+
+        command_id = self.command_id(command)
+
+        try:
+            tag = command[0]
+
+            if tag == Atom("send_frame") and len(command) >= 5 and command_id is not None:
+                await self.send_frame(as_text(command[2]), bytes(command[3]))
+            elif tag == Atom("send_frame") and len(command) >= 4:
+                await self.send_frame(as_text(command[1]), bytes(command[2]))
+            elif tag == Atom("broadcast_frame") and len(command) >= 4 and command_id is not None:
+                await self.broadcast_frame(bytes(command[2]))
+            elif tag == Atom("broadcast_frame") and len(command) >= 3:
+                await self.broadcast_frame(bytes(command[1]))
+            else:
+                return
+        except Exception as exc:
+            if command_id is None:
+                print(f"meshx_bluez_bridge command error: {exc}", file=sys.stderr, flush=True)
+            else:
+                emit((Atom("command_error"), command_id, str(exc)))
+            return
+
+        if command_id is not None:
+            emit((Atom("command_result"), command_id, Atom("ok")))
+
+    def command_id(self, command: tuple[Any, ...]) -> int | None:
+        if command[0] in (Atom("send_frame"), Atom("broadcast_frame")) and len(command) >= 2:
+            candidate = command[1]
+            if isinstance(candidate, int):
+                return candidate
+        return None
+
+    async def broadcast_frame(self, frame: bytes) -> None:
+        for peer_id in list(self.peers):
+            await self.send_frame(peer_id, frame)
+
+    async def send_frame(self, peer_id: str, frame: bytes) -> None:
+        peer = self.peers.get(peer_id.upper()) or self.peers.get(peer_id)
+        if peer is None:
+            raise RuntimeError(f"unknown BLE peer {peer_id}")
+
+        await self.ensure_connected(peer)
+        await self.resolve_peer_characteristics(peer)
+        if not peer.rx_char:
+            raise RuntimeError(f"peer {peer_id} has no MeshX RX characteristic")
+
+        obj = await self.proxy(peer.rx_char)
+        char = obj.get_interface("org.bluez.GattCharacteristic1")
+        for packet in chunk_frame(frame, self.args.mtu):
+            await char.call_write_value(packet, {"type": self.Variant("s", "command")})
+
+    async def ensure_connected(self, peer: Peer) -> None:
+        device_props = self.objects.get(peer.path, {}).get("org.bluez.Device1", {})
+        if unwrap(device_props.get("Connected", False)):
+            return
+
+        obj = await self.proxy(peer.path)
+        device = obj.get_interface("org.bluez.Device1")
+        await device.call_connect()
+        await self.refresh_objects()
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description="MeshX BlueZ BLE bridge")
+    parser.add_argument("--adapter", help="BlueZ adapter name such as hci0")
+    parser.add_argument("--service-uuid", default=DEFAULT_SERVICE_UUID)
+    parser.add_argument("--rx-uuid", default=DEFAULT_RX_UUID)
+    parser.add_argument("--tx-uuid", default=DEFAULT_TX_UUID)
+    parser.add_argument("--local-name", default="meshx")
+    parser.add_argument("--mtu", type=int, default=185)
+    parser.add_argument("--no-scan", dest="scan", action="store_false")
+    parser.add_argument("--self-test", action="store_true")
+    parser.add_argument("--require-dbus-next", action="store_true")
+    parser.add_argument("--health-check", action="store_true")
+    parser.set_defaults(scan=True)
+    return parser
+
+
+async def self_test(require_dbus_next: bool = False) -> None:
+    terms = [
+        (Atom("peer_up"), b"AA:BB:CC:DD:EE:FF", {b"rssi": -40, b"platform": b"bluez"}),
+        (Atom("frame"), b"peer-a", b"hello"),
+        (Atom("send_frame"), b"peer-a", b"frame", [(Atom("mtu"), 20)]),
+        (Atom("send_frame"), 42, b"peer-a", b"frame", []),
+        (Atom("broadcast_frame"), b"frame", []),
+        (Atom("broadcast_frame"), 43, b"frame", []),
+        (Atom("command_result"), 42, Atom("ok")),
+        (Atom("command_error"), 43, b"native failed"),
+    ]
+
+    for term in terms:
+        line = base64.b64encode(encode_term(term))
+        decoded = decode_line(line)
+        if decoded != term:
+            raise AssertionError(f"ETF roundtrip failed: {decoded!r} != {term!r}")
+
+    frame = b"0123456789abcdef"
+    chunks = chunk_frame(frame, mtu=18, stream_id=7)
+    if len(chunks) != 3 or any(len(chunk) > 18 for chunk in chunks):
+        raise AssertionError("ATT chunking did not respect the configured MTU")
+
+    reassembler = Reassembler()
+    if reassembler.push("peer", chunks[1]) is not None:
+        raise AssertionError("reassembler completed before every chunk arrived")
+    if reassembler.push("peer", chunks[0]) is not None:
+        raise AssertionError("reassembler completed before the final chunk arrived")
+    if reassembler.push("peer", chunks[2]) != frame:
+        raise AssertionError("reassembler did not restore the original frame")
+
+    if require_dbus_next:
+        from dbus_next import Variant
+
+        args = build_parser().parse_args([])
+        bridge = MeshxBluezBridge(args)
+        bridge.Variant = Variant
+        objects = bridge.gatt_objects()
+        service = objects["/org/meshx/service0"]["org.bluez.GattService1"]
+        rx = objects["/org/meshx/service0/rx"]["org.bluez.GattCharacteristic1"]
+        tx = objects["/org/meshx/service0/tx"]["org.bluez.GattCharacteristic1"]
+
+        if service["UUID"].value != DEFAULT_SERVICE_UUID:
+            raise AssertionError("GATT service UUID mismatch")
+        if "write-without-response" not in rx["Flags"].value:
+            raise AssertionError("RX characteristic does not support write-without-response")
+        if "notify" not in tx["Flags"].value:
+            raise AssertionError("TX characteristic does not support notify")
+
+    await self_test_bluez_paths()
+
+
+class SelfTestVariant:
+    def __init__(self, signature: str, value: Any):
+        self.signature = signature
+        self.value = value
+
+
+class FakeCharacteristic:
+    def __init__(self) -> None:
+        self.writes: list[tuple[bytes, dict[str, Any]]] = []
+
+    async def call_write_value(self, packet: bytes, options: dict[str, Any]) -> None:
+        self.writes.append((packet, options))
+
+
+class FakeDevice:
+    def __init__(self) -> None:
+        self.connected = False
+
+    async def call_connect(self) -> None:
+        self.connected = True
+
+
+class FakeProxy:
+    def __init__(self, interface: Any):
+        self.interface = interface
+
+    def get_interface(self, _name: str) -> Any:
+        return self.interface
+
+
+async def self_test_bluez_paths() -> None:
+    args = build_parser().parse_args(["--mtu", "18"])
+    bridge = MeshxBluezBridge(args)
+    bridge.Variant = SelfTestVariant
+
+    device_path = "/org/bluez/hci0/dev_AA_BB_CC_DD_EE_FF"
+    char_path = f"{device_path}/service001/char001"
+
+    bridge.objects = {
+        device_path: {
+            "org.bluez.Device1": {
+                "UUIDs": [DEFAULT_SERVICE_UUID],
+                "Address": "AA:BB:CC:DD:EE:FF",
+                "Alias": "meshx-peer",
+                "RSSI": -51,
+                "Connected": True,
+            }
+        },
+        char_path: {
+            "org.bluez.GattCharacteristic1": {
+                "UUID": DEFAULT_RX_UUID,
+                "Service": f"{device_path}/service001",
+            }
+        },
+    }
+
+    captured: list[tuple[Any, ...]] = []
+    old_emit = globals()["emit"]
+    globals()["emit"] = captured.append
+
+    try:
+        await bridge.maybe_track_device(device_path, bridge.objects[device_path])
+        peer = bridge.peers["AA:BB:CC:DD:EE:FF"]
+        if peer.rx_char != char_path:
+            raise AssertionError("BlueZ peer discovery did not resolve the RX characteristic")
+
+        if captured != [
+            (
+                Atom("peer_up"),
+                "AA:BB:CC:DD:EE:FF",
+                {
+                    "address": "AA:BB:CC:DD:EE:FF",
+                    "path": device_path,
+                    "name": "meshx-peer",
+                    "rssi": -51,
+                    "mtu": 18,
+                    "service_uuid": DEFAULT_SERVICE_UUID,
+                    "platform": "bluez",
+                },
+            )
+        ]:
+            raise AssertionError("BlueZ peer discovery emitted unexpected metadata")
+
+        characteristic = FakeCharacteristic()
+        bridge.proxy = lambda path: fake_proxy(path, char_path, characteristic)  # type: ignore[method-assign]
+
+        await bridge.send_frame("AA:BB:CC:DD:EE:FF", b"0123456789abcdef")
+        if len(characteristic.writes) != 3:
+            raise AssertionError("BlueZ send did not split the frame into MTU-sized writes")
+        if any(len(packet) > 18 for packet, _options in characteristic.writes):
+            raise AssertionError("BlueZ send wrote a packet larger than the configured MTU")
+
+        reassembler = Reassembler()
+        restored = None
+        for packet, options in characteristic.writes:
+            if unwrap(options["type"]) != "command":
+                raise AssertionError("BlueZ write did not use command write mode")
+            restored = reassembler.push("peer", packet)
+
+        if restored != b"0123456789abcdef":
+            raise AssertionError("BlueZ write chunks do not reassemble to the original frame")
+
+        await bridge.interfaces_removed(device_path, [])
+        if captured[-1] != (Atom("peer_down"), "AA:BB:CC:DD:EE:FF"):
+            raise AssertionError("BlueZ removal did not emit peer_down")
+    finally:
+        globals()["emit"] = old_emit
+
+
+async def fake_proxy(path: str, expected_char_path: str, characteristic: FakeCharacteristic) -> FakeProxy:
+    if path != expected_char_path:
+        raise AssertionError(f"unexpected fake proxy path {path}")
+
+    return FakeProxy(characteristic)
+
+
+async def amain() -> None:
+    parser = build_parser()
+    args = parser.parse_args()
+
+    if args.self_test:
+        await self_test(args.require_dbus_next)
+        return
+
+    bridge = MeshxBluezBridge(args)
+    if args.health_check:
+        await bridge.health_check()
+        return
+
+    await bridge.run()
+
+
+def main() -> None:
+    try:
+        asyncio.run(amain())
+    except KeyboardInterrupt:
+        pass
+
+
+if __name__ == "__main__":
+    main()
