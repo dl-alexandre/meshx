@@ -1,6 +1,8 @@
 defmodule Meshx.MixProject do
   use Mix.Project
 
+  @github_url "https://github.com/dl-alexandre/meshx"
+
   def project do
     [
       apps_path: "apps",
@@ -8,7 +10,9 @@ defmodule Meshx.MixProject do
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       docs: docs(),
-      dialyzer: dialyzer()
+      dialyzer: dialyzer(),
+      source_url: @github_url,
+      homepage_url: @github_url
     ]
   end
 
@@ -26,6 +30,7 @@ defmodule Meshx.MixProject do
   defp docs do
     [
       main: "Meshx",
+      source_url: @github_url,
       extras: [
         "README.md",
         "docs/CONTRACTS.md",
@@ -37,7 +42,9 @@ defmodule Meshx.MixProject do
         "docs/DEPLOYMENT.md",
         "docs/METRICS.md",
         "docs/KEY_ROTATION.md",
-        "docs/FAILURE_RECOVERY.md"
+        "docs/FAILURE_RECOVERY.md",
+        "docs/FAILURE_DOMAINS.md",
+        "docs/WORKSPACE_SAFETY.md"
       ]
     ]
   end

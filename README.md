@@ -1,10 +1,72 @@
 # MeshX
 
-**MeshX** is a modular, BEAM-native mesh networking stack for building resilient, decentralized applications on Elixir/Erlang.
+**MeshX** is a modular, BEAM-native mesh networking stack for building
+resilient, decentralized applications on Elixir/Erlang.
+
+It provides compact binary protocol framing, Noise XX encryption,
+store-and-forward message queuing, and pluggable transports (TCP, UDP,
+BLE) — all supervised as a first-class OTP application.
+
+## What MeshX Is
+
+- A **substrate library** for mesh networking inside a BEAM application
+- **Noise XX** end-to-end encryption between peers
+- **Store-and-forward** message delivery for offline or partitioned peers
+- **Pluggable transports** with TCP, UDP, and BLE adapters included
+- **TTL-based relay** with deduplication and fragmentation
+- **Identity pinning** with TOFU (trust-on-first-use) and allowlist policies
+- **Causality-agnostic** — no consensus, no global ordering, no leader election
+
+## What MeshX Is Not
+
+- A **distributed consensus** system (no Raft, no Paxos)
+- An **application-level pub/sub broker** — topics and routing logic are the
+  application's responsibility
+- A **blockchain or DHT** — there is no global ledger or distributed hash table
+- A **NAT traversal / hole-punching** library — transports operate on whatever
+  reachability the underlying network provides
+- A **persistent causal ordering** system — causal tracking is the
+  application's responsibility if needed
+- A **replacement for MQTT, NATS, or RabbitMQ** — it is a lower-level mesh
+  substrate, not a message broker with QoS guarantees
+
+## Quickstart
+
+Add MeshX to your `mix.exs`:
+
+```elixir
+defp deps do
+  [
+    {:meshx_runtime, "~> 0.1.0"}
+  ]
+end
+```
+
+Start a node and send a packet:
+
+```elixir
+# Start the runtime application (usually in your supervision tree)
+{:ok, _apps} = Application.ensure_all_started(:meshx_runtime)
+
+# Attach a TCP transport
+{:ok, tcp} = MeshxTransport.TCP.start_link(id: "node-a", event_target: MeshxRuntime.Router)
+:ok = MeshxRuntime.Router.attach_transport(:tcp, MeshxTransport.TCP, tcp)
+
+# Connect to a peer
+:ok = MeshxTransport.TCP.connect(tcp, {127, 0, 0, 1}, 4040)
+
+# Send a packet (encrypted via Noise XX if secure session exists)
+packet = MeshxProtocol.Packet.new(:data, 1, "hello")
+:ok = MeshxRuntime.Router.send_packet("peer-b", packet, store: true, secure: true)
+```
+
+Packets with `store: true` are queued in `MeshxStore.Outbox` when the peer is
+offline and replayed automatically when it reappears on any transport.
 
 ## Architecture
 
-The project is structured as an **umbrella application** with the following child apps:
+The project is structured as an **umbrella application** with the following
+child apps:
 
 ### Core Libraries
 
@@ -28,6 +90,19 @@ The project is structured as an **umbrella application** with the following chil
 - `MeshxTransportBLE.Bridge`, `NoopBridge`, `PortBridge`, and `BluezBridge`
 - `MeshxMob.Platform`
 - `MeshxRuntime.SessionManager`, `FragmentBuffer`, `PeerRegistry`, `Router`, `Outbox`, and `Topology`
+
+## Transport and Runtime Status
+
+| Transport | Status | Notes |
+|-----------|--------|-------|
+| TCP | ✅ Stable | Production-ready for local networks |
+| UDP | ✅ Stable | Best-effort datagram delivery |
+| BLE | ⚠️ Partial | BlueZ bridge works on Linux; iOS/Android bridges are application-specific |
+| QUIC | 🔮 Planned | Requires `:quicer` optional dep; detection is runtime |
+| mDNS Discovery | ✅ Stable | LAN peer discovery via `MeshxRuntime.Discovery` |
+
+The runtime starts all transports you attach. Unattached transports have no
+overhead. The supervision tree restarts transports automatically on failure.
 
 ## Secure Routing
 
@@ -73,7 +148,11 @@ bridge modules behind the same behaviour.
 
 ## Documentation
 
+Read the contracts first — they define what MeshX guarantees and what it
+does not:
+
 - **[v1 Contracts](docs/CONTRACTS.md)** — normative boundary doc. Read this first.
+- [Failure Domains](docs/FAILURE_DOMAINS.md) — exact runtime behavior under every failure mode
 - [Architecture](docs/ARCHITECTURE.md)
 - [Runtime API](docs/RUNTIME_API.md)
 - [Transport Integration](docs/TRANSPORTS.md)
@@ -83,6 +162,7 @@ bridge modules behind the same behaviour.
 - [Metrics](docs/METRICS.md)
 - [Key Rotation](docs/KEY_ROTATION.md)
 - [Failure Recovery](docs/FAILURE_RECOVERY.md)
+- [Workspace Safety](docs/WORKSPACE_SAFETY.md) — agent execution rules for contributors
 
 ## ACKs And Capabilities
 
@@ -116,15 +196,6 @@ All components follow BEAM-oriented design practices:
 - Explicit runtime events and warning logs for recoverable protocol failures
 - Proper error isolation via OTP supervisors
 
-## Documentation
-
-- [`docs/CONTRACTS.md`](docs/CONTRACTS.md) — public API guarantees, stability tiers, wire-format and persistence compatibility
-- [`docs/FAILURE_DOMAINS.md`](docs/FAILURE_DOMAINS.md) — exact runtime behavior under process crash, node failure, network partition, identity loss, storage corruption, and replay window expiry
-- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — system design and component boundaries
-- [`docs/OPERATIONS.md`](docs/OPERATIONS.md) — deployment, configuration, and data management
-- [`docs/WORKSPACE_SAFETY.md`](docs/WORKSPACE_SAFETY.md) — agent execution rules and git safety guardrails
-- [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) — release builds and container notes
-
 ## Development
 
 ```bash
@@ -143,4 +214,4 @@ iex -S mix
 
 ## License
 
-Apache 2.0 (see LICENSE file).
+Apache 2.0 (see [LICENSE](LICENSE) file).

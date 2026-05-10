@@ -1,6 +1,8 @@
 defmodule MeshxTransport.MixProject do
   use Mix.Project
 
+  @github_url "https://github.com/dl-alexandre/meshx"
+
   def project do
     [
       app: :meshx_transport,
@@ -11,7 +13,22 @@ defmodule MeshxTransport.MixProject do
         ignore_modules: [MeshxTransport.QUIC],
         summary: [threshold: 90]
       ],
-      deps: deps()
+      deps: deps(),
+      source_url: @github_url,
+      homepage_url: @github_url,
+      description:
+        "Transport behavior with in-memory, TCP, and UDP transports for MeshX mesh networking",
+      package: package()
+    ]
+  end
+
+  defp package do
+    [
+      licenses: ["Apache-2.0"],
+      links: %{
+        "GitHub" => @github_url,
+        "Changelog" => "#{@github_url}/blob/master/CHANGELOG.md"
+      }
     ]
   end
 

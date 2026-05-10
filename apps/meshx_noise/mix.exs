@@ -1,6 +1,8 @@
 defmodule MeshxNoise.MixProject do
   use Mix.Project
 
+  @github_url "https://github.com/dl-alexandre/meshx"
+
   def project do
     [
       app: :meshx_noise,
@@ -11,7 +13,21 @@ defmodule MeshxNoise.MixProject do
         ignore_modules: [MeshxNoise, MeshxNoise.Supervisor],
         summary: [threshold: 90]
       ],
-      deps: deps()
+      deps: deps(),
+      source_url: @github_url,
+      homepage_url: @github_url,
+      description: "Noise XX session wrapper for MeshX mesh networking over Decibel",
+      package: package()
+    ]
+  end
+
+  defp package do
+    [
+      licenses: ["Apache-2.0"],
+      links: %{
+        "GitHub" => @github_url,
+        "Changelog" => "#{@github_url}/blob/master/CHANGELOG.md"
+      }
     ]
   end
 
