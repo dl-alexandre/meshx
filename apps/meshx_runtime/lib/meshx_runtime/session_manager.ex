@@ -68,6 +68,17 @@ defmodule MeshxRuntime.SessionManager do
     GenServer.call(__MODULE__, {:decrypt, peer_id, ciphertext, aad})
   end
 
+  @doc """
+  Tears down the Noise session for a peer, if any.
+
+  Call on transport peer_down so that a subsequent reconnect renegotiates a
+  fresh session instead of reusing one whose cipher state will desync.
+  """
+  @spec drop(peer_id()) :: :ok
+  def drop(peer_id) do
+    GenServer.call(__MODULE__, {:drop, peer_id})
+  end
+
   @doc false
   @spec reset() :: :ok
   def reset do
@@ -176,6 +187,24 @@ defmodule MeshxRuntime.SessionManager do
       end
 
     {:reply, result, state}
+  end
+
+  def handle_call({:drop, peer_id}, _from, state) do
+    case Map.pop(state, peer_id) do
+      {nil, state} ->
+        {:reply, :ok, state}
+
+      {%{pid: session, role: role}, state} ->
+        Session.close(session)
+        Supervisor.terminate_session(session)
+
+        Telemetry.execute([:noise, :session, :dropped], %{count: 1}, %{
+          peer_id: peer_id,
+          role: role
+        })
+
+        {:reply, :ok, state}
+    end
   end
 
   def handle_call(:reset, _from, state) do

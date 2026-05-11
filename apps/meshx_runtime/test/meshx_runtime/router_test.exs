@@ -523,6 +523,23 @@ defmodule MeshxRuntime.RouterTest do
              MeshxNoise.Session.decrypt(remote_session, encrypted_packet.payload)
   end
 
+  test "drops Noise session on peer_down so reconnect renegotiates", %{
+    local: local,
+    remote: remote
+  } do
+    flush_transport_events()
+    {:ok, remote_session} = MeshxNoise.Session.start_link(role: :responder)
+    establish_remote_session(remote, remote_session)
+
+    assert SessionManager.established?("remote")
+
+    GenServer.cast(local, {:peer_down, "remote"})
+    assert_receive {:meshx_runtime, :peer_down, :memory, "remote"}, 1_000
+
+    refute SessionManager.established?("remote")
+    assert SessionManager.remote_key("remote") == nil
+  end
+
   test "reports secure handshake already in progress" do
     flush_transport_events()
 

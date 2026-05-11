@@ -133,6 +133,7 @@ defmodule MeshxRuntime.Router do
 
   def handle_info({:meshx_transport, transport, {:peer_down, peer_id}}, state) do
     :ok = PeerRegistry.down(peer_id)
+    :ok = SessionManager.drop(peer_id)
 
     Telemetry.execute([:router, :peer, :down], %{count: 1}, %{
       transport: transport,
