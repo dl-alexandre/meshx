@@ -21,8 +21,10 @@ defmodule MeshxScripts.BLESender do
     * `MESHX_PAYLOAD`   — payload bytes (default `hello-ble`)
     * `MESHX_TIMEOUT_MS` — wait budget for peer + Noise (default 60000)
     * `MESHX_BLE_ADAPTER`, `MESHX_BLE_SERVICE_UUID`, `MESHX_BLE_LOCAL_NAME`,
-      `MESHX_BLE_MTU` — forwarded to the BluezBridge. The service UUID must
-      match on both sides or discovery will not fire.
+      `MESHX_BLE_MTU`, `MESHX_BLE_COMMAND_TIMEOUT_MS` — forwarded to the
+      BluezBridge. The service UUID must match on both sides or discovery
+      will not fire. The command timeout defaults to 30s (BlueZ cold connect
+      can take 5–30s); shorten only if you know the peer is already paired.
   """
 
   alias MeshxProtocol.Packet
@@ -81,6 +83,7 @@ defmodule MeshxScripts.BLESender do
     |> put_env("MESHX_BLE_SERVICE_UUID", :service_uuid)
     |> put_env("MESHX_BLE_LOCAL_NAME", :local_name, id)
     |> put_env("MESHX_BLE_MTU", :mtu, nil, &String.to_integer/1)
+    |> put_env("MESHX_BLE_COMMAND_TIMEOUT_MS", :command_timeout_ms, nil, &String.to_integer/1)
   end
 
   defp put_env(opts, env_key, opt_key, default \\ nil, cast \\ & &1) do

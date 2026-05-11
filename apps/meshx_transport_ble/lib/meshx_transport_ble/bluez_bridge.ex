@@ -21,6 +21,9 @@ defmodule MeshxTransportBLE.BluezBridge do
   @default_tx_uuid "8f4f1203-6f3d-4f9c-9e3b-7f4a4f0f1000"
   @default_local_name "meshx"
   @default_mtu 185
+  # BlueZ LE connect can take 5–30s for a cold peer (scan window, bonding,
+  # GATT discovery). PortBridge default of 5s is too short for real hardware.
+  @default_command_timeout_ms 30_000
 
   @impl MeshxTransportBLE.Bridge
   def start_link(opts) do
@@ -29,6 +32,7 @@ defmodule MeshxTransportBLE.BluezBridge do
 
     opts
     |> Keyword.take([:event_target, :command_timeout_ms])
+    |> Keyword.put_new(:command_timeout_ms, @default_command_timeout_ms)
     |> Keyword.put(:command, command)
     |> Keyword.put(:args, args)
     |> Keyword.put(:command_ack?, true)
