@@ -108,7 +108,7 @@ child apps:
 | TCP | ✅ Stable | Production-ready for local networks |
 | UDP | ✅ Stable | Best-effort datagram delivery |
 | BLE | ⚠️ Partial | BlueZ bridge works on Linux; iOS/Android bridges are application-specific |
-| QUIC | 🔮 Planned | Requires `:quicer` optional dep; detection is runtime |
+| QUIC | ✅ Implemented | Requires `:quicer` optional dep; detection is runtime via `MeshxTransport.QUIC.available?/0` |
 | mDNS Discovery | ✅ Stable | LAN peer discovery via `MeshxRuntime.Discovery` |
 
 The runtime starts all transports you attach. Unattached transports have no
