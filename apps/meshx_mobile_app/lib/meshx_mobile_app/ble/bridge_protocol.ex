@@ -729,14 +729,55 @@ defmodule MeshxMobileApp.BLE.BridgeProtocol do
   defp extract_kind({kind, _}) when is_atom(kind), do: kind
   defp extract_kind(_), do: :unknown
 
+  # Binary fields carried base64-encoded on the JSON wire path
+  # (BleEvent.toJsonObject does .toBase64()). The atom-keyed NIF path
+  # delivers them as raw binaries already and never reaches this code.
+  @b64_top_level_fields ~w(advertisement message_id message_id_hash sender_peer_id_hash envelope)a
+  @b64_metadata_fields ~w(advertisement message_payload beacon_payload manufacturer_data)a
+
   defp atomize_top_level(map) do
     Enum.reduce(map, %{}, fn
-      {"v", v}, acc -> Map.put(acc, :v, v)
-      {"event", v}, acc -> Map.put(acc, :event, v)
-      {k, v}, acc when is_binary(k) -> Map.put(acc, safe_key(k), v)
-      {k, v}, acc -> Map.put(acc, k, v)
+      {"v", v}, acc ->
+        Map.put(acc, :v, v)
+
+      {"event", v}, acc ->
+        Map.put(acc, :event, v)
+
+      {"raw_transport_metadata", v}, acc when is_map(v) ->
+        Map.put(acc, :raw_transport_metadata, atomize_metadata(v))
+
+      {k, v}, acc when is_binary(k) ->
+        key = safe_key(k)
+        Map.put(acc, key, maybe_base64_decode(key, @b64_top_level_fields, v))
+
+      {k, v}, acc ->
+        Map.put(acc, k, v)
     end)
   end
+
+  # The JSON wire path nests raw_transport_metadata as a string-keyed map
+  # with base64 binary values. Atomize its keys and decode its binaries
+  # here so the shared normalize_raw_transport_metadata/1 (also used by
+  # the raw NIF path) just passes an already-canonical map through.
+  defp atomize_metadata(map) do
+    Enum.reduce(map, %{}, fn {k, v}, acc ->
+      key = normalize_metadata_key(k)
+      Map.put(acc, key, maybe_base64_decode(key, @b64_metadata_fields, v))
+    end)
+  end
+
+  defp maybe_base64_decode(key, binary_keys, value) when is_binary(value) do
+    if key in binary_keys do
+      case Base.decode64(value) do
+        {:ok, decoded} -> decoded
+        :error -> value
+      end
+    else
+      value
+    end
+  end
+
+  defp maybe_base64_decode(_key, _binary_keys, value), do: value
 
   defp normalize_raw_transport_metadata(%{} = metadata) do
     Enum.reduce(metadata, %{}, fn {key, value}, acc ->

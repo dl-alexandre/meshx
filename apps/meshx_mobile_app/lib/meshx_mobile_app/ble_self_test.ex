@@ -29,6 +29,11 @@ defmodule MeshxMobileApp.BleSelfTest do
   end
 
   @heartbeat_ms 5_000
+  # Re-dispatch a MeshX message on this interval. BleDispatcher only
+  # advertises for a 5s window per send, so a one-shot send-on-discovery
+  # easily misses the peer's scan window — a steady cadence keeps a
+  # dispatch advertisement on the air for the peer to catch.
+  @send_interval_ms 7_000
 
   @impl true
   def init(opts) do
@@ -38,7 +43,11 @@ defmodule MeshxMobileApp.BleSelfTest do
       local_name: local_name,
       discovered: MapSet.new(),
       event_count: 0,
-      meshx_peers: MapSet.new()
+      meshx_peers: MapSet.new(),
+      # device_ids we've already dispatched a MeshX message to (send once
+      # per peer) and the count of MeshX messages received from peers.
+      sent_to: MapSet.new(),
+      messages_received: 0
     }
 
     {:ok, state, {:continue, :start_ble}}
@@ -55,7 +64,25 @@ defmodule MeshxMobileApp.BleSelfTest do
 
     Logger.info("BleSelfTest: start_scan=#{inspect(scan)} start_advertising=#{inspect(adv)}")
     Process.send_after(self(), :heartbeat, @heartbeat_ms)
+    Process.send_after(self(), :send_message, @send_interval_ms)
     {:noreply, state}
+  end
+
+  @impl true
+  def handle_info(:send_message, state) do
+    # Broadcast a real MeshX message on a steady cadence. recipient is
+    # "broadcast" — any MeshX scanner in range ingests it. send_ping/3
+    # routes through meshx_ble_nif -> MeshxBleNative -> BleDispatcher,
+    # which builds a v1 MeshxMessageEnvelope and advertises it.
+    payload = "hello-from-#{state.local_name}-#{System.system_time(:second)}"
+    result = safe_call(fn -> :meshx_ble_nif.send_ping(self(), "broadcast", payload) end)
+
+    Logger.info(
+      "BleSelfTest: MESH MESSAGE SENT payload=#{inspect(payload)} result=#{inspect(result)}"
+    )
+
+    Process.send_after(self(), :send_message, @send_interval_ms)
+    {:noreply, %{state | sent_to: MapSet.put(state.sent_to, "broadcast")}}
   end
 
   @impl true
@@ -65,7 +92,9 @@ defmodule MeshxMobileApp.BleSelfTest do
     Logger.info(
       "BleSelfTest: HEARTBEAT events=#{state.event_count} " <>
         "devices=#{MapSet.size(state.discovered)} " <>
-        "meshx_peers=#{MapSet.size(state.meshx_peers)}"
+        "meshx_peers=#{MapSet.size(state.meshx_peers)} " <>
+        "msgs_sent=#{MapSet.size(state.sent_to)} " <>
+        "msgs_received=#{state.messages_received}"
     )
 
     Process.send_after(self(), :heartbeat, @heartbeat_ms)
@@ -84,6 +113,25 @@ defmodule MeshxMobileApp.BleSelfTest do
         {Adapter, :event, %MeshxMobileApp.BLE.Events.AdvertisementReceived{} = e} ->
           maybe_log_meshx_peer(e.device_id, e.rssi, e.advertisement, state)
 
+        {Adapter, :event, %MeshxMobileApp.BLE.Events.ReceivedMessage{} = e} ->
+          Logger.info(
+            "BleSelfTest: MESH MESSAGE RECEIVED from=#{e.sender_peer_id} " <>
+              "device_id=#{e.received_device_id} " <>
+              "payload=#{inspect(message_payload(e.envelope))}"
+          )
+
+          %{state | messages_received: state.messages_received + 1}
+
+        {Adapter, :event, %MeshxMobileApp.BLE.Events.ReceivedMessageBeacon{} = e} ->
+          Logger.info(
+            "BleSelfTest: MESH MESSAGE BEACON RECEIVED " <>
+              "msg_id_hash=#{Base.encode16(e.message_id_hash, case: :lower)} " <>
+              "sender_hash=#{Base.encode16(e.sender_peer_id_hash, case: :lower)} " <>
+              "kind=#{e.payload_kind} device_id=#{e.received_device_id}"
+          )
+
+          %{state | messages_received: state.messages_received + 1}
+
         {Adapter, :event, %MeshxMobileApp.BLE.Events.Error{} = e} ->
           Logger.warning("BleSelfTest: bridge error #{e.kind}: #{e.detail}")
           state
@@ -94,6 +142,16 @@ defmodule MeshxMobileApp.BleSelfTest do
 
     {:noreply, state}
   end
+
+  def handle_info(other, state) do
+    Logger.debug("BleSelfTest: unexpected #{inspect(other)}")
+    {:noreply, state}
+  end
+
+  # The full-envelope path carries the payload; pull it out for the log
+  # line. Beacons carry only a hash, handled separately above.
+  defp message_payload(%{payload: payload}) when is_binary(payload), do: payload
+  defp message_payload(_), do: :hash_only
 
   # A MeshX peer tablet advertises its adapter name ("meshx-<suffix>");
   # that ASCII lands in the raw advertisement bytes. Log the first sight
@@ -116,7 +174,7 @@ defmodule MeshxMobileApp.BleSelfTest do
           "name=#{extract_name(bytes)}"
       )
 
-      %{state | meshx_peers: MapSet.put(state.meshx_peers, device_id)}
+      Map.update!(state, :meshx_peers, &MapSet.put(&1, device_id))
     else
       state
     end
@@ -153,11 +211,6 @@ defmodule MeshxMobileApp.BleSelfTest do
     |> Enum.chunk_by(&(&1 in 32..126))
     |> Enum.filter(fn run -> hd(run) in 32..126 and length(run) >= 4 end)
     |> Enum.map(&List.to_string/1)
-  end
-
-  def handle_info(other, state) do
-    Logger.debug("BleSelfTest: unexpected #{inspect(other)}")
-    {:noreply, state}
   end
 
   defp safe_call(fun) do
