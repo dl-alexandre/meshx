@@ -641,6 +641,9 @@ defmodule MeshxMobileApp.BLE.LocalInboxUxEvidenceReview do
       |> Enum.map(&Map.fetch!(&1, evidence_field))
       |> Enum.filter(&present?/1)
       |> Enum.reject(&(&1 in allowed_values))
+      # Display as strings: atom_value/1 atomizes a value only when its atom
+      # already exists, so the raw values are an unpredictable atom/string mix.
+      |> Enum.map(&to_string/1)
       |> Enum.uniq()
       |> Enum.sort()
 

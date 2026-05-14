@@ -274,6 +274,9 @@ defmodule Mix.Tasks.MeshxMobileLocalInboxUxReviewTest do
             "target_device_id" => "sm-t390",
             "evidence_kind" => "screenshot",
             "artifact_path" => "artifacts/local-ble/run/ux/selected-detail-#{state}.png",
+            "limitation_copy" => "#{state} detail is a local BLE observation",
+            "next_action_copy" => "#{state} next action is visible",
+            "blocked_claim_copy" => "#{state} detail does not claim delivery or trust",
             "notes" => "#{state} selected detail limitation and next-action copy visible"
           }
         end),

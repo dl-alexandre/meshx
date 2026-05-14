@@ -4,7 +4,10 @@
 #   mise install    https://mise.jdx.dev  (recommended — brew install mise)
 #   asdf install    https://asdf-vm.com
 #
-# OTP 29 matches the device runtime tarballs. Java 17 LTS is required for Gradle.
-erlang 29.0-rc3
-elixir 1.20.0-rc.4-otp-29
+# Pinned to stable OTP 28 / Elixir 1.19. OTP 29.0 + Elixir 1.20-rc.4 hang or
+# get OOM-killed compiling deps on Apple Silicon (OTP 29 JIT regression, fixed
+# in 29.1). Revisit OTP 29 after 29.1 ships and Elixir 1.20 is stable.
+# Java 17 LTS is required for Gradle.
+erlang 28.4.2
+elixir 1.19.5-otp-28
 java temurin-17.0.18

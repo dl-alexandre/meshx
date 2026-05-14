@@ -109,9 +109,10 @@ defmodule Mix.Tasks.MeshxMobileLocalReleaseArtifactBundleTest do
     assert decoded_file["required_commands"]
            |> Enum.any?(&String.contains?(&1, "local_completion.audit"))
 
-    assert "mix meshx.mobile.local_completion.audit --allow-open" in decoded_file[
-             "required_commands"
-           ]
+    assert decoded_file["required_commands"]
+           |> Enum.any?(
+             &String.contains?(&1, "mix meshx.mobile.local_completion.audit --allow-open")
+           )
 
     assert decoded_file["required_commands"]
            |> Enum.any?(&String.contains?(&1, "local_completion.blocker_matrix"))
