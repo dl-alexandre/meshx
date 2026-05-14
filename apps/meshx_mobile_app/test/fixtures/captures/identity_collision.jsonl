@@ -1,0 +1,9 @@
+# Synthetic fixture: the *same* device_id reports two different MeshX
+# peer ids over time. This is the suspicious case — a transport device
+# shouldn't have its stable identity change mid-flight. The peer table
+# must keep the first claim, bump identity_collision_count, and record
+# the conflicting claim as `last_conflicting_peer_id` for inspection.
+{"v":1,"event":"device_discovered","device_id":"AA:00:00:00:00:01","rssi":-50,"advertisement":"DAltZXNoeC1hbHBoYQ==","observed_at_ms":1000}
+{"v":1,"event":"advertisement_received","device_id":"AA:00:00:00:00:01","rssi":-52,"advertisement":"DAltZXNoeC1hbHBoYQ==","observed_at_ms":1500}
+{"v":1,"event":"advertisement_received","device_id":"AA:00:00:00:00:01","rssi":-55,"advertisement":"CwltZXNoeC1iZXRh","observed_at_ms":2000}
+{"v":1,"event":"advertisement_received","device_id":"AA:00:00:00:00:01","rssi":-57,"advertisement":"CwltZXNoeC1iZXRh","observed_at_ms":2500}

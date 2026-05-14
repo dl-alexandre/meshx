@@ -1,0 +1,8 @@
+# Synthetic fixture: peer advertising a hypothetical v2 capability
+# block (`protocol_version=2`, flags=0x1F = all five named caps set
+# including the message_exchange + crypto_identity bits that this
+# runtime treats as reserved). Two trailing bytes (0xAA 0xBB)
+# represent forward-compat additions a future version might define.
+# Used to assert that the v1 parser preserves unknown_payload and
+# surfaces the v1-compatible flag bits without crashing.
+{"v":1,"event":"device_discovered","device_id":"BB:00:00:00:00:02","rssi":-55,"advertisement":"B/9NWAIfqrsLCW1lc2h4LWJldGE=","observed_at_ms":2000}

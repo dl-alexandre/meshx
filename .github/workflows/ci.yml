@@ -51,6 +51,70 @@ jobs:
       - name: Run tests
         run: mix test
 
+      - name: Audit advert gossip scenarios
+        run: mix meshx.mobile.advert_gossip.audit apps/meshx_mobile_app/test/fixtures/advert_gossip_scenarios
+
+      - name: Generate mobile local release manifests
+        run: |
+          mix meshx.mobile.local_readiness.audit --allow-open --out tmp/ci-local-readiness.json
+          mix meshx.mobile.local_completion.audit --allow-open | tee tmp/ci-local-completion-audit.txt
+          mix meshx.mobile.local_completion.audit --allow-open --json --out tmp/ci-local-completion-audit.json
+          mix meshx.mobile.local_completion.blocker_matrix --json --out tmp/ci-local-completion-blocker-matrix.json
+          mix meshx.mobile.local_release.artifact_bundle --json --out tmp/ci-local-release-artifact-bundle.json
+          mix meshx.mobile.local_release.manifest --json --out tmp/ci-local-release.json
+          mix run -e '
+          readiness = "tmp/ci-local-readiness.json" |> File.read!() |> JSON.decode!()
+          completion_audit = "tmp/ci-local-completion-audit.json" |> File.read!() |> JSON.decode!()
+          blocker_matrix = "tmp/ci-local-completion-blocker-matrix.json" |> File.read!() |> JSON.decode!()
+          artifact_bundle = "tmp/ci-local-release-artifact-bundle.json" |> File.read!() |> JSON.decode!()
+          release = "tmp/ci-local-release.json" |> File.read!() |> JSON.decode!()
+          plain_completion_audit = File.read!("tmp/ci-local-completion-audit.txt")
+
+          unless readiness["open_item_count"] == 10 do
+            raise "unexpected local readiness open item count"
+          end
+
+          unless String.contains?(plain_completion_audit, "OPEN_ITEMS 10") do
+            raise "plain completion audit must list open item count"
+          end
+
+          unless String.contains?(plain_completion_audit, "OPEN_ITEM objective=full_message_resolution status=blocked") do
+            raise "plain completion audit must list blocked full message resolution"
+          end
+
+          unless String.contains?(plain_completion_audit, "OPEN_ITEM objective=release_hardening status=partial") do
+            raise "plain completion audit must list partial release hardening"
+          end
+
+          unless completion_audit["completion_claim_allowed?"] == false do
+            raise "local completion audit must not allow whole-project completion"
+          end
+
+          unless blocker_matrix["completion_claim_allowed?"] == false do
+            raise "local blocker matrix must not allow whole-project completion"
+          end
+
+          unless artifact_bundle["release_candidate_complete?"] == false do
+            raise "local release artifact bundle must keep release candidate completion open"
+          end
+
+          unless Enum.any?(artifact_bundle["required_commands"], &String.contains?(&1, "local_release.manifest")) do
+            raise "local release artifact bundle must expose required command gates"
+          end
+
+          unless Enum.any?(artifact_bundle["required_commands"], &String.contains?(&1, "local-completion-audit.txt")) do
+            raise "local release artifact bundle must expose plain completion audit archive command"
+          end
+
+          unless release["whole_project_complete?"] == false do
+            raise "local release manifest must not claim whole-project completion"
+          end
+
+          unless release["policy_gates"]["routing"]["routing_claims_allowed?"] == false do
+            raise "local release manifest must block routing claims"
+          end
+          '
+
       - name: Run coverage
         run: mix test --cover
 

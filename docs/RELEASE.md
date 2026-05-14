@@ -13,7 +13,7 @@ resolved coherently on the Hex registry.
 
 ## Why Hex Is Deferred
 
-MeshX is an **umbrella project** with seven child applications. Several of
+MeshX is an **umbrella project** with eight child applications. Several of
 them depend on sibling apps via `in_umbrella: true`. Hex does not allow
 `in_umbrella` dependencies in published packages — only Hex-resolvable
 version constraints are accepted.
@@ -31,11 +31,13 @@ The following order resolves the dependency graph from leaves to root:
 3. **`meshx_noise`** — no internal deps; pure library (uses `decibel`)
 4. **`meshx_store`** — no internal deps; pure library (uses `cubdb`)
 5. **`meshx_mob`** — no internal deps; pure library
-6. **`meshx_runtime`** — depends on `meshx_protocol`, `meshx_noise`, `meshx_store`, `meshx_transport`, `meshx_transport_ble`, `meshx_mob`, `telemetry`
-7. **`meshx_transport_ble`** — depends on `meshx_transport`
+6. **`meshx_transport_ble`** — depends on `meshx_transport`
+7. **`meshx_runtime`** — depends on `meshx_protocol`, `meshx_noise`, `meshx_store`, `meshx_transport`, `meshx_transport_ble`, `meshx_mob`, `telemetry`
+8. **`meshx_mobile_app`** — deployable Mob app; publish only if it is split into a reusable package
 
-Once step 6 is complete, the full runtime is available on Hex. Step 7
-provides the BLE bridge for platforms that need it.
+Once step 7 is complete, the full runtime is available on Hex. Step 8 is not
+required for the core library release; it is the application shell that consumes
+the published packages.
 
 ## Platform-Specific Dependencies
 
@@ -74,6 +76,17 @@ Before any version bump:
 
 - [ ] `mix format --check-formatted` passes
 - [ ] `mix test` passes (all 200 tests)
+- [ ] `mix meshx.mobile.advert_gossip.audit apps/meshx_mobile_app/test/fixtures/advert_gossip_scenarios` passes
+- [ ] `mix meshx.mobile.local_readiness.audit --allow-open --out tmp/local-readiness.json` archived for mobile advert-only status
+- [ ] `mix meshx.mobile.local_completion.audit --allow-open | tee tmp/local-completion-audit.txt` archived for plain-text open-objective review
+- [ ] `mix meshx.mobile.local_completion.audit --allow-open --json --out tmp/local-completion-audit.json` archived for whole-project completion audit
+- [ ] `mix meshx.mobile.local_completion.blocker_matrix --json --out tmp/local-completion-blocker-matrix.json` archived for whole-project blocker classification
+- [ ] `mix meshx.mobile.local_release.artifact_bundle --json --out tmp/local-release-artifact-bundle.json` archived for release-candidate artifact checklist
+- [ ] `tmp/local-release-artifact-bundle.json` reviewed for `required_commands`; generated and review command gates remain visible
+- [ ] `mix meshx.mobile.local_release.manifest --json --out tmp/local-release.json` archived for mobile advert-only release boundary
+- [ ] CI `Generate mobile local release manifests` step passes on the release commit
+- [ ] Completion audit section in `tmp/local-release.json` reviewed; whole-project completion remains false unless every blocker is closed
+- [ ] Hardware evidence section in `tmp/local-release.json` reviewed; open gates remain called out in release notes
 - [ ] `mix credo --format=oneline` passes
 - [ ] `mix dialyzer --format short` passes
 - [ ] `mix xref graph --format cycles --label compile-connected --fail-above 0` passes
@@ -109,12 +122,66 @@ GitHub Actions runs the full validation pipeline on every push:
 - Format check
 - Compile with `--warnings-as-errors`
 - Test suite
+- Advert gossip scenario audit
 - BlueZ bridge self-test
 - Credo static analysis
 - Dialyzer type analysis
 - Compile-time dependency cycle check
 
 The CI configuration is in `.github/workflows/ci.yml`.
+
+## Mobile Advertisement-Only Release Boundary
+
+The current validated mobile BLE mode is advertisement-only local mesh.
+For any release note or operator artifact that references this mode,
+archive both machine-readable manifests:
+
+```bash
+mix meshx.mobile.local_readiness.audit --allow-open --out tmp/local-readiness.json
+mix meshx.mobile.local_completion.audit --allow-open | tee tmp/local-completion-audit.txt
+mix meshx.mobile.local_completion.audit --allow-open --json --out tmp/local-completion-audit.json
+mix meshx.mobile.local_completion.blocker_matrix --json --out tmp/local-completion-blocker-matrix.json
+mix meshx.mobile.local_release.artifact_bundle --json --out tmp/local-release-artifact-bundle.json
+mix meshx.mobile.local_release.manifest --json --out tmp/local-release.json
+```
+
+The local release manifest is intentionally constrained. It may describe
+"messages seen nearby" from passive BLE advertisement observations. It
+must not claim whole-project completion, guaranteed delivery, trusted
+message delivery, live routing, background mobile behavior, iOS
+advert-only participation, or full message resolution from beacon refs.
+
+The manifest's `completion_audit` section is the whole-project claim
+gate. It maps the ten project-level objectives to readiness status,
+required artifacts, current evidence, and missing evidence. A release
+candidate can ship the validated advert-only mode with limitations, but
+`completion_claim_allowed?` must remain false until blocked and partial
+items are closed by real evidence. The plain-text completion audit output
+must also list `OPEN_ITEMS 10` and one `OPEN_ITEM` line for each remaining
+objective before the release candidate is accepted.
+
+The standalone `tmp/local-completion-blocker-matrix.json` artifact classifies
+remaining completion work by hardware, transport, product, implementation,
+security, and release-evidence blockers. Hardware-blocked items must stay
+separate from work that can progress through product or release decisions.
+
+The manifest's `hardware_evidence` section is a release-candidate
+checklist. It records which hardware gates have passed and which remain
+open. It is not itself hardware proof; attach the referenced summaries,
+logs, or validation ledgers when preparing a release candidate.
+
+The manifest's `artifact_bundle` section is the operator packaging
+checklist. It names generated files, embedded manifest sections, required
+hardware attachments, blocked claims, and the `required_commands` list derived
+from generated/review artifact sources. Use
+`docs/local_ble_release_artifact_bundle.md` as the human release-candidate
+checklist, and keep any open operator attachments visible in release notes.
+
+Local inbox persistence is memory-only by default for this release
+boundary. Opt-in durable snapshots may be enabled for local read models,
+but durable persistence must not be described as default app lifecycle
+behavior until migration, cleanup, background-safe write, operator
+controls, and on-device restore evidence exist.
 
 ---
 

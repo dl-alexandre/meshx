@@ -1,0 +1,41 @@
+{
+  "name": "partitioned_four_nodes",
+  "rounds": 3,
+  "ttl": 3,
+  "now": 1000,
+  "round_interval_ms": 1000,
+  "policy": {
+    "min_interval_ms": 10000,
+    "max_intents": 16,
+    "default_ttl": 3,
+    "max_hops": 4,
+    "neighbor_cooldown_ms": 0
+  },
+  "nodes": [
+    {"id": "A", "capture": "../captures/legacy_beacon_advertisement.jsonl"},
+    {"id": "B"},
+    {"id": "C"},
+    {"id": "D"}
+  ],
+  "links": {
+    "A": ["B"],
+    "B": ["A"],
+    "C": ["D"],
+    "D": ["C"]
+  },
+  "expected": {
+    "delivery_counts": {
+      "delivered": 1,
+      "suppressed_loop": 1
+    },
+    "node_beacon_counts": {
+      "A": 1,
+      "B": 1,
+      "C": 0,
+      "D": 0
+    },
+    "delivered_paths": [
+      {"from": "A", "to": "B", "path": ["A", "B"], "hop_count": 1}
+    ]
+  }
+}

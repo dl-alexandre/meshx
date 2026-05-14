@@ -1,0 +1,8 @@
+{"v":1,"event":"device_discovered","device_id":"4F:9C:5A:DC:6E:6D","rssi":-50,"advertisement":"AgEaAgoMCv9MABAFBBzMjFoLCW1lc2h4LWlwYWQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","observed_at_ms":761035}
+{"v":1,"event":"advertisement_received","device_id":"4F:9C:5A:DC:6E:6D","rssi":-50,"advertisement":"AgEaAgoMCv9MABAFBBzMjFoLCW1lc2h4LWlwYWQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","observed_at_ms":761312}
+{"v":1,"event":"advertisement_received","device_id":"4F:9C:5A:DC:6E:6D","rssi":-52,"advertisement":"AgEaAgoMCv9MABAFBBzMjFoLCW1lc2h4LWlwYWQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","observed_at_ms":761587}
+{"v":1,"event":"advertisement_received","device_id":"4F:9C:5A:DC:6E:6D","rssi":-54,"advertisement":"AgEaAgoMCv9MABAFBBzMjFoLCW1lc2h4LWlwYWQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","observed_at_ms":761858}
+{"v":1,"event":"advertisement_received","device_id":"4F:9C:5A:DC:6E:6D","rssi":-53,"advertisement":"AgEaAgoMCv9MABAFBBzMjFoLCW1lc2h4LWlwYWQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","observed_at_ms":762133}
+{"v":1,"event":"advertisement_received","device_id":"4F:9C:5A:DC:6E:6D","rssi":-52,"advertisement":"AgEaAgoMCv9MABAFBBzMjFoLCW1lc2h4LWlwYWQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","observed_at_ms":762405}
+{"v":1,"event":"advertisement_received","device_id":"4F:9C:5A:DC:6E:6D","rssi":-53,"advertisement":"AgEaAgoMCv9MABAFBBzMjFoLCW1lc2h4LWlwYWQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","observed_at_ms":762679}
+{"v":1,"event":"advertisement_received","device_id":"4F:9C:5A:DC:6E:6D","rssi":-52,"advertisement":"AgEaAgoMCv9MABAFBBzMjFoLCW1lc2h4LWlwYWQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","observed_at_ms":762964}

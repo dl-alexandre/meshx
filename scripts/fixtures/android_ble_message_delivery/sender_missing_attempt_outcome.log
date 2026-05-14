@@ -1,0 +1,1 @@
+05-11 18:26:21.619  7670  7670 I MeshxBleDispatch: {"v":1,"event":"advertising_set_started","attempt_id":"spike-att-0","payload_size":60,"payload":"TVgBAAABAgMEBQYHCAkKCwwNDg8AAAGLz+VoAAELbWVzaHgtYWxwaGEKbWVzaHgtYmV0YQJUWAAAAmhp","tx_power":-7,"window_ms":5000,"connectable":false,"scannable":true,"data_carrier":"scan_response"}

@@ -1,0 +1,11 @@
+/_build/
+/deps/
+/doc/
+/.fetch
+*.ez
+*.beam
+mob.exs
+ios/build_device_meshx.sh
+android/local.properties
+android/.gradle/
+android/app/build/

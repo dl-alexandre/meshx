@@ -1,0 +1,3 @@
+PASS line_three_nodes %{"delivered" => 2, "suppressed_loop" => 1, "ttl_expired" => 1}
+PASS partitioned_four_nodes %{"delivered" => 1, "suppressed_loop" => 1}
+PASS triangle_duplicate_seen %{"delivered" => 2, "suppressed_loop" => 2, "suppressed_seen" => 4}

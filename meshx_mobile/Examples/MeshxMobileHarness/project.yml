@@ -1,0 +1,37 @@
+name: MeshxMobileHarness
+
+options:
+  bundleIdPrefix: dev.meshx
+  deploymentTarget:
+    iOS: "16.0"
+
+packages:
+  MeshxMobile:
+    path: ../..
+
+targets:
+  MeshxMobileHarness:
+    type: application
+    platform: iOS
+    deploymentTarget: "16.0"
+    sources:
+      - path: MeshxMobileHarness
+    dependencies:
+      - package: MeshxMobile
+        product: MeshxMobile
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.meshx.mobile.harness
+        PRODUCT_NAME: Meshx Mobile Harness
+        SWIFT_VERSION: "5.9"
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription: "MeshX Mobile Harness scans for nearby MeshX BLE peers."
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+
+schemes:
+  MeshxMobileHarness:
+    build:
+      targets:
+        MeshxMobileHarness: all
+    run:
+      config: Debug

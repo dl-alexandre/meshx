@@ -85,6 +85,11 @@ child apps:
 
 - **`meshx_runtime`** — Top-level OTP application. Depends on all other components and starts the supervision tree.
 
+### Mobile App
+
+- **`meshx_mobile_app`** — Mob-based iOS app shell. Runs the MeshX runtime inside
+  the on-device BEAM and delegates platform BLE to a native bridge contract.
+
 ## Implemented Components
 
 - `MeshxProtocol.Packet`, `Ack`, `Framing`, `Fragment`, `Gossip`, and `Codec`
@@ -93,6 +98,7 @@ child apps:
 - `MeshxTransport.Peer`, `Capabilities`, `Event`, `Memory`, `Memory.Hub`, `TCP`, `UDP`, and `QUIC`
 - `MeshxTransportBLE.Bridge`, `NoopBridge`, `PortBridge`, and `BluezBridge`
 - `MeshxMob.Platform`
+- `MeshxMobileApp.Session`, `HomeScreen`, and native bridge contract
 - `MeshxRuntime.SessionManager`, `FragmentBuffer`, `PeerRegistry`, `Router`, `Outbox`, and `Topology`
 
 ## Transport and Runtime Status
@@ -190,6 +196,9 @@ Relay broadcasts skip peers that advertise `relay: false`.
 ├─────────────────────────────────────────────────────┤
 │  meshx_protocol   meshx_noise     meshx_store      │
 │  meshx_transport  meshx_transport_ble  meshx_mob   │
+├─────────────────────────────────────────────────────┤
+│                   meshx_mobile_app                  │
+│       (Mob iOS shell + mobile session boundary)     │
 └─────────────────────────────────────────────────────┘
 ```
 

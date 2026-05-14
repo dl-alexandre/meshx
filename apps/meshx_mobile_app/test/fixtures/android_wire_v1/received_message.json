@@ -1,0 +1,21 @@
+{
+  "v": 1,
+  "event": "received_message",
+  "message_id": "AAAAAAAAAAAAAAAAAAAAAQ==",
+  "sender_peer_id": "meshx-alpha",
+  "recipient_peer_id": "meshx-beta",
+  "received_device_id": "AA:BB:CC:DD:EE:01",
+  "received_at": 12345,
+  "rssi": -61,
+  "envelope": "TVgBAAAAAAAAAAAAAAAAAAAAAAEAAAGLz+VoAAELbWVzaHgtYWxwaGEKbWVzaHgtYmV0YQJUWAAAAmhp",
+  "raw_transport_metadata": {
+    "transport": "ble_advertisement",
+    "source_event": "advertisement_received",
+    "received_device_id": "AA:BB:CC:DD:EE:01",
+    "advertisement": "AgEGP////01YAQAAAAAAAAAAAAAAAAAAAAABAAABi8/laAABC21lc2h4LWFscGhhCm1lc2h4LWJldGECVFgAAAJoaQ==",
+    "message_payload": "TVgBAAAAAAAAAAAAAAAAAAAAAAEAAAGLz+VoAAELbWVzaHgtYWxwaGEKbWVzaHgtYmV0YQJUWAAAAmhp",
+    "manufacturer_data": "//9NWAEAAAAAAAAAAAAAAAAAAAAAAQAAAYvP5WgAAQttZXNoeC1hbHBoYQptZXNoeC1iZXRhAlRYAAACaGk=",
+    "company_identifier": 65535,
+    "ad_type": 255
+  }
+}

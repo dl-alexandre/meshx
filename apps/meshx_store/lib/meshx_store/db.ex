@@ -17,6 +17,7 @@ defmodule MeshxStore.DB do
   | `:trust`   | `{:trust, peer_id}`      | `MeshxStore.Trust`   |
   | `:message` | `{:message, msg_id}`     | `MeshxStore.Message` |
   | `:outbox`  | `{:outbox, id}`          | `MeshxStore.Outbox`  |
+  | `:mobile_local_inbox` | `{:mobile_local_inbox, snapshot_id}` | `MeshxMobileApp.BLE.LocalInboxStore` |
 
   """
   use GenServer

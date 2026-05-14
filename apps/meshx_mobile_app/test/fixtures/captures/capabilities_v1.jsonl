@@ -1,0 +1,5 @@
+# Synthetic fixture: peer advertising v1 MeshX capabilities
+# (bits 0,1,2 = supports_replay_contract, supports_passive_presence,
+# supports_churn) plus a Local Name `meshx-alpha`.
+{"v":1,"event":"device_discovered","device_id":"AA:00:00:00:00:01","rssi":-50,"advertisement":"Bf9NWAEHDAltZXNoeC1hbHBoYQ==","observed_at_ms":1000}
+{"v":1,"event":"advertisement_received","device_id":"AA:00:00:00:00:01","rssi":-52,"advertisement":"Bf9NWAEHDAltZXNoeC1hbHBoYQ==","observed_at_ms":1500}

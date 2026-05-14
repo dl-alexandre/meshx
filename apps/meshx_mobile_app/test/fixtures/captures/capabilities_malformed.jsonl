@@ -1,0 +1,9 @@
+# Synthetic fixture: malformed capability advertisements that the
+# parser must tolerate without crashing.
+#
+# Line 1: AD record claims 10 payload bytes but only 3 actually follow.
+#         Truncated — parser returns defaults, no inventory damage.
+# Line 2: MX marker present but no version byte. Parser treats it as
+#         an empty MeshX record, defaults returned.
+{"v":1,"event":"device_discovered","device_id":"CC:00:00:00:00:03","rssi":-70,"advertisement":"Cv9NWA==","observed_at_ms":3000}
+{"v":1,"event":"device_discovered","device_id":"DD:00:00:00:00:04","rssi":-72,"advertisement":"A/9NWAwJbWVzaHgtZ2FtbWE=","observed_at_ms":3100}

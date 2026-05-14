@@ -1,0 +1,6 @@
+{
+  "v": 1,
+  "event": "error",
+  "kind": "scan_failed",
+  "detail": "scan failed (code=3)"
+}

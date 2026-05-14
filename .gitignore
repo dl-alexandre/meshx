@@ -32,3 +32,11 @@ erl_crash.dump
 
 # Ignore Hex package tarballs built during local testing.
 *.tar
+
+# Ad-hoc BLE capture sessions; checked-in fixtures live under apps/*/test/fixtures/captures/.
+apps/*/priv/captures/
+
+# Android Gradle build artifacts
+apps/*/android/build/
+apps/*/android/.gradle/
+apps/*/android/local.properties

@@ -71,6 +71,16 @@ CoreBluetooth or Android BLE bridge modules behind the same behaviour.
 - `MeshxRuntime.Discovery` provides opt-in LAN peer discovery through a compact
   UDP beacon and mDNS/DNS-SD service records for `_meshx._udp.local`.
 
+### Mobile App
+
+`meshx_mobile_app` is the deployable Mob app. Its UI and session state run in
+Elixir on the device BEAM, start `meshx_runtime`, and talk to platform BLE
+through `MeshxMobileApp.NativeBridge`.
+
+The existing Swift package under `meshx_mobile/` remains the interop and native
+BLE harness. Production mobile UI should be built in the Mob app; Swift and
+platform code should sit behind the bridge boundary.
+
 ## Event Flow
 
 Inbound:

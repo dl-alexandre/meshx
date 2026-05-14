@@ -1,0 +1,6 @@
+--------- beginning of main
+--------- beginning of system
+05-12 20:38:22.634 10428 10428 I MeshxGattInterop: {"v":1,"event":"interop_connect_start","target_address":"B4:0B:1D:AB:24:3C","transport_mode":"transport_le","device_model":"SM-T390","android_api":28,"adapter_state":"on","adapter_enabled":true}
+05-12 20:38:27.683 10428 10460 I MeshxGattInterop: {"v":1,"event":"interop_connect_result","target_address":"B4:0B:1D:AB:24:3C","gatt_status":133,"gatt_reason":"android_gatt_error","state":0,"state_name":"disconnected","transport_mode":"transport_le","device_model":"SM-T390","android_api":28,"adapter_state":"on","adapter_enabled":true}
+05-12 20:38:27.693 10428 10460 I MeshxGattInterop: {"v":1,"event":"interop_disconnect","target_address":"B4:0B:1D:AB:24:3C","phase":"connect","terminal_event":"connect_failed","reason":"android_gatt_error","device_model":"SM-T390","android_api":28,"adapter_state":"on","adapter_enabled":true}
+05-12 20:38:27.725 10428 10460 I MeshxGattInterop: {"v":1,"event":"interop_closed","target_address":"B4:0B:1D:AB:24:3C","phase":"connect","terminal_event":"connect_failed","reason":"android_gatt_error","device_model":"SM-T390","android_api":28,"adapter_state":"on","adapter_enabled":true}

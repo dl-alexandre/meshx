@@ -62,7 +62,7 @@ defmodule Meshx.MixProject do
 
   defp umbrella_ebin_paths do
     apps = ~w(meshx_protocol meshx_noise meshx_store meshx_transport
-              meshx_transport_ble meshx_mob meshx_runtime)
+              meshx_transport_ble meshx_mob meshx_runtime meshx_mobile_app)
 
     Enum.map(apps, fn app -> "_build/#{Mix.env()}/lib/#{app}/ebin" end)
   end

@@ -1,0 +1,8 @@
+{
+  "v": 1,
+  "event": "device_discovered",
+  "device_id": "AA:BB:CC:DD:EE:01",
+  "rssi": -55,
+  "advertisement": "AgEG",
+  "observed_at_ms": 12345
+}

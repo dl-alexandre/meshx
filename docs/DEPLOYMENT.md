@@ -30,6 +30,26 @@ The release boots `meshx_runtime`, which transitively starts `meshx_store`,
 `meshx_transport`, `meshx_noise`, and `meshx_mob`. Override any per-app
 env via `RELEASE_*` variables or `runtime.exs`.
 
+## Mobile Deploys
+
+The deployable mobile app is `apps/meshx_mobile_app`, generated from Mob and
+configured for iOS. It runs the MeshX runtime inside the app's on-device BEAM:
+
+```bash
+cd apps/meshx_mobile_app
+mix deps.get
+mix mob.deploy --native
+```
+
+Mob deploys need a local `mob.exs` with machine-specific paths. Keep that file
+untracked and use `mob.example.exs` as the template. BLE hardware behavior still
+depends on the native bridge implementation selected by
+`config :meshx_mobile_app, :native_bridge`.
+
+For physical iOS devices, run `mix mob.provision` from the mobile app directory
+before `mix mob.deploy --native --device <device-id>` so Xcode creates a
+development provisioning profile for the app bundle.
+
 ### Required environment
 
 | Variable | Purpose | Example |
