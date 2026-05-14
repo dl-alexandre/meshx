@@ -24,8 +24,17 @@ defmodule MeshxMobileApp.App do
   defp configure_native_bridge do
     case :mob_nif.platform() do
       :ios ->
-        if ios_bridge_available?() do
+        if ble_nif_available?() do
           Application.put_env(:meshx_mobile_app, :native_bridge, MeshxMobileApp.NativeBridge.IOS)
+        end
+
+      :android ->
+        if ble_nif_available?() do
+          Application.put_env(
+            :meshx_mobile_app,
+            :native_bridge,
+            MeshxMobileApp.NativeBridge.Android
+          )
         end
 
       _platform ->
@@ -33,7 +42,10 @@ defmodule MeshxMobileApp.App do
     end
   end
 
-  defp ios_bridge_available? do
+  # Both platform bridges sit behind the same `:meshx_ble_nif` Erlang
+  # surface — statically linked on iOS, JNI-backed on Android — so the
+  # availability probe is shared.
+  defp ble_nif_available? do
     match?({:module, :meshx_ble_nif}, Code.ensure_loaded(:meshx_ble_nif))
   end
 
