@@ -161,8 +161,13 @@ endif()  # NOT EXISTS ZIG_LIB_SO
 # (mirrors libsqlite3_nif.so into jniLibs/<abi>/ alongside lib<app>.so).
 # CMake only takes over when build.zig didn't run — same fallback logic
 # as the main library above.
+#
+# meshx_mobile_app does not depend on exqlite (persistence is CubDB,
+# pure Elixir, no NIF). The stock mob.new CMakeLists hard-codes this
+# target; gate it on the exqlite sources actually being present so the
+# CMake configure step doesn't fail on the missing deps/exqlite tree.
 set(ZIG_SQLITE_SO "${_PROJECT_ROOT}/android/app/src/main/jniLibs/${ANDROID_ABI}/libsqlite3_nif.so")
-if(NOT EXISTS "${ZIG_SQLITE_SO}")
+if(NOT EXISTS "${ZIG_SQLITE_SO}" AND EXISTS "${MOB_DEPS_DIR}/exqlite/c_src/sqlite3_nif.c")
     add_library(sqlite3_nif SHARED
         ${MOB_DEPS_DIR}/exqlite/c_src/sqlite3_nif.c
         ${MOB_DEPS_DIR}/exqlite/c_src/sqlite3.c

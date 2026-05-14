@@ -9,6 +9,8 @@ defmodule MeshxMobileApp.App do
 
   use Mob.App
 
+  require Logger
+
   @impl Mob.App
   def navigation(_platform) do
     stack(:meshx, root: MeshxMobileApp.HomeScreen, title: "MeshX")
@@ -18,7 +20,25 @@ defmodule MeshxMobileApp.App do
   def on_start do
     configure_native_bridge()
     start_meshx_runtime()
+    maybe_start_distribution()
     Mob.Screen.start_root(MeshxMobileApp.HomeScreen)
+  end
+
+  # Erlang distribution for on-device introspection during bring-up
+  # (`mix mob.connect`). The node name is derived from the device
+  # serial by the deployer via the `mob_node_suffix` intent extra, so
+  # multiple devices on the same EPMD don't collide. Best-effort —
+  # the mesh itself runs over BLE, not distribution.
+  defp maybe_start_distribution do
+    suffix = System.get_env("MOB_NODE_SUFFIX") || "dev"
+    node = :"meshx_mobile_app_android_#{suffix}@127.0.0.1"
+
+    case Mob.Dist.ensure_started(node: node, cookie: :meshx_mob_secret) do
+      :ok -> Logger.info("meshx_mobile_app: distribution up as #{node}")
+      other -> Logger.warning("meshx_mobile_app: distribution not started: #{inspect(other)}")
+    end
+  rescue
+    error -> Logger.warning("meshx_mobile_app: distribution error: #{inspect(error)}")
   end
 
   defp configure_native_bridge do
@@ -54,7 +74,13 @@ defmodule MeshxMobileApp.App do
       Application.put_env(:meshx_store, :data_dir, data_dir)
     end
 
-    Application.ensure_all_started(:meshx_runtime)
+    case Application.ensure_all_started(:meshx_runtime) do
+      {:ok, started} ->
+        Logger.info("meshx_mobile_app: meshx_runtime started (#{length(started)} apps)")
+
+      {:error, reason} ->
+        Logger.error("meshx_mobile_app: meshx_runtime failed to start: #{inspect(reason)}")
+    end
   end
 
   defp mobile_data_dir do

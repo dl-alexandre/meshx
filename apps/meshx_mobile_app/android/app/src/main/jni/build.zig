@@ -50,7 +50,9 @@ pub fn build(b: *std.Build) void {
     const ndk_sysroot = required(b, "ndk_sysroot", "Path to NDK sysroot (toolchains/llvm/prebuilt/<host>/sysroot)");
     const app_name = required(b, "app_name", "Project's app_name (used as the library basename)");
     const project_root = required(b, "project_root", "Absolute project root (jniLibs install destination is computed from here)");
-    const exqlite_src = required(b, "exqlite_src", "Absolute path to deps/exqlite/c_src");
+    // meshx_mobile_app does not depend on exqlite (persistence is CubDB).
+    // Optional rather than required(): empty when the project has no SQLite NIF.
+    const exqlite_src = b.option([]const u8, "exqlite_src", "Absolute path to deps/exqlite/c_src; empty if no SQLite NIF") orelse "";
 
     // Project NIF surface — same shape as the iOS templates. mob_dev's
     // `project_nif_zig_args/1` emits these `-D` flags when there are
@@ -233,6 +235,11 @@ pub fn build(b: *std.Build) void {
     // Compile sqlite3_nif.c + sqlite3.c (the SQLite amalgamation) and link
     // them into libsqlite3_nif.so. NDK clang for the link as before; zig cc
     // for compile. -DSQLITE_THREADSAFE=1 matches CMake.
+    //
+    // Gated on exqlite_src: meshx_mobile_app has no SQLite NIF (CubDB
+    // persistence), so mob_dev passes an empty -Dexqlite_src and this
+    // whole block is skipped.
+    if (exqlite_src.len > 0) {
     const sqlite_flags = &[_][]const u8{
         "-Os",
         "-ffunction-sections",
@@ -279,6 +286,7 @@ pub fn build(b: *std.Build) void {
         .app_name = app_name,
         .depends_on = main_link_cp,
     });
+    }
 }
 
 const CObjectSpec = struct {
