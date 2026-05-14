@@ -138,6 +138,11 @@ class MainActivity : Activity() {
         if (intent.getBooleanExtra(EXTRA_START_SCAN, false)) {
             startScanWithControlLog()
         }
+        if (intent.getBooleanExtra(EXTRA_START_ADVERTISE, false)) {
+            startAdvertiseWithControlLog(
+                intent.getStringExtra(EXTRA_ADVERTISE_NAME) ?: "meshx-mob"
+            )
+        }
         if (intent.getBooleanExtra(EXTRA_FETCH_SERVER, false)) {
             startFetchServer()
         }
@@ -170,6 +175,8 @@ class MainActivity : Activity() {
         const val EXTRA_DISPATCH_LEGACY_BEACON = "meshx_dispatch_legacy_beacon"
         const val EXTRA_GOSSIP_LEGACY_BEACON_TEST = "meshx_gossip_legacy_beacon_test"
         const val EXTRA_START_SCAN = "meshx_start_scan"
+        const val EXTRA_START_ADVERTISE = "meshx_start_advertise"
+        const val EXTRA_ADVERTISE_NAME = "meshx_advertise_name"
         const val EXTRA_FETCH_SERVER = "meshx_fetch_server"
         const val EXTRA_FETCH_CLIENT = "meshx_fetch_client"
         const val EXTRA_FETCH_DEVICE_ID = "meshx_fetch_device_id"
@@ -186,6 +193,15 @@ class MainActivity : Activity() {
         Log.i(
             CONTROL_LOGCAT_TAG,
             """{"v":1,"event":"scan_start_result","accepted":$accepted}"""
+        )
+        return accepted
+    }
+
+    private fun startAdvertiseWithControlLog(localName: String): Boolean {
+        val accepted = bridge.startAdvertising(localName)
+        Log.i(
+            CONTROL_LOGCAT_TAG,
+            """{"v":1,"event":"advertise_start_result","accepted":$accepted,"local_name":"$localName"}"""
         )
         return accepted
     }
