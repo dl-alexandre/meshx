@@ -10,11 +10,18 @@
 JavaVM* g_jvm      = NULL;
 jobject g_activity = NULL;
 
+// Caches the dev.meshx.mob.ble.MeshxBleNative class + method IDs.
+// Defined in c_src/meshx_ble_nif.c — must run here in JNI_OnLoad, where
+// the app classloader is in scope (a bare AttachCurrentThread'd BEAM
+// scheduler thread only sees the system classloader and would miss it).
+extern void meshx_ble_cache_class(JNIEnv* env);
+
 JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved) {
     g_jvm = vm;
     JNIEnv* env;
     (*vm)->GetEnv(vm, (void**)&env, JNI_VERSION_1_6);
     mob_ui_cache_class(env, BRIDGE_CLASS);
+    meshx_ble_cache_class(env);
     return JNI_VERSION_1_6;
 }
 

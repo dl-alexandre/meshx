@@ -134,6 +134,18 @@ defmodule MeshxMobileApp.BLE.BridgeProtocol do
   # contract change instead of relying on free-form strings.
   def decode({:status, _}), do: {:error, :status_not_in_contract}
 
+  # The Android NIF (c_src/meshx_ble_nif.c) delivers events as the v1
+  # wire-format JSON string produced by `BleEvent.toJsonObject()` — the
+  # JNI boundary carries a string far more cheaply than a built Erlang
+  # term. Decode to a string-keyed map and re-enter the pipeline.
+  def decode(json) when is_binary(json) do
+    case JSON.decode(json) do
+      {:ok, %{"v" => _} = msg} -> decode(msg)
+      {:ok, other} -> {:error, {:unrecognized_bridge_payload, other}}
+      {:error, reason} -> {:error, {:invalid_bridge_json, reason}}
+    end
+  end
+
   def decode(other), do: {:error, {:unrecognized_bridge_payload, other}}
 
   @doc """

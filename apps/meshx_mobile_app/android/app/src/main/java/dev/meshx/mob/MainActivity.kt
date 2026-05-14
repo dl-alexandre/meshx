@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.core.content.FileProvider
+import dev.meshx.mob.ble.MeshxBleNative
 import java.io.File
 
 class MainActivity : ComponentActivity() {
@@ -119,6 +120,11 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         MobBridge.init(this)
+
+        // Supply the BLE NIF bridge with an application Context before the
+        // BEAM starts — meshx_ble_nif's start_scan/start_advertising calls
+        // route through MeshxBleNative, which builds RealBleBridge lazily.
+        MeshxBleNative.init(this)
 
         // Forward launcher-supplied env vars into the BEAM process. Set BEFORE
         // nativeStartBeam below so the BEAM (and Mob.Dist in particular) sees
