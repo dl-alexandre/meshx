@@ -49,16 +49,19 @@ class BleAdvertiser(
             return false
         }
 
-        // Setting the device name is what surfaces `localName` in scan
-        // results. The advertising payload itself uses the include flag.
-        // `adapter` was already null-checked via `?.bluetoothLeAdvertiser`
-        // above; the `!!` is safe here and lets Kotlin's flow analysis
-        // see the receiver as non-null.
+        // Setting the device name surfaces `localName` in scan results —
+        // but BluetoothAdapter.setName() is asynchronous, so the payload
+        // built immediately below would carry the *previous* adapter name.
+        // We still set it (some scanners read it later), but the
+        // authoritative carrier of `localName` is the manufacturer-data
+        // entry added to the AdvertiseData itself: that lands in the very
+        // first advertising packet, synchronously and reliably.
+        // `adapter` was already null-checked via `?.bluetoothLeAdvertiser`.
         try {
             adapter!!.name = localName
         } catch (_: SecurityException) {
             // Setting name requires BLUETOOTH_CONNECT on API 31+. The
-            // advertisement can still proceed without the rename.
+            // advertisement still carries localName via manufacturer data.
         }
 
         val settings = AdvertiseSettings.Builder()
@@ -67,8 +70,14 @@ class BleAdvertiser(
             .setConnectable(false)
             .build()
 
+        // MESHX_COMPANY_ID (0xFFFF — the Bluetooth SIG "no company"
+        // reserved id, fine for local/unregistered use) tags the packet
+        // as ours and carries `localName` synchronously. Device name is
+        // omitted: name + manufacturer data together can overflow the
+        // 31-byte legacy advertisement budget.
         val data = AdvertiseData.Builder()
-            .setIncludeDeviceName(true)
+            .setIncludeDeviceName(false)
+            .addManufacturerData(MESHX_COMPANY_ID, localName.toByteArray(Charsets.UTF_8))
             .build()
 
         try {
@@ -96,5 +105,15 @@ class BleAdvertiser(
         } catch (_: SecurityException) {
             // Already torn down from the platform's perspective.
         }
+    }
+
+    companion object {
+        /**
+         * Manufacturer id used to tag MeshX advertisements and carry the
+         * local name synchronously in the advertising payload. 0xFFFF is
+         * the Bluetooth SIG reserved "no company" id — appropriate for a
+         * local mesh that is not a registered Bluetooth vendor.
+         */
+        const val MESHX_COMPANY_ID = 0xFFFF
     }
 }

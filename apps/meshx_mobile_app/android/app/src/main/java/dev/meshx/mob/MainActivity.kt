@@ -145,6 +145,14 @@ class MainActivity : ComponentActivity() {
             Log.i(TAG, "onCreate: MOB_DIST_PORT=$port")
         }
 
+        // meshx_ble_selftest — when set, MeshxMobileApp.App.on_start runs
+        // the headless BLE bring-up probe (MeshxMobileApp.BleSelfTest)
+        // that drives the real meshx_ble_nif scan+advertise path.
+        if (intent?.extras?.getBoolean("meshx_ble_selftest", false) == true) {
+            android.system.Os.setenv("MESHX_BLE_SELFTEST", "1", true)
+            Log.i(TAG, "onCreate: MESHX_BLE_SELFTEST=1")
+        }
+
         // Check if launched from a notification tap
         intent?.extras?.getString("mob_notification_json")?.let { json ->
             MobBridge.setLaunchNotification(json)

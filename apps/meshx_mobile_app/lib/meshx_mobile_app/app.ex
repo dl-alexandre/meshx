@@ -21,7 +21,23 @@ defmodule MeshxMobileApp.App do
     configure_native_bridge()
     start_meshx_runtime()
     maybe_start_distribution()
+    maybe_start_ble_self_test()
     Mob.Screen.start_root(MeshxMobileApp.HomeScreen)
+  end
+
+  # Headless BLE bring-up probe — only when MESHX_BLE_SELFTEST is set
+  # (Android launcher derives it from the `meshx_ble_selftest` intent
+  # extra). Drives the real meshx_ble_nif scan+advertise path so two
+  # devices can be checked for mutual discovery from `adb logcat`.
+  defp maybe_start_ble_self_test do
+    if System.get_env("MESHX_BLE_SELFTEST") in [nil, ""] do
+      :ok
+    else
+      case MeshxMobileApp.BleSelfTest.start_link([]) do
+        {:ok, _pid} -> Logger.info("meshx_mobile_app: BLE self-test started")
+        other -> Logger.warning("meshx_mobile_app: BLE self-test not started: #{inspect(other)}")
+      end
+    end
   end
 
   # Erlang distribution for on-device introspection during bring-up
