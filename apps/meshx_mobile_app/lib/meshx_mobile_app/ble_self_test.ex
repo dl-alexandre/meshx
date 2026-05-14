@@ -28,10 +28,20 @@ defmodule MeshxMobileApp.BleSelfTest do
     GenServer.start_link(__MODULE__, opts, name: __MODULE__)
   end
 
+  @heartbeat_ms 5_000
+
   @impl true
   def init(opts) do
     local_name = Keyword.get(opts, :local_name, default_local_name())
-    {:ok, %{local_name: local_name, discovered: MapSet.new()}, {:continue, :start_ble}}
+
+    state = %{
+      local_name: local_name,
+      discovered: MapSet.new(),
+      event_count: 0,
+      meshx_peers: MapSet.new()
+    }
+
+    {:ok, state, {:continue, :start_ble}}
   end
 
   @impl true
@@ -44,12 +54,27 @@ defmodule MeshxMobileApp.BleSelfTest do
     adv = safe_call(fn -> nif.start_advertising(self(), state.local_name) end)
 
     Logger.info("BleSelfTest: start_scan=#{inspect(scan)} start_advertising=#{inspect(adv)}")
+    Process.send_after(self(), :heartbeat, @heartbeat_ms)
     {:noreply, state}
   end
 
   @impl true
+  def handle_info(:heartbeat, state) do
+    # Periodic proof-of-life: distinguishes "pipeline working, just no
+    # MeshX peer correlated yet" from "no BLE events reaching the BEAM".
+    Logger.info(
+      "BleSelfTest: HEARTBEAT events=#{state.event_count} " <>
+        "devices=#{MapSet.size(state.discovered)} " <>
+        "meshx_peers=#{MapSet.size(state.meshx_peers)}"
+    )
+
+    Process.send_after(self(), :heartbeat, @heartbeat_ms)
+    {:noreply, state}
+  end
+
   def handle_info({MeshxMobileApp.NativeBridge, :bridge_event, _raw} = msg, state) do
     {MeshxMobileApp.NativeBridge, :bridge_event, raw} = msg
+    state = %{state | event_count: state.event_count + 1}
 
     state =
       case Adapter.event_message(raw) do
@@ -63,8 +88,7 @@ defmodule MeshxMobileApp.BleSelfTest do
           Logger.warning("BleSelfTest: bridge error #{e.kind}: #{e.detail}")
           state
 
-        {Adapter, :event, event} ->
-          Logger.info("BleSelfTest: event #{inspect(event.__struct__)}")
+        {Adapter, :event, _event} ->
           state
       end
 
@@ -77,22 +101,37 @@ defmodule MeshxMobileApp.BleSelfTest do
   # proof: this BEAM, over the real meshx_ble_nif path, saw the other
   # BEAM's BLE advertisement.
   defp maybe_log_meshx_peer(device_id, rssi, advertisement, state) do
-    cond do
-      MapSet.member?(state.discovered, device_id) ->
-        state
+    # The canonical event's `advertisement` field arrives base64-encoded
+    # on the Android JSON-wire path (BleEvent.toJsonObject does .toBase64()
+    # and BridgeProtocol keeps it as the wire string). Decode to raw bytes
+    # before scanning for the peer's "meshx-*" manufacturer-data tag.
+    bytes = advertisement_bytes(advertisement)
 
-      is_binary(advertisement) and meshx_advertisement?(advertisement) ->
-        Logger.info(
-          "BleSelfTest: MESHX PEER device_id=#{device_id} rssi=#{rssi} " <>
-            "name=#{extract_name(advertisement)}"
-        )
+    state = %{state | discovered: MapSet.put(state.discovered, device_id)}
 
-        %{state | discovered: MapSet.put(state.discovered, device_id)}
+    if is_binary(bytes) and meshx_advertisement?(bytes) and
+         not MapSet.member?(state.meshx_peers, device_id) do
+      Logger.info(
+        "BleSelfTest: MESHX PEER device_id=#{device_id} rssi=#{rssi} " <>
+          "name=#{extract_name(bytes)}"
+      )
 
-      true ->
-        state
+      %{state | meshx_peers: MapSet.put(state.meshx_peers, device_id)}
+    else
+      state
     end
   end
+
+  # `advertisement` may be raw bytes (atom-keyed map path) or a base64
+  # string (Android JSON-wire path). Normalize to raw bytes.
+  defp advertisement_bytes(advertisement) when is_binary(advertisement) do
+    case Base.decode64(advertisement) do
+      {:ok, decoded} -> decoded
+      :error -> advertisement
+    end
+  end
+
+  defp advertisement_bytes(_), do: <<>>
 
   defp meshx_advertisement?(bytes) do
     bytes
