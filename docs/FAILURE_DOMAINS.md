@@ -316,6 +316,226 @@ or version vector.
 
 ---
 
+## 8. BLE Transport — Platform-Specific Failure Modes
+
+BLE introduces failure modes that don't apply to TCP or UDP because the
+transport is a constrained radio with platform-specific scan, advertise,
+and connection state managed by the OS. These are recorded here so
+operators can diagnose them from logcat / device state instead of from
+behavior alone — most surface as **silent degradation** rather than
+explicit errors at the Elixir layer.
+
+### Android scan-frequency throttle
+
+Android limits an app to **5 `BluetoothLeScanner.startScan` calls per
+30 seconds**. Crossing the threshold puts the app into "opportunistic
+scanning" mode for the next ~30 minutes: `startScan` returns
+successfully, `onScanFailed` is *not* called, but `onScanResult`
+delivers far fewer (often zero) callbacks. The throttle state is
+per-app and persists across:
+
+- BluetoothAdapter disable/enable
+- App force-stop and relaunch
+- Device reboot (in some cases — observed on API 33 hardware)
+
+Detection signal: `start_scan` returns `:ok` to the BEAM, MeshX
+runtime logs `meshx_runtime started`, but the scanner produces no
+`DeviceDiscovered` / `AdvertisementReceived` events over a long
+window. The only reliable diagnostic is comparing logcat
+`BtGatt.GattService onScanResult` lines for the app's scanner-id
+against `MeshxBle` event lines.
+
+Mitigation: don't restart scans rapidly during development. The
+`BleSelfTest` probe keeps a single scan open for the entire session
+to avoid this. Production code should hold one scan registration per
+session and use callback dedup (next section) rather than start/stop
+cycles.
+
+### `CALLBACK_TYPE_ALL_MATCHES` inflates message counts
+
+`ScanSettings.CALLBACK_TYPE_ALL_MATCHES` (the mode `BleScanner` uses
+for low-latency mesh discovery) delivers a callback for every
+advertising event in a peer's advertise window — typically 15–50
+callbacks per 5-second legacy beacon at the default ~100–300 ms
+advertising interval.
+
+Reliability claims expressed as "messages received" must dedup on
+`{sender_peer_id_hash, message_id_hash}` (for beacons) or
+`{sender_peer_id, message_id}` (for full envelopes). `BleSelfTest`'s
+`distinct_msgs` counter is this canonical metric; the
+`beacon_callbacks` counter is kept only for diagnostic context.
+
+### Async `BluetoothAdapter.setName`
+
+`adapter.name = localName` is asynchronous on Android. An advertiser
+that does `setName` then immediately calls `startAdvertising` with
+`setIncludeDeviceName(true)` will broadcast the *previous* adapter
+name in the first advertising packet — the rename propagates only on
+later packets. MeshX's `BleAdvertiser` carries `localName` as
+manufacturer data (company id `0xFFFF`) so it lands in the first
+packet synchronously; the device-name path is kept only as a
+fallback for scanners that filter by name.
+
+### Extended advertising scan support is per-device
+
+BLE 5 extended advertising allows advertising payloads up to ~1024
+bytes (vs. 24 bytes for legacy manufacturer data). A device whose
+controller supports *sending* extended advertisements may still be
+unable to *scan* them. The Galaxy Tab Active 2 (API 28, 2018) is an
+observed example: it can send legacy beacons fine and scans legacy
+fine, but it cannot decode extended advertisements at all.
+
+`BleDispatcher` exposes `forceLegacyBeacon: true` for this case. The
+MeshX mobile-app self-test uses it so the message-reference exchange
+is symmetric across the fleet. Full payloads that won't fit a legacy
+beacon need the GATT-fetch path, not extended advertising, if older
+devices must participate.
+
+### Concurrent advertising sets degrade unequally
+
+`isMultipleAdvertisementSupported` returns `true` on most Android
+devices since API 26, but the *quality* of multi-set time-slicing
+varies by silicon generation:
+
+- 2021+ controllers (Galaxy Tab Active 3, etc.) handle 3–5 concurrent
+  advertising sets with even slot allocation.
+- 2018-era controllers often implement "multiple advertising" in
+  firmware or host software; two concurrent sets means the radio is
+  literally duty-cycling between them with non-uniform slot widths.
+
+This shows up as *asymmetric delivery rates* in two-device tests.
+MeshX runs a continuous name beacon plus 5-second dispatch bursts;
+on older hardware the dispatch beacon gets less air time, and its
+scanner concurrently sees fewer of the peer's adverts. The
+asymmetry compounds. The fix isn't code — it's understanding that
+the older device will report fewer messages received than the newer
+device sees, and that *both* directions still work.
+
+### Permission gates
+
+Per-API runtime permission set the adapter must hold:
+
+| Android version | Required runtime permissions |
+|---|---|
+| ≤ API 30 | `ACCESS_FINE_LOCATION` (scan), `BLUETOOTH` and `BLUETOOTH_ADMIN` (install-time) |
+| API 31+ | `BLUETOOTH_SCAN` (with `neverForLocation`), `BLUETOOTH_ADVERTISE`, `BLUETOOTH_CONNECT` |
+
+`BluetoothLeScanner.startScan` and `BluetoothLeAdvertiser.startAdvertising`
+throw `SecurityException` when a permission is missing. `BleScanner`
+catches and emits a canonical `BleEvent.Error(kind = :unauthorized)`;
+the Elixir side sees it as `%MeshxMobileApp.BLE.Events.Error{kind: :unauthorized}`.
+
+App reinstall (`mix mob.deploy --native`) revokes runtime grants on
+API 31+. Re-grant via `adb shell pm grant <pkg> android.permission.<perm>`
+or in-app permission flow.
+
+### `decodeScanRecord` decode errors
+
+`MeshxMessageAdvertisement.decodeScanRecord` returns:
+
+- `NotMessageAdvertisement` — the advert has no MeshX manufacturer
+  entry (most ambient devices). Surfaced as `DeviceDiscovered` /
+  `AdvertisementReceived`.
+- `Received(ReceivedMessage)` — full v1 envelope, magic `MX`.
+- `ReceivedBeacon(ReceivedMessageBeacon)` — 22-byte legacy beacon,
+  magic `MB`.
+- `Error(BleEvent.Error)` — manufacturer entry has MeshX company id
+  and magic but the payload doesn't parse. Truncated advert
+  structures and unsupported envelope versions land here. The error
+  surfaces as `%MeshxMobileApp.BLE.Events.Error{}` with
+  `detail` carrying the parse reason.
+
+The Elixir `BridgeProtocol.decode` JSON-wire path was previously
+strict-validating the base64 form of binary fields (notably
+`message_id_hash`), so a correctly-formatted beacon could *cross the
+air, decode in Kotlin, and reach the BEAM* yet still be rejected at
+the Elixir boundary with `{:received_message_beacon_invalid_field,
+:message_id_hash}`. The fix is to base64-decode known binary fields
+in `atomize_top_level` and `atomize_metadata` (commit `cd5b473`).
+Any future binary field added to a v1 event MUST be added to
+`@b64_top_level_fields` or `@b64_metadata_fields`.
+
+### Legacy beacon size budget
+
+`BleDispatcher.MAX_LEGACY_MANUFACTURER_PAYLOAD = 24` bytes. The MeshX
+v1 envelope header alone is 26+ bytes (4 magic + 16 message_id + 8
+created_at + ttl + length-prefixed fields), so a *full envelope*
+never fits in legacy advertising — it requires either extended
+advertising or the legacy-beacon fallback (`MB` magic, 22 bytes:
+6-byte header + 8-byte message-id hash + 8-byte sender-peer-id hash).
+
+The beacon carries a message *reference*, not the payload bytes.
+Subscribers that need the full payload retrieve it via the GATT-fetch
+protocol (`MeshxFetchGatt`) keyed on the message-id hash. A subscriber
+that only sees `ReceivedMessageBeacon` events and never the
+corresponding `ReceivedMessage` is observing the advert-only
+transport profile working as designed.
+
+### Doze / background mode
+
+Android Doze (entered after ~1 hour of screen-off + stationary)
+**suspends** non-foreground BLE scan and advertise. The MeshX mobile
+app holds a `BeamForegroundService` (from the Mob template) to keep
+the BEAM resident, but the BLE adapter itself is subject to OS
+constraints regardless of the BEAM running.
+
+Observable effects:
+- `start_scan` continues to return `:ok` but `onScanResult` stops firing.
+- `BleAdvertiser.start` succeeds but the radio is idled.
+- On wake, both resume without re-registration — the OS holds the
+  scanner/advertiser handles across Doze cycles.
+
+The Elixir runtime sees this as a partition (no peer-discovery
+events) rather than a transport failure. The Outbox holds pending
+sends across the Doze window and replays on wake when peers
+reappear (per the Transport Failure section above).
+
+### Triggers (BLE-specific)
+
+- Scan-frequency throttle from too many `startScan` cycles
+- Async `setName` not propagated before first advertise
+- Concurrent advertising set contention on older controllers
+- Doze / background mode suspension
+- Runtime permission revocation (app reinstall, user revoke)
+- Adapter power-down / airplane mode
+
+### Guarantees
+
+- A scan that returns `:ok` and is not throttled delivers every
+  scan result the OS surfaces to the app.
+- A successful `BleDispatcher.dispatch(DISPATCHED)` indicates the
+  BLE stack accepted the advertise; it does *not* guarantee the peer
+  received the packet (no ACK at the BLE layer).
+- Beacon dedup by `{sender_peer_id_hash, message_id_hash}` is
+  collision-resistant within the runtime's replay window
+  (8-byte hash space, ~10^19 keys).
+
+### Non-Guarantees
+
+- No delivery confirmation at the BLE layer (advert-only profile).
+- No ordering guarantee between two beacons advertised by the same
+  sender (scan callback order does not correlate with advertise
+  order across separate windows).
+- No symmetry of delivery rate between two peers of different
+  hardware generations.
+- No persistence of MeshX BLE state across app reinstall (runtime
+  permissions reset, scan throttle state may or may not reset
+  depending on Android version).
+
+### Application Recovery
+
+- Permissions: catch `%Events.Error{kind: :unauthorized}` and trigger
+  the platform permission prompt.
+- Scan throttle: avoid rapid scan start/stop cycles in production;
+  hold one scan registration per session.
+- Doze: rely on the outbox + peer-reappearance replay path. No
+  application action required.
+- Adapter off: catch `%Events.Error{kind: :bluetooth_off}` and surface
+  a UI prompt; resume happens automatically when the adapter is
+  enabled (peers re-discover on next scan window).
+
+---
+
 ## Failure Domain Matrix
 
 | Domain | Durable State | Ephemeral State | Auto-Recover | App Action |
@@ -327,6 +547,7 @@ or version vector.
 | Identity loss | Trust, Outbox (orphaned) | All | Yes (new key) | Re-establish trust |
 | Storage corruption | None if unrecoverable | All | No | Restore or wipe |
 | Replay window expiry | N/A | Dedupe entry gone | N/A | Idempotent subscribers |
+| BLE platform | Outbox (pending) | Scan/Advertise registration, dedup window | On Doze wake / re-grant | Permission flow on revoke |
 
 ---
 
