@@ -1,6 +1,7 @@
 #if canImport(CoreBluetooth)
 import Foundation
 import CoreBluetooth
+import CryptoKit
 
 /// CoreBluetooth client for the MeshX BLE transport per `docs/WIRE_FORMAT.md` §1.
 ///
@@ -53,6 +54,71 @@ public struct MeshxLegacyBeaconAdvertisement: Sendable, Equatable {
             messageIdHash: payload.subdata(in: (payload.startIndex + 6)..<(payload.startIndex + 14)),
             senderPeerIdHash: payload.subdata(in: (payload.startIndex + 14)..<(payload.startIndex + 22)),
             beaconPayload: payload,
+            manufacturerData: manufacturerData,
+            advertisement: advertisement
+        )
+    }
+
+    /// Build a legacy beacon (`MB` magic) advertisement from envelope
+    /// coordinates — the send-side counterpart of `parse`.
+    ///
+    /// This is the iOS counterpart of the Android
+    /// `BleDispatcher.legacyBeaconPayload` helper; the byte layout is
+    /// pinned by `WIRE_FORMAT.md` §10 and the on-air format is identical
+    /// across the fleet so an Android scanner can decode an iOS-sent
+    /// beacon and vice versa.
+    ///
+    /// `messageIdHash` and `senderPeerIdHash` are derived as
+    /// `sha256(messageId)[0..8]` and `sha256(senderPeerId UTF-8)[0..8]`
+    /// — exactly what the Android side does, so the same physical
+    /// message produces matching hashes on both platforms.
+    public static func build(
+        messageId: Data,
+        senderPeerId: String,
+        payloadKind: String = "TX",
+        envelopeVersion: UInt8 = 1,
+        beaconVersion: UInt8 = 1
+    ) -> MeshxLegacyBeaconAdvertisement {
+        let messageHash = Data(SHA256.hash(data: messageId)).prefix(8)
+        let senderHash = Data(SHA256.hash(data: Data(senderPeerId.utf8))).prefix(8)
+        let kindCode: UInt8 = payloadKind.uppercased() == "TX" ? 1 : 0
+
+        var beaconPayload = Data(capacity: payloadSize)
+        beaconPayload.append(0x4D) // 'M'
+        beaconPayload.append(0x42) // 'B'
+        beaconPayload.append(beaconVersion)
+        beaconPayload.append(envelopeVersion)
+        beaconPayload.append(kindCode)
+        beaconPayload.append(0x00) // reserved flags
+        beaconPayload.append(contentsOf: messageHash)
+        beaconPayload.append(contentsOf: senderHash)
+
+        precondition(beaconPayload.count == payloadSize, "beacon payload must be \(payloadSize) bytes")
+
+        // Manufacturer data the way CBAdvertisementDataManufacturerDataKey
+        // expects it: little-endian 2-byte company id followed by the
+        // payload. Matches the parse-side `manufacturerData` layout.
+        var manufacturerData = Data(capacity: 2 + payloadSize)
+        manufacturerData.append(UInt8(manufacturerCompanyIdentifier & 0xFF))
+        manufacturerData.append(UInt8((manufacturerCompanyIdentifier >> 8) & 0xFF))
+        manufacturerData.append(beaconPayload)
+
+        // Full AD structure: [length, type, manufacturerData] — same
+        // wrapping `parse` reconstructs, so build+parse round-trips.
+        var advertisement = Data(capacity: 2 + manufacturerData.count)
+        advertisement.append(UInt8(manufacturerData.count + 1))
+        advertisement.append(manufacturerDataAdType)
+        advertisement.append(manufacturerData)
+
+        let resolvedKind = kindCode == 1 ? "TX" : payloadKind
+
+        return MeshxLegacyBeaconAdvertisement(
+            beaconVersion: beaconVersion,
+            envelopeVersion: envelopeVersion,
+            payloadKind: resolvedKind,
+            messageIdHash: Data(messageHash),
+            senderPeerIdHash: Data(senderHash),
+            beaconPayload: beaconPayload,
             manufacturerData: manufacturerData,
             advertisement: advertisement
         )
@@ -424,6 +490,64 @@ public final class MeshxBLEPeripheral: NSObject {
             CBAdvertisementDataServiceUUIDsKey: [MeshxBLEUUID.service],
             CBAdvertisementDataLocalNameKey: requestedLocalName ?? "meshx-mobile"
         ])
+    }
+
+    /// Advertise a MeshX legacy beacon (advert-only profile, `MB` magic).
+    ///
+    /// Replaces any currently-running advertisement on this peripheral
+    /// — CoreBluetooth only supports one advertising payload per
+    /// `CBPeripheralManager`. Caller is responsible for sequencing
+    /// against the GATT-service advert (typically: stop GATT advert,
+    /// run beacon for ~5s window, restart GATT advert) — mirrors the
+    /// Android `BleDispatcher` 5-second send window.
+    ///
+    /// Manufacturer data is the only field set; `CoreBluetooth`
+    /// silently drops `CBAdvertisementDataManufacturerDataKey` when
+    /// the app is backgrounded, so this method's effective range is
+    /// foreground-active sessions — same operational envelope as
+    /// Android's BleDispatcher under Doze.
+    ///
+    /// Returns the beacon that was advertised (for telemetry / dedup
+    /// at the caller).
+    @discardableResult
+    public func startBeaconAdvertising(
+        _ beacon: MeshxLegacyBeaconAdvertisement
+    ) -> MeshxLegacyBeaconAdvertisement {
+        guard manager.state == .poweredOn else {
+            delegate?.meshxPeripheralDidError(PeripheralError.stateNotPoweredOn(manager.state))
+            return beacon
+        }
+
+        if manager.isAdvertising {
+            manager.stopAdvertising()
+        }
+
+        manager.startAdvertising([
+            CBAdvertisementDataManufacturerDataKey: beacon.manufacturerData
+        ])
+
+        return beacon
+    }
+
+    /// Build + advertise a legacy beacon in one call.
+    ///
+    /// The send-side equivalent of `MeshxBLEClient.meshxDidObserveLegacyBeacon`:
+    /// derive a beacon from envelope coordinates and put it on the air.
+    /// Both ends agree on the byte layout per `WIRE_FORMAT.md §10`, so
+    /// an iOS-sent beacon decodes cleanly on an Android scanner and
+    /// vice versa.
+    @discardableResult
+    public func advertiseLegacyBeacon(
+        messageId: Data,
+        senderPeerId: String,
+        payloadKind: String = "TX"
+    ) -> MeshxLegacyBeaconAdvertisement {
+        let beacon = MeshxLegacyBeaconAdvertisement.build(
+            messageId: messageId,
+            senderPeerId: senderPeerId,
+            payloadKind: payloadKind
+        )
+        return startBeaconAdvertising(beacon)
     }
 
     private func handle(chunk: Data, from central: CBCentral) {

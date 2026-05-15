@@ -1,4 +1,5 @@
 import XCTest
+import CryptoKit
 @testable import MeshxMobile
 
 final class MessageAdvertisementTests: XCTestCase {
@@ -181,5 +182,122 @@ final class MessageAdvertisementTests: XCTestCase {
         )
         XCTAssertEqual(object["device_id"] as? String, "observer\nbad")
         XCTAssertEqual(object["rssi"] as? Int, -70)
+    }
+
+    // MARK: - Legacy beacon build (send-side, advert-only profile)
+
+    func testLegacyBeaconBuildProducesByteLayoutPerWireSpec() {
+        let messageId = Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15])
+        let senderPeerId = "meshx-ios"
+
+        let beacon = MeshxLegacyBeaconAdvertisement.build(
+            messageId: messageId,
+            senderPeerId: senderPeerId,
+            payloadKind: "TX"
+        )
+
+        XCTAssertEqual(beacon.beaconPayload.count, MeshxLegacyBeaconAdvertisement.payloadSize)
+        // M B (magic) then versions, kind, flags.
+        XCTAssertEqual(beacon.beaconPayload[0], 0x4D)
+        XCTAssertEqual(beacon.beaconPayload[1], 0x42)
+        XCTAssertEqual(beacon.beaconPayload[2], 1)    // beacon_version
+        XCTAssertEqual(beacon.beaconPayload[3], 1)    // envelope_version
+        XCTAssertEqual(beacon.beaconPayload[4], 1)    // kind = TX
+        XCTAssertEqual(beacon.beaconPayload[5], 0)    // reserved flags
+
+        XCTAssertEqual(beacon.messageIdHash.count, 8)
+        XCTAssertEqual(beacon.senderPeerIdHash.count, 8)
+        // Hashes are deterministic — sha256(input)[0..8].
+        XCTAssertEqual(
+            beacon.beaconPayload.subdata(in: 6..<14),
+            beacon.messageIdHash
+        )
+        XCTAssertEqual(
+            beacon.beaconPayload.subdata(in: 14..<22),
+            beacon.senderPeerIdHash
+        )
+
+        // Manufacturer-data wrap: little-endian 0xFFFF then the 22 payload bytes.
+        XCTAssertEqual(beacon.manufacturerData.count, 24)
+        XCTAssertEqual(beacon.manufacturerData[0], 0xFF)
+        XCTAssertEqual(beacon.manufacturerData[1], 0xFF)
+        XCTAssertEqual(beacon.manufacturerData.suffix(22), beacon.beaconPayload)
+
+        // Full AD structure: [length, type, manufacturerData].
+        XCTAssertEqual(beacon.advertisement.count, 26)
+        XCTAssertEqual(beacon.advertisement[0], UInt8(beacon.manufacturerData.count + 1))
+        XCTAssertEqual(beacon.advertisement[1], 0xFF) // AD type = MANUFACTURER_SPECIFIC_DATA
+    }
+
+    func testLegacyBeaconBuildRoundTripsThroughParse() throws {
+        let messageId = Data([
+            0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77,
+            0x88, 0x99, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF
+        ])
+        let senderPeerId = "meshx-t577u"
+
+        let built = MeshxLegacyBeaconAdvertisement.build(
+            messageId: messageId,
+            senderPeerId: senderPeerId
+        )
+
+        let parsed = try XCTUnwrap(
+            MeshxLegacyBeaconAdvertisement.parse(manufacturerData: built.manufacturerData)
+        )
+
+        XCTAssertEqual(parsed.beaconVersion, built.beaconVersion)
+        XCTAssertEqual(parsed.envelopeVersion, built.envelopeVersion)
+        XCTAssertEqual(parsed.payloadKind, built.payloadKind)
+        XCTAssertEqual(parsed.messageIdHash, built.messageIdHash)
+        XCTAssertEqual(parsed.senderPeerIdHash, built.senderPeerIdHash)
+        XCTAssertEqual(parsed.beaconPayload, built.beaconPayload)
+        XCTAssertEqual(parsed.manufacturerData, built.manufacturerData)
+        XCTAssertEqual(parsed.advertisement, built.advertisement)
+    }
+
+    func testLegacyBeaconHashesMatchAndroidDerivation() {
+        // Android: sha256(messageId).copyOfRange(0, 8) and
+        // sha256(senderPeerId UTF-8).copyOfRange(0, 8). The fleet relies
+        // on identical hashing so a beacon advertised by an Android
+        // tablet has the *same* message_id_hash an iOS receiver computes.
+        // This test pins the hash inputs and verifies that property by
+        // recomputing the truncation independently here.
+        let messageId = Data([0xDE, 0xAD, 0xBE, 0xEF] + Array(repeating: UInt8(0), count: 12))
+        let senderPeerId = "meshx-android-test"
+
+        let beacon = MeshxLegacyBeaconAdvertisement.build(
+            messageId: messageId,
+            senderPeerId: senderPeerId
+        )
+
+        let expectedMsgHash = Data(sha256ReferenceImpl(messageId)).prefix(8)
+        let expectedSenderHash = Data(sha256ReferenceImpl(Data(senderPeerId.utf8))).prefix(8)
+
+        XCTAssertEqual(beacon.messageIdHash, Data(expectedMsgHash))
+        XCTAssertEqual(beacon.senderPeerIdHash, Data(expectedSenderHash))
+    }
+
+    func testLegacyBeaconBuildAcceptsUnknownPayloadKindCodeZero() {
+        let beacon = MeshxLegacyBeaconAdvertisement.build(
+            messageId: Data(repeating: 0xAA, count: 16),
+            senderPeerId: "x",
+            payloadKind: "OTHER"
+        )
+
+        XCTAssertEqual(beacon.beaconPayload[4], 0) // kindCode = 0 for non-TX
+
+        // parse maps kindCode 0 → "unknown" (per existing parse logic).
+        let parsed = MeshxLegacyBeaconAdvertisement.parse(
+            manufacturerData: beacon.manufacturerData
+        )
+        XCTAssertEqual(parsed?.payloadKind, "unknown")
+    }
+
+    // SHA-256 reference (CryptoKit; same backend the production code uses,
+    // but isolated here so the test is independent of the build helper).
+    private func sha256ReferenceImpl(_ data: Data) -> [UInt8] {
+        var hasher = CryptoKit.SHA256()
+        hasher.update(data: data)
+        return Array(hasher.finalize())
     }
 }

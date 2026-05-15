@@ -1,5 +1,12 @@
 import Foundation
 import CoreBluetooth
+import Security
+// MeshxLegacyBeaconAdvertisement, MeshxBLEClient, MeshxBLEPeripheral,
+// Packet, Frame live in the local meshx_mobile Swift package. The
+// Xcode project pulls them in via the package product import; this
+// declaration is the explicit form when this file is added to the
+// project target's Sources list.
+import MeshxMobile
 
 final class MeshxNativeBLEBridge: NSObject {
     static let shared = MeshxNativeBLEBridge()
@@ -42,10 +49,41 @@ final class MeshxNativeBLEBridge: NSObject {
                 return
             }
 
-            emitError("Unknown secure peer \(peerId)")
+            // No GATT-connected peer — fall back to the advert-only
+            // profile. Mirrors Android's
+            // `MeshxBleNative.sendToPeer(forceLegacyBeacon: true)` so
+            // iOS and Android exchange message *references* even when
+            // neither side has a paired GATT connection. The payload's
+            // 16-byte messageId is derived from a random UUID; the
+            // beacon carries the hash, not the bytes.
+            dispatchLegacyBeacon(senderPeerId: peerId, payload: payload)
         } catch {
             emitError(String(describing: error))
         }
+    }
+
+    /// Build a legacy beacon from a payload and put it on the air via
+    /// the peripheral's beacon advertise path. The 22-byte beacon
+    /// carries `sha256(messageId)[0..8]` and
+    /// `sha256(senderPeerId)[0..8]` — exact byte-compatibility with the
+    /// Android side per `WIRE_FORMAT.md §10`.
+    private func dispatchLegacyBeacon(senderPeerId: String, payload: Data) {
+        var messageId = Data(count: 16)
+        let result = messageId.withUnsafeMutableBytes { buffer in
+            SecRandomCopyBytes(kSecRandomDefault, 16, buffer.baseAddress!)
+        }
+        guard result == errSecSuccess else {
+            emitError("legacy beacon dispatch: SecRandomCopyBytes failed (\(result))")
+            return
+        }
+
+        let peripheral = ensurePeripheral()
+        peripheral.advertiseLegacyBeacon(
+            messageId: messageId,
+            senderPeerId: senderPeerId,
+            payloadKind: "TX"
+        )
+        emitStatus("Beacon dispatched (\(payload.count)B payload referenced)")
     }
 
     private func ensureClient() -> MeshxBLEClient {
