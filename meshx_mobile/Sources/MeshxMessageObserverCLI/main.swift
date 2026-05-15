@@ -111,6 +111,22 @@ final class ObserverCLI: NSObject, MessageAdvertisementObserverDelegate {
         output.write("MeshxMessageObserverCLI: \(event.jsonLine())")
     }
 
+    func meshxMessageObserverDidObserveLegacyBeacon(
+        _ beacon: MeshxLegacyBeaconAdvertisement,
+        deviceId: String,
+        rssi: Int
+    ) {
+        seen += 1
+        let mhash = beacon.messageIdHash.map { String(format: "%02x", $0) }.joined()
+        let shash = beacon.senderPeerIdHash.map { String(format: "%02x", $0) }.joined()
+        output.write("MeshxMessageObserverCLI: legacy_beacon_received device_id=\(deviceId) rssi=\(rssi) message_id_hash=\(mhash) sender_peer_id_hash=\(shash) payload_kind=\(beacon.payloadKind) beacon_version=\(beacon.beaconVersion) envelope_version=\(beacon.envelopeVersion)")
+
+        if exitAfterFirst {
+            observer.stopScan()
+            Foundation.exit(0)
+        }
+    }
+
     func meshxMessageObserverDidObserveAdvertisement(
         deviceId: String,
         rssi: Int,
