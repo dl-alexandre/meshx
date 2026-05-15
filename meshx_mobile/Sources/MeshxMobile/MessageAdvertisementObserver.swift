@@ -5,6 +5,11 @@ import CoreBluetooth
 public protocol MessageAdvertisementObserverDelegate: AnyObject {
     func meshxDidObserveReceivedMessage(_ event: ReceivedMessageEvent)
     func meshxDidObserveMessageDecodeError(_ reason: String, deviceId: String, rssi: Int)
+    func meshxMessageObserverDidObserveLegacyBeacon(
+        _ beacon: MeshxLegacyBeaconAdvertisement,
+        deviceId: String,
+        rssi: Int
+    )
     func meshxMessageObserverDidObserveAdvertisement(
         deviceId: String,
         rssi: Int,
@@ -24,6 +29,11 @@ public extension MessageAdvertisementObserverDelegate {
         localName: String?,
         serviceUUIDs: [String],
         manufacturerDataLength: Int
+    ) {}
+    func meshxMessageObserverDidObserveLegacyBeacon(
+        _ beacon: MeshxLegacyBeaconAdvertisement,
+        deviceId: String,
+        rssi: Int
     ) {}
 }
 
@@ -115,7 +125,14 @@ extension MessageAdvertisementObserver: CBCentralManagerDelegate {
             )
 
         case .notMessageAdvertisement:
-            break
+            if let manufacturerData,
+               let beacon = MeshxLegacyBeaconAdvertisement.parse(manufacturerData: manufacturerData) {
+                delegate?.meshxMessageObserverDidObserveLegacyBeacon(
+                    beacon,
+                    deviceId: peripheral.identifier.uuidString,
+                    rssi: RSSI.intValue
+                )
+            }
         }
     }
 }

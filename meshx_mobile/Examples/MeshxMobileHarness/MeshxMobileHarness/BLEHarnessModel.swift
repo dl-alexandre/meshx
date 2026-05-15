@@ -1,5 +1,6 @@
 import Foundation
 import MeshxMobile
+import Security
 
 struct HarnessEvent: Identifiable, Equatable {
     let id = UUID()
@@ -28,6 +29,8 @@ final class BLEHarnessModel: NSObject, ObservableObject {
     private var didHandleLaunchArguments = false
     private var logMessageObserverDiscoveries = false
     private var logMessageObserverCandidateDiscoveries = false
+    private var beaconDispatchTimer: Timer?
+    private var beaconDispatchCount: UInt32 = 0
 
     override init() {
         super.init()
@@ -66,12 +69,41 @@ final class BLEHarnessModel: NSObject, ObservableObject {
         logMessageObserverDiscoveries = arguments.contains("--meshx-log-discoveries")
         logMessageObserverCandidateDiscoveries = arguments.contains("--meshx-log-candidate-discoveries")
 
-        guard arguments.contains("--meshx-auto-scan") else {
+        let autoScan = arguments.contains("--meshx-auto-scan")
+        let autoBeacon = arguments.contains("--meshx-auto-beacon")
+
+        guard autoScan || autoBeacon else {
             return
         }
 
         mode = .scan
-        startMessageObserverOnly()
+        if autoScan {
+            startMessageObserverOnly()
+        }
+        if autoBeacon {
+            startAutoBeaconDispatch()
+        }
+    }
+
+    private func startAutoBeaconDispatch() {
+        let senderPeerId = "ios-harness-\(UUID().uuidString.prefix(8))"
+        print("MeshxMessageObserver: beacon_dispatch_started sender_peer_id=\(senderPeerId)")
+        beaconDispatchTimer?.invalidate()
+        beaconDispatchTimer = Timer.scheduledTimer(withTimeInterval: 1.5, repeats: true) { [weak self] _ in
+            guard let self else { return }
+            var messageId = Data(count: 16)
+            _ = messageId.withUnsafeMutableBytes { buf in
+                SecRandomCopyBytes(kSecRandomDefault, 16, buf.baseAddress!)
+            }
+            self.peripheral.advertiseLegacyBeacon(
+                messageId: messageId,
+                senderPeerId: senderPeerId,
+                payloadKind: "TX"
+            )
+            self.beaconDispatchCount &+= 1
+            let hex = messageId.map { String(format: "%02x", $0) }.joined()
+            print("MeshxMessageObserver: beacon_dispatched seq=\(self.beaconDispatchCount) message_id=\(hex) sender_peer_id=\(senderPeerId)")
+        }
     }
 
     func stop() {
@@ -179,6 +211,17 @@ extension BLEHarnessModel: MeshxBLEClientDelegate {
     func meshxDidError(_ error: Error) {
         record("Error", detail: String(describing: error))
     }
+
+    func meshxDidObserveLegacyBeacon(
+        _ beacon: MeshxLegacyBeaconAdvertisement,
+        deviceId: String,
+        rssi: Int
+    ) {
+        let mhash = beacon.messageIdHash.map { String(format: "%02x", $0) }.joined()
+        let shash = beacon.senderPeerIdHash.map { String(format: "%02x", $0) }.joined()
+        print("MeshxMessageObserver: legacy_beacon_received device_id=\(deviceId) rssi=\(rssi) message_id_hash=\(mhash) sender_peer_id_hash=\(shash) payload_kind=\(beacon.payloadKind) beacon_version=\(beacon.beaconVersion) envelope_version=\(beacon.envelopeVersion)")
+        record("Legacy beacon", detail: "\(deviceId) rssi=\(rssi) mhash=\(mhash.prefix(16))")
+    }
 }
 
 extension BLEHarnessModel: MeshxBLEPeripheralDelegate {
@@ -268,5 +311,16 @@ extension BLEHarnessModel: MessageAdvertisementObserverDelegate {
     func meshxMessageObserverDidError(_ error: Error) {
         print("MeshxMessageObserver: error \(String(describing: error))")
         record("Message observer error", detail: String(describing: error))
+    }
+
+    func meshxMessageObserverDidObserveLegacyBeacon(
+        _ beacon: MeshxLegacyBeaconAdvertisement,
+        deviceId: String,
+        rssi: Int
+    ) {
+        let mhash = beacon.messageIdHash.map { String(format: "%02x", $0) }.joined()
+        let shash = beacon.senderPeerIdHash.map { String(format: "%02x", $0) }.joined()
+        print("MeshxMessageObserver: legacy_beacon_received device_id=\(deviceId) rssi=\(rssi) message_id_hash=\(mhash) sender_peer_id_hash=\(shash) payload_kind=\(beacon.payloadKind) beacon_version=\(beacon.beaconVersion) envelope_version=\(beacon.envelopeVersion)")
+        record("Legacy beacon RX", detail: "\(deviceId) rssi=\(rssi) mhash=\(mhash.prefix(16))")
     }
 }
