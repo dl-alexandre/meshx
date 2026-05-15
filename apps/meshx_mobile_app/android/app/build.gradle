@@ -72,9 +72,25 @@ android {
         release { minifyEnabled false }
         debug   { jniDebuggable true }
     }
+
+    // Local unit tests run against the Android stub classpath where
+    // every framework method throws by default. `returnDefaultValues =
+    // true` makes them return 0 / false / null instead, which is what
+    // the existing BLE Kotlin tests rely on for SystemClock.elapsedRealtime
+    // and similar non-deterministic helpers (the tests pin behavior, not
+    // monotonic time). Matches the bare-Gradle layout the project used
+    // before the Mob restructure.
+    testOptions {
+        unitTests.returnDefaultValues = true
+    }
 }
 
 dependencies {
+    // The BLE Kotlin layer ships unit tests (FakeBleBridge, BleScanner,
+    // MeshxMessageEnvelope, etc.) on JUnit 4 — the mix mob.new template
+    // doesn't carry these testImplementation deps so wire them explicitly.
+    testImplementation 'junit:junit:4.13.2'
+
     def composeBom = platform('androidx.compose:compose-bom:2024.02.00')
     implementation composeBom
     implementation 'androidx.compose.ui:ui'

@@ -1,5 +1,6 @@
 package dev.meshx.mob.ble
 
+import android.bluetooth.BluetoothAdapter
 import android.os.SystemClock
 
 /**
@@ -21,23 +22,73 @@ class FakeBleBridge(private val sink: BleEventSink) : BleBridge {
     var lastLocalName: String? = null
         private set
 
+    // Intent state that survives radio off/on cycles — mirrors
+    // RealBleBridge's resilience model so tests can assert on it.
+    @Volatile var wantScan: Boolean = false
+        private set
+
+    @Volatile var wantAdvertise: Boolean = false
+        private set
+
+    val lastBluetoothState: Int
+        get() = lastObservedState
+
+    @Volatile private var lastObservedState: Int = -1
+
     override fun startScan(): Boolean {
+        wantScan = true
         runningScan = true
         return true
     }
 
     override fun stopScan() {
+        wantScan = false
         runningScan = false
     }
 
     override fun startAdvertising(localName: String): Boolean {
+        wantAdvertise = true
         runningAdvertise = true
         lastLocalName = localName
         return true
     }
 
     override fun stopAdvertising() {
+        wantAdvertise = false
         runningAdvertise = false
+    }
+
+    override fun onBluetoothStateChanged(state: Int) {
+        if (state == lastObservedState) return
+        lastObservedState = state
+
+        when (state) {
+            BluetoothAdapter.STATE_OFF -> {
+                runningScan = false
+                runningAdvertise = false
+                sink.accept(
+                    BleEvent.Error(
+                        kind = BleEvent.Companion.ErrorKind.BLUETOOTH_OFF,
+                        detail = "bluetooth adapter state -> STATE_OFF"
+                    )
+                )
+            }
+
+            BluetoothAdapter.STATE_ON -> {
+                sink.accept(
+                    BleEvent.Error(
+                        kind = BleEvent.Companion.ErrorKind.UNKNOWN,
+                        detail = "bluetooth_on_recovered:replaying intents " +
+                            "wantScan=$wantScan wantAdvertise=$wantAdvertise"
+                    )
+                )
+
+                if (wantScan) runningScan = true
+                if (wantAdvertise) runningAdvertise = true
+            }
+
+            else -> Unit
+        }
     }
 
     fun emitDiscovery(deviceId: String, rssi: Int = -55, advertisement: ByteArray = ByteArray(0)) {

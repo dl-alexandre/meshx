@@ -180,6 +180,26 @@ object MeshxBleNative {
     }
 
     /**
+     * Doze / adapter-cycle hook. MainActivity registers a
+     * BroadcastReceiver for `BluetoothAdapter.ACTION_STATE_CHANGED` and
+     * forwards the new state here. The bridge tracks scan/advertise
+     * *intent* across radio off/on cycles and auto-replays it when the
+     * adapter comes back, so the BEAM observes a brief Error event
+     * instead of the whole BLE plane disappearing until a manual restart.
+     */
+    @JvmStatic
+    fun onBluetoothStateChanged(state: Int) {
+        try {
+            bridge?.onBluetoothStateChanged(state)
+        } catch (t: Throwable) {
+            emitBridgeError(
+                BleEvent.Companion.ErrorKind.UNKNOWN,
+                "onBluetoothStateChanged threw: ${t.message ?: t.javaClass.simpleName}"
+            )
+        }
+    }
+
+    /**
      * Real directed send: wrap `payload` in a v1 `MeshxMessageEnvelope`
      * (broadcast — `recipientPeerId = null`, so any MeshX scanner ingests
      * it) and dispatch it through `BleDispatcher` as a legacy beacon.

@@ -1,6 +1,10 @@
 package dev.meshx.mob
 
 import android.app.Activity
+import android.bluetooth.BluetoothAdapter
+import android.content.BroadcastReceiver
+import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.net.Uri
@@ -125,6 +129,7 @@ class MainActivity : ComponentActivity() {
         // BEAM starts — meshx_ble_nif's start_scan/start_advertising calls
         // route through MeshxBleNative, which builds RealBleBridge lazily.
         MeshxBleNative.init(this)
+        registerBluetoothStateReceiver()
 
         // Forward launcher-supplied env vars into the BEAM process. Set BEFORE
         // nativeStartBeam below so the BEAM (and Mob.Dist in particular) sees
@@ -291,5 +296,56 @@ class MainActivity : ComponentActivity() {
         val nightMode = newConfig.uiMode and Configuration.UI_MODE_NIGHT_MASK
         val scheme = if (nightMode == Configuration.UI_MODE_NIGHT_YES) "dark" else "light"
         MobBridge.notifyColorSchemeChanged(scheme)
+    }
+
+    // ── Doze / adapter-cycle resilience ─────────────────────────────────
+    // Forward BluetoothAdapter.ACTION_STATE_CHANGED to the BLE bridge so
+    // it can surface a BLUETOOTH_OFF event when the radio drops (Doze
+    // suspend, airplane mode, user toggle) and auto-replay the caller's
+    // scan/advertise intent when it comes back. Registered for the
+    // Activity's lifetime — Doze is a background concern so we can't
+    // gate this on foreground state.
+    private val bluetoothStateReceiver: BroadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: android.content.Context?, intent: Intent?) {
+            if (intent?.action == BluetoothAdapter.ACTION_STATE_CHANGED) {
+                val state = intent.getIntExtra(
+                    BluetoothAdapter.EXTRA_STATE,
+                    BluetoothAdapter.ERROR
+                )
+                Log.i(TAG, "BluetoothAdapter state -> $state")
+                MeshxBleNative.onBluetoothStateChanged(state)
+            }
+        }
+    }
+
+    private var bluetoothStateReceiverRegistered = false
+
+    private fun registerBluetoothStateReceiver() {
+        if (bluetoothStateReceiverRegistered) return
+        val filter = IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED)
+        // Android 13+ requires the export flag for runtime receivers.
+        // The state-changed broadcast is a system protected broadcast,
+        // so RECEIVER_NOT_EXPORTED is correct (no third-party should be
+        // sending us bluetooth state changes).
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(bluetoothStateReceiver, filter, RECEIVER_NOT_EXPORTED)
+        } else {
+            @Suppress("UnspecifiedRegisterReceiverFlag")
+            registerReceiver(bluetoothStateReceiver, filter)
+        }
+        bluetoothStateReceiverRegistered = true
+        Log.i(TAG, "registered BluetoothAdapter state receiver")
+    }
+
+    override fun onDestroy() {
+        if (bluetoothStateReceiverRegistered) {
+            try {
+                unregisterReceiver(bluetoothStateReceiver)
+            } catch (_: IllegalArgumentException) {
+                // Already unregistered — defensive against duplicate-destroy paths.
+            }
+            bluetoothStateReceiverRegistered = false
+        }
+        super.onDestroy()
     }
 }
