@@ -223,6 +223,73 @@ authentication beyond what the wire-level handshake provides.
 
 ---
 
+## 11.1 BLE Advert-Only Profile
+
+The BLE mobile transport (`meshx_transport_ble` + `MeshxMobileApp.BLE`)
+operates in two distinct profiles, and the contracts above apply to
+them differently. Implementations and applications MUST distinguish
+the two — silently treating an advert-only event as if it were a
+delivered envelope is a contract violation.
+
+### Connection-oriented profile (GATT, full payloads)
+
+The connection-oriented profile follows §1–§11 verbatim. A peer that
+hosts the MeshX GATT service and completes a Noise XX handshake over
+GATT exchanges full `MeshxProtocol.Packet` frames; delivery,
+ACK/retry, dedup, and ordering work as documented.
+
+### Advert-only profile (manufacturer-data references)
+
+When the radio is constrained to BLE advertising — no GATT connection
+(out of range, intermittent contact, central-only peers, Doze suspend
+of GATT) — MeshX carries message *references*, not payloads, in the
+manufacturer-data envelope documented in `WIRE_FORMAT.md §10`.
+
+The advert-only profile MUST NOT be treated as the §6 delivery
+contract. Specifically:
+
+1. **Beacon delivery is a discovery signal, not an envelope.** A
+   `%MeshxMobileApp.BLE.Events.ReceivedMessageBeacon{}` proves that a
+   MeshX-shaped message *exists* at the named coordinates
+   (`message_id_hash`, `sender_peer_id_hash`, `payload_kind`,
+   `envelope_version`) and was advertised at time T. It MUST NOT be
+   interpreted as a delivered MeshX packet.
+2. **No payload is on the air.** The 22-byte legacy beacon and the
+   extended-advertising envelope path carry message references only.
+   The encrypted payload bytes are retrievable via the GATT-fetch
+   protocol (`MeshxFetchGatt`), which requires a full connection to a
+   peer that hosts the responder GATT service.
+3. **No ACK / retry / outbox semantics apply at the beacon layer.**
+   The `store: true` contract from §6 is unobservable across the
+   advert-only path: there is no transport-layer return channel to
+   ACK against. Applications that need delivery confirmation MUST
+   either (a) rely on a higher-level application ACK encoded in the
+   payload after a GATT fetch, or (b) treat the beacon as a hint and
+   resolve through a different transport.
+4. **Dedup must be by `{sender_peer_id_hash, message_id_hash}`.** §8
+   talks about the runtime dedup window; the BLE scanner inflates
+   raw observation counts well past actual message cardinality (see
+   FAILURE_DOMAINS §8 *"CALLBACK_TYPE_ALL_MATCHES inflates message
+   counts"*). The defensible delivery cardinality is the cardinality
+   of the set of `{sender_hash, msg_id_hash}` pairs observed, not the
+   beacon callback count.
+5. **The two profiles are wire-compatible but semantically distinct.**
+   Receiving the *same* `message_id` via both a GATT-delivered
+   envelope and an advert-only beacon is normal — they represent the
+   same message observed two ways. Applications that fold both into a
+   single "message received" event MUST dedup on `message_id` (or its
+   8-byte hash, with the collision risk documented in FAILURE_DOMAINS).
+
+### Conformance signal
+
+An implementation that wishes to advertise advert-only profile support
+MUST surface the manufacturer-data company id `0xFFFF` + magic
+discriminator (`MX` / `MB`) on the wire as specified in
+`WIRE_FORMAT.md §10`, and MUST decode both magics defensively (an
+unknown payload after a valid magic is dropped, not crashed on).
+
+---
+
 ## 12. Application Responsibilities
 
 The application MUST:

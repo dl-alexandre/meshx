@@ -192,3 +192,65 @@ Native bridge integrations should include tests for:
 `MeshxTransportBLE.NoopBridge` remains the desktop/test fallback. It starts the
 adapter without native BLE and returns `{:error, :not_configured}` for sends so
 misconfigured production systems fail explicitly.
+
+## Platform Parity Matrix (Advert-Only Profile)
+
+The mobile bridges live in two layers: the GATT/connection-oriented
+path (Noise XX over a paired link) and the advert-only profile
+(manufacturer-data references — `WIRE_FORMAT.md §10`, `CONTRACTS.md
+§11.1`). Both Android and iOS host both layers, but the *advert-only*
+surface they expose is asymmetric today.
+
+| Capability | Android | iOS | Notes |
+| --- | --- | --- | --- |
+| `start_scan/1` returns `:ok` | ✅ | ✅ | NIF surface is identical (`src/meshx_ble_nif.erl`). |
+| `start_advertising/2` returns `:ok` | ✅ | ✅ | Same NIF surface. |
+| Receive `%DeviceDiscovered{}` | ✅ | ❌ | iOS emits legacy `{:connected, peer_id}` / `{:disconnected, peer_id}` tuples (GATT path) — there's no equivalent "I saw an ambient BLE device" event. Adding it means surfacing `CBCentralManager` discovery results into a `meshx_ble_emit_device_discovered` NIF entry. |
+| Receive `%AdvertisementReceived{}` | ✅ | ❌ | Same reasoning as `DeviceDiscovered`. |
+| Receive `%ReceivedMessageBeacon{}` (22-byte `MB` legacy beacon) | ✅ | ✅ | `MeshxBLEClient.meshxDidObserveLegacyBeacon` → `meshx_ble_emit_received_message_beacon` → v1 atom-keyed map. |
+| Receive `%ReceivedMessage{}` (full `MX` envelope, extended advertising) | ✅ | ❌ | Android decodes via `MeshxMessageAdvertisement.decodeScanRecord`; iOS has no equivalent path on the central side. |
+| Dispatch send via legacy-beacon advertise | ✅ | ❌ | Android: `BleDispatcher.dispatch(payload, forceLegacyBeacon: true)` builds a `MeshxMessageEnvelope`, derives the beacon, advertises via manufacturer data. iOS: `sendPing` only does GATT-connection writes (`client.send` / `peripheral.send`). For advert-only parity, iOS needs an equivalent that advertises the 22-byte beacon via `CBPeripheralManager` with `CBAdvertisementDataManufacturerDataKey` (company id `0xFFFF`). |
+| Canonical `%BLE.Events.Error{kind, detail}` surface | ✅ | partial | Android emits typed `BleEvent.Error(kind = SCAN_FAILED/UNAUTHORIZED/BLUETOOTH_OFF/...)`. iOS emits legacy `{:error, string}` tuples — the kind taxonomy isn't enforced on the iOS path. |
+| Adapter-state recovery (auto-replay intent) | ✅ | n/a | Android uses `BluetoothAdapter.ACTION_STATE_CHANGED` + intent replay. iOS BLE state restoration is a separate CoreBluetooth mechanism (`CBCentralManagerOptionRestoreIdentifierKey`); the equivalent is opt-in via `MeshxBLEClient`'s manager init options. |
+
+### iOS parity gap — minimum work to close
+
+Shipping the advert-only contract end to end on iOS requires three
+pieces of native work that don't exist today:
+
+1. **Advert-only send path.** A Swift component that takes a payload,
+   builds a v1 `MeshxMessageEnvelope`, derives the 22-byte legacy
+   beacon (the receive side's `MeshxLegacyBeaconAdvertisement` already
+   defines the layout), and advertises via
+   `CBAdvertisementDataManufacturerDataKey` with company id `0xFFFF`.
+   `sendPing` then prefers the GATT path when a paired peer exists
+   and falls back to the beacon dispatch otherwise — mirroring
+   Android's `MeshxBleNative.sendToPeer(forceLegacyBeacon: true)`.
+2. **Full-envelope (`MX` magic) advert decode on the central side.**
+   Extended-advertising scans surface as `CBCentralManager` discovery
+   results with a `kCBAdvDataManufacturerData` blob; parsing it to a
+   `MeshxMessageEnvelope` and emitting a new
+   `meshx_ble_emit_received_message` NIF entry gives iOS the same
+   wire-shape coverage Android has today.
+3. **v1 wire migration for the legacy tuples.** The iOS NIF still
+   emits `{:status, _}`, `{:connected, _}`, `{:disconnected, _}`,
+   `{:received, _, _}` legacy tuples. `BridgeProtocol.decode`
+   accepts them for backward compatibility, but the long-term
+   contract is v1; each legacy emitter should be migrated to its v1
+   wire-map counterpart (`device_discovered`,
+   `connection_state_changed`, `received_message`) so both platforms
+   produce the same shape.
+
+None of these require BEAM-side changes — the Elixir decoder already
+accepts every shape both bridges produce, and `CONTRACTS.md §11.1`
+defines what advert-only delivery means independent of platform.
+Matching iOS to that contract is the remaining native work.
+
+### Hardware proof of the advert-only path
+
+The Android side has been exercised on two physical tablets
+(SM-T577U / API 33 and SM-T390 / API 28) — bidirectional MeshX
+message-reference exchange verified in commit `cd5b473`. iOS-side
+hardware verification of the advert-only contract is the remaining
+on-device deliverable; the matrix above is what an iOS bring-up
+session must satisfy to claim parity.
