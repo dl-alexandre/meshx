@@ -398,3 +398,152 @@ FRAGMENT_HEADER_SIZE     = 6     # orig_msg_id + index + total (§4)
   will still complete Noise as the initiator. A node that wishes to
   receive unsolicited messages must also advertise and host the GATT
   service.
+
+---
+
+## 10. Advert-Only Message References (BLE manufacturer data)
+
+The GATT chunk layer above (Sections 1–8) carries the full encrypted
+MeshX frame between a paired central/peripheral. Mobile mesh use
+cases also need a **connectionless** path so two peers can exchange
+*references* to messages without establishing a Noise session —
+useful for proximity announce, neighbor presence, and store-and-
+forward hint propagation. This is the advert-only profile served by
+`MeshxMobileApp.BLE` + `meshx_transport_ble` on Android and iOS.
+
+### Manufacturer data envelope
+
+The advert-only profile rides on BLE manufacturer-specific data (AD
+type `0xFF`) with company identifier **`0xFFFF`** (the Bluetooth SIG
+reserved "no company" id, appropriate for a local mesh that is not a
+registered Bluetooth vendor). The payload is two bytes of magic
+followed by a versioned body:
+
+| Magic   | Body shape              | Carried in                  | Receive event              |
+|---------|-------------------------|-----------------------------|----------------------------|
+| `M` `X` | Full v1 envelope        | Extended advertising (≤1024B) | `ReceivedMessage`        |
+| `M` `B` | 22-byte legacy beacon   | Legacy advertising (≤24B)   | `ReceivedMessageBeacon`    |
+
+A scanner that sees company `0xFFFF` and magic `MX` or `MB` parses
+the body as a MeshX advert-only message. Any other manufacturer
+entry, or company `0xFFFF` without the magic, falls through as a
+plain `DeviceDiscovered` / `AdvertisementReceived` event.
+
+### `MX` — Full v1 envelope
+
+The full envelope (`MeshxMobileApp.BLE.MessageEnvelope` v1) starts
+with `'M','X', VERSION (1), 0` and carries:
+
+```
++--------+--------+--------+--------+
+|  'M'   |  'X'   | ver=1  | 0x00   |   magic + version (4 B)
++--------+--------+--------+--------+
+|          message_id (16 B)        |   random per-message id
++-----------------------------------+
+|        created_at_ms (8 B BE)     |   ms since epoch
++--------+--------------------------+
+| ttl(1) | sender_len(1) | sender   |   length-prefixed peer id
++--------+--------------------------+
+| recip_len(1) | recipient_peer_id  |   optional (len=0 -> broadcast)
++--------------+--------------------+
+| type_len(1)  | payload_type       |   short ASCII tag, e.g. "TX"
++--------------+--------------------+
+| cap_req(1)   | payload_len (2 BE) | payload (...)  |
++--------------+--------------------+------------------+
+```
+
+Size: ~30 B header overhead + payload. The full envelope only fits
+in BLE 5 *extended* advertising; legacy advertising's 24-byte
+manufacturer-data budget rejects it. **Not every controller that
+*sends* extended advertising can *scan* it** — the Android BLE 5
+landscape is asymmetric across hardware generations (see
+[FAILURE_DOMAINS](FAILURE_DOMAINS.md#extended-advertising-scan-support-is-per-device)).
+
+### `MB` — Legacy beacon
+
+When the envelope won't fit legacy advertising and the peer fleet
+includes hardware that can't scan extended adverts, MeshX dispatches
+a 22-byte **legacy beacon** instead. The beacon carries a reference
+to the message, not its payload:
+
+```
++--------+--------+--------+--------+--------+--------+
+|  'M'   |  'B'   | bvers  | evers  | kind   | flags  |   header (6 B)
++--------+--------+--------+--------+--------+--------+
+|              message_id_hash (8 B)                    |   sha256(message_id)[0..8]
++--------+--------+--------+--------+--------+--------+
+|              sender_peer_id_hash (8 B)                |   sha256(sender_peer_id)[0..8]
++-------------------------------------------------------+
+```
+
+Header field semantics:
+
+- `bvers` — beacon-format version, currently `1`.
+- `evers` — MeshX envelope version the beacon references (`1`).
+- `kind` — payload-type tag mapped to a small enum (`0` unknown,
+  `1` = `TX`, …). Receivers verify against the canonical tag set.
+- `flags` — reserved, must be `0`.
+
+A receiver that sees a beacon and wants the full payload retrieves
+it via the GATT-fetch protocol (`MeshxFetchGatt`) keyed on the
+`message_id_hash`. Subscribers operating in the advert-only profile
+treat the beacon itself as the delivery: it proves the sender was
+in range at time T announcing a message with those coordinates.
+
+### v1 wire JSON (bridge protocol)
+
+Both the native bridge (Kotlin / Swift) and the BEAM-side runtime
+exchange BLE events as **v1 wire JSON**. Each event is a JSON
+object with a `v` discriminator and an `event` tag; binary fields
+are base64-encoded:
+
+```json
+{
+  "v": 1,
+  "event": "received_message_beacon",
+  "beacon_version": 1,
+  "envelope_version": 1,
+  "payload_kind": "TX",
+  "message_id_hash": "8gRcw6LUtdc=",
+  "sender_peer_id_hash": "9wgG7dwoW8w=",
+  "received_device_id": "5E:42:6B:2F:BF:31",
+  "received_at": 159409,
+  "rssi": -46,
+  "raw_transport_metadata": {
+    "transport": "ble_android_advertisement",
+    "source_event": "advertisement_received",
+    "advertisement": "AgE...",
+    "beacon_payload": "TUIB...",
+    "manufacturer_data": "//9NQg...",
+    "company_identifier": 65535,
+    "ad_type": 255
+  }
+}
+```
+
+The set of `event` tags is closed and corresponds 1:1 to the
+`MeshxMobileApp.BLE.Events.*` Elixir structs (`device_discovered`,
+`advertisement_received`, `received_message`, `received_message_beacon`,
+`connection_state_changed`, `peer_authenticated`, `message_received`,
+`device_lost`, `advert_gossip_outcome`, `error`).
+
+The Elixir `MeshxMobileApp.BLE.BridgeProtocol` decoder accepts the
+JSON form (with base64 binary fields) *and* the raw atom-keyed-map
+form produced by the iOS NIF directly. Binary fields carried as
+base64 on the JSON path are recursively decoded by `atomize_top_level`
+before structural validation runs. **Any v1 binary field added to a
+new event tag must also be added to `@b64_top_level_fields` or
+`@b64_metadata_fields` in `bridge_protocol.ex`**, otherwise strict
+validators will reject correctly-formatted advertisements with
+`{:..._invalid_field, :the_new_field}` errors.
+
+### Scan callback semantics
+
+`ScanSettings.CALLBACK_TYPE_ALL_MATCHES` delivers a callback for
+every advertising event observed within a peer's advertising window
+— typically 15–50 callbacks per 5-second legacy beacon at default
+intervals. **Counting beacon callbacks is *not* a delivery rate.**
+The canonical "message received" cardinality is the cardinality of
+the set of `{sender_peer_id_hash, message_id_hash}` pairs observed
+(or `{sender_peer_id, message_id}` on the full-envelope path).
+Reliability claims must dedup on those keys.
