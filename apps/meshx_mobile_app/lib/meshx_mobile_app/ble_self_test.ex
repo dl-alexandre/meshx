@@ -44,10 +44,18 @@ defmodule MeshxMobileApp.BleSelfTest do
       discovered: MapSet.new(),
       event_count: 0,
       meshx_peers: MapSet.new(),
-      # device_ids we've already dispatched a MeshX message to (send once
-      # per peer) and the count of MeshX messages received from peers.
-      sent_to: MapSet.new(),
-      messages_received: 0
+      # Dispatch counters and received-side dedup. `beacon_callbacks` is
+      # the raw count of received_message_beacon events from the scanner —
+      # with ScanSettings.CALLBACK_TYPE_ALL_MATCHES a single 5s advertise
+      # window typically fires 15-50 callbacks for the *same* beacon, so
+      # the count inflates well past actual delivery. `distinct_messages`
+      # dedups by {sender_peer_id_hash, message_id_hash}: that's the real
+      # cardinality of MeshX messages received across the BLE radio.
+      sent: 0,
+      beacon_callbacks: 0,
+      full_envelopes_received: 0,
+      seen_messages: MapSet.new(),
+      first_seen_at: %{}
     }
 
     {:ok, state, {:continue, :start_ble}}
@@ -82,7 +90,7 @@ defmodule MeshxMobileApp.BleSelfTest do
     )
 
     Process.send_after(self(), :send_message, @send_interval_ms)
-    {:noreply, %{state | sent_to: MapSet.put(state.sent_to, "broadcast")}}
+    {:noreply, %{state | sent: state.sent + 1}}
   end
 
   @impl true
@@ -93,8 +101,10 @@ defmodule MeshxMobileApp.BleSelfTest do
       "BleSelfTest: HEARTBEAT events=#{state.event_count} " <>
         "devices=#{MapSet.size(state.discovered)} " <>
         "meshx_peers=#{MapSet.size(state.meshx_peers)} " <>
-        "msgs_sent=#{MapSet.size(state.sent_to)} " <>
-        "msgs_received=#{state.messages_received}"
+        "sent=#{state.sent} " <>
+        "distinct_msgs=#{MapSet.size(state.seen_messages)} " <>
+        "beacon_callbacks=#{state.beacon_callbacks} " <>
+        "envelopes=#{state.full_envelopes_received}"
     )
 
     Process.send_after(self(), :heartbeat, @heartbeat_ms)
@@ -114,23 +124,26 @@ defmodule MeshxMobileApp.BleSelfTest do
           maybe_log_meshx_peer(e.device_id, e.rssi, e.advertisement, state)
 
         {Adapter, :event, %MeshxMobileApp.BLE.Events.ReceivedMessage{} = e} ->
-          Logger.info(
-            "BleSelfTest: MESH MESSAGE RECEIVED from=#{e.sender_peer_id} " <>
-              "device_id=#{e.received_device_id} " <>
-              "payload=#{inspect(message_payload(e.envelope))}"
-          )
-
-          %{state | messages_received: state.messages_received + 1}
+          key = {e.envelope.sender_peer_id, e.message_id}
+          state = %{state | full_envelopes_received: state.full_envelopes_received + 1}
+          record_distinct_message(state, key, :envelope, e.sender_peer_id, e.received_device_id)
 
         {Adapter, :event, %MeshxMobileApp.BLE.Events.ReceivedMessageBeacon{} = e} ->
-          Logger.info(
-            "BleSelfTest: MESH MESSAGE BEACON RECEIVED " <>
-              "msg_id_hash=#{Base.encode16(e.message_id_hash, case: :lower)} " <>
-              "sender_hash=#{Base.encode16(e.sender_peer_id_hash, case: :lower)} " <>
-              "kind=#{e.payload_kind} device_id=#{e.received_device_id}"
-          )
+          # CALLBACK_TYPE_ALL_MATCHES fires per advertising-event, not per
+          # message — the *same* 22-byte beacon is reported many times
+          # across its 5s advertise window. Dedup by the (sender_hash,
+          # msg_id_hash) pair so the distinct count is a defensible
+          # delivery metric independent of scan duty cycle.
+          key = {e.sender_peer_id_hash, e.message_id_hash}
+          state = %{state | beacon_callbacks: state.beacon_callbacks + 1}
 
-          %{state | messages_received: state.messages_received + 1}
+          record_distinct_message(
+            state,
+            key,
+            :beacon,
+            "sender_hash=#{Base.encode16(e.sender_peer_id_hash, case: :lower)}",
+            e.received_device_id
+          )
 
         {Adapter, :event, %MeshxMobileApp.BLE.Events.Error{} = e} ->
           Logger.warning("BleSelfTest: bridge error #{e.kind}: #{e.detail}")
@@ -148,10 +161,35 @@ defmodule MeshxMobileApp.BleSelfTest do
     {:noreply, state}
   end
 
-  # The full-envelope path carries the payload; pull it out for the log
-  # line. Beacons carry only a hash, handled separately above.
-  defp message_payload(%{payload: payload}) when is_binary(payload), do: payload
-  defp message_payload(_), do: :hash_only
+  # Record the first sight of a distinct message and log it; subsequent
+  # sightings of the same key are silently absorbed into beacon_callbacks
+  # so the per-message log line maps 1:1 to actual delivered messages.
+  defp record_distinct_message(state, key, kind, sender_label, device_id) do
+    if MapSet.member?(state.seen_messages, key) do
+      state
+    else
+      now = System.monotonic_time(:millisecond)
+
+      Logger.info(
+        "BleSelfTest: DISTINCT MESH MESSAGE kind=#{kind} " <>
+          "key=#{format_key(key)} from=#{sender_label} " <>
+          "device_id=#{device_id} " <>
+          "first_seen_after=#{state.beacon_callbacks + state.full_envelopes_received}_callbacks"
+      )
+
+      %{
+        state
+        | seen_messages: MapSet.put(state.seen_messages, key),
+          first_seen_at: Map.put(state.first_seen_at, key, now)
+      }
+    end
+  end
+
+  defp format_key({sender, msg_id}) when is_binary(sender) and is_binary(msg_id) do
+    Base.encode16(sender, case: :lower) <> ":" <> Base.encode16(msg_id, case: :lower)
+  end
+
+  defp format_key(other), do: inspect(other)
 
   # A MeshX peer tablet advertises its adapter name ("meshx-<suffix>");
   # that ASCII lands in the raw advertisement bytes. Log the first sight
