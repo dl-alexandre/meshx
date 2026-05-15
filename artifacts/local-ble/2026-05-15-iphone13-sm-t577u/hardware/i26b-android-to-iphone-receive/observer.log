@@ -1,0 +1,99 @@
+### iPhone 13 (DairyPhoneDeaux, ECID 00008110-0006619A2132801E, iOS 26.4.2) — RECEIVE side
+### Harness build: dev.meshx.mobile.harness (post-fb5afa8, with new
+###   MessageAdvertisementObserver MB legacy beacon branch)
+### Launch args: --meshx-auto-scan --meshx-auto-beacon
+### Captured 2026-05-15 ~09:20 PT
+### Channel: xcrun devicectl device process launch --console (stdout)
+###
+### Two distinct Android peers visible. Andoid BLE peripheral identifiers
+### rotate per-discovery on iOS observation (privacy MAC randomization),
+### so the same physical Android device shows multiple device_ids over time.
+### Stable identity is sender_peer_id_hash.
+###
+###   sender_peer_id_hash=da6e783394329649  → SM-T577U on USB (R52W90AW7EN)
+###     base64 cross-reference: "2m54M5Qylkk=" — matches Android-side
+###     logcat "sender_peer_id_hash" field in MeshxBleDispatch
+###     "legacy_beacon_advertising_started" event (see ../i26b-android-to-iphone-receive/sender.log).
+###   sender_peer_id_hash=f70806eddc285bcc  → second Android device in BLE
+###     range (not on USB to this Mac), broadcasting independently.
+
+MeshxMessageObserver: legacy_beacon_received device_id=4D8A820B-B90A-3EDA-2636-7F919557B97A rssi=-53 message_id_hash=e91b22a374aa1b32 sender_peer_id_hash=f70806eddc285bcc payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=4D8A820B-B90A-3EDA-2636-7F919557B97A rssi=-53 message_id_hash=e91b22a374aa1b32 sender_peer_id_hash=f70806eddc285bcc payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=4D8A820B-B90A-3EDA-2636-7F919557B97A rssi=-54 message_id_hash=e91b22a374aa1b32 sender_peer_id_hash=f70806eddc285bcc payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=4D8A820B-B90A-3EDA-2636-7F919557B97A rssi=-55 message_id_hash=e91b22a374aa1b32 sender_peer_id_hash=f70806eddc285bcc payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=4D8A820B-B90A-3EDA-2636-7F919557B97A rssi=-54 message_id_hash=e91b22a374aa1b32 sender_peer_id_hash=f70806eddc285bcc payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=4D8A820B-B90A-3EDA-2636-7F919557B97A rssi=-54 message_id_hash=e91b22a374aa1b32 sender_peer_id_hash=f70806eddc285bcc payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=4D8A820B-B90A-3EDA-2636-7F919557B97A rssi=-52 message_id_hash=e91b22a374aa1b32 sender_peer_id_hash=f70806eddc285bcc payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=4D8A820B-B90A-3EDA-2636-7F919557B97A rssi=-53 message_id_hash=e91b22a374aa1b32 sender_peer_id_hash=f70806eddc285bcc payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=4D8A820B-B90A-3EDA-2636-7F919557B97A rssi=-52 message_id_hash=e91b22a374aa1b32 sender_peer_id_hash=f70806eddc285bcc payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=E9197816-4D2B-0883-D062-40D2C4841DD3 rssi=-58 message_id_hash=db881c7b64714134 sender_peer_id_hash=da6e783394329649 payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=4D8A820B-B90A-3EDA-2636-7F919557B97A rssi=-54 message_id_hash=e91b22a374aa1b32 sender_peer_id_hash=f70806eddc285bcc payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=E9197816-4D2B-0883-D062-40D2C4841DD3 rssi=-62 message_id_hash=db881c7b64714134 sender_peer_id_hash=da6e783394329649 payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=E9197816-4D2B-0883-D062-40D2C4841DD3 rssi=-60 message_id_hash=db881c7b64714134 sender_peer_id_hash=da6e783394329649 payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=E9197816-4D2B-0883-D062-40D2C4841DD3 rssi=-63 message_id_hash=db881c7b64714134 sender_peer_id_hash=da6e783394329649 payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=E9197816-4D2B-0883-D062-40D2C4841DD3 rssi=-63 message_id_hash=db881c7b64714134 sender_peer_id_hash=da6e783394329649 payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=4D8A820B-B90A-3EDA-2636-7F919557B97A rssi=-53 message_id_hash=e91b22a374aa1b32 sender_peer_id_hash=f70806eddc285bcc payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=E9197816-4D2B-0883-D062-40D2C4841DD3 rssi=-62 message_id_hash=db881c7b64714134 sender_peer_id_hash=da6e783394329649 payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=E9197816-4D2B-0883-D062-40D2C4841DD3 rssi=-59 message_id_hash=db881c7b64714134 sender_peer_id_hash=da6e783394329649 payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=E9197816-4D2B-0883-D062-40D2C4841DD3 rssi=-58 message_id_hash=db881c7b64714134 sender_peer_id_hash=da6e783394329649 payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=E9197816-4D2B-0883-D062-40D2C4841DD3 rssi=-61 message_id_hash=db881c7b64714134 sender_peer_id_hash=da6e783394329649 payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=E9197816-4D2B-0883-D062-40D2C4841DD3 rssi=-59 message_id_hash=db881c7b64714134 sender_peer_id_hash=da6e783394329649 payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=E9197816-4D2B-0883-D062-40D2C4841DD3 rssi=-59 message_id_hash=db881c7b64714134 sender_peer_id_hash=da6e783394329649 payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=4D8A820B-B90A-3EDA-2636-7F919557B97A rssi=-53 message_id_hash=e91b22a374aa1b32 sender_peer_id_hash=f70806eddc285bcc payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=4D8A820B-B90A-3EDA-2636-7F919557B97A rssi=-54 message_id_hash=e91b22a374aa1b32 sender_peer_id_hash=f70806eddc285bcc payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=E9197816-4D2B-0883-D062-40D2C4841DD3 rssi=-60 message_id_hash=db881c7b64714134 sender_peer_id_hash=da6e783394329649 payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=E9197816-4D2B-0883-D062-40D2C4841DD3 rssi=-60 message_id_hash=db881c7b64714134 sender_peer_id_hash=da6e783394329649 payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=4D8A820B-B90A-3EDA-2636-7F919557B97A rssi=-51 message_id_hash=e91b22a374aa1b32 sender_peer_id_hash=f70806eddc285bcc payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=4D8A820B-B90A-3EDA-2636-7F919557B97A rssi=-51 message_id_hash=e91b22a374aa1b32 sender_peer_id_hash=f70806eddc285bcc payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=E9197816-4D2B-0883-D062-40D2C4841DD3 rssi=-60 message_id_hash=db881c7b64714134 sender_peer_id_hash=da6e783394329649 payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=E9197816-4D2B-0883-D062-40D2C4841DD3 rssi=-60 message_id_hash=db881c7b64714134 sender_peer_id_hash=da6e783394329649 payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=E9197816-4D2B-0883-D062-40D2C4841DD3 rssi=-59 message_id_hash=db881c7b64714134 sender_peer_id_hash=da6e783394329649 payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=4D8A820B-B90A-3EDA-2636-7F919557B97A rssi=-53 message_id_hash=e91b22a374aa1b32 sender_peer_id_hash=f70806eddc285bcc payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=E9197816-4D2B-0883-D062-40D2C4841DD3 rssi=-61 message_id_hash=db881c7b64714134 sender_peer_id_hash=da6e783394329649 payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=E9197816-4D2B-0883-D062-40D2C4841DD3 rssi=-61 message_id_hash=db881c7b64714134 sender_peer_id_hash=da6e783394329649 payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=4D8A820B-B90A-3EDA-2636-7F919557B97A rssi=-53 message_id_hash=e91b22a374aa1b32 sender_peer_id_hash=f70806eddc285bcc payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=E9197816-4D2B-0883-D062-40D2C4841DD3 rssi=-60 message_id_hash=db881c7b64714134 sender_peer_id_hash=da6e783394329649 payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=E9197816-4D2B-0883-D062-40D2C4841DD3 rssi=-60 message_id_hash=db881c7b64714134 sender_peer_id_hash=da6e783394329649 payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=E9197816-4D2B-0883-D062-40D2C4841DD3 rssi=-64 message_id_hash=db881c7b64714134 sender_peer_id_hash=da6e783394329649 payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=E9197816-4D2B-0883-D062-40D2C4841DD3 rssi=-66 message_id_hash=db881c7b64714134 sender_peer_id_hash=da6e783394329649 payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=E9197816-4D2B-0883-D062-40D2C4841DD3 rssi=-65 message_id_hash=db881c7b64714134 sender_peer_id_hash=da6e783394329649 payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=4D8A820B-B90A-3EDA-2636-7F919557B97A rssi=-50 message_id_hash=e91b22a374aa1b32 sender_peer_id_hash=f70806eddc285bcc payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=E9197816-4D2B-0883-D062-40D2C4841DD3 rssi=127 message_id_hash=db881c7b64714134 sender_peer_id_hash=da6e783394329649 payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=4D8A820B-B90A-3EDA-2636-7F919557B97A rssi=-51 message_id_hash=e91b22a374aa1b32 sender_peer_id_hash=f70806eddc285bcc payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=E9197816-4D2B-0883-D062-40D2C4841DD3 rssi=-64 message_id_hash=db881c7b64714134 sender_peer_id_hash=da6e783394329649 payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=E9197816-4D2B-0883-D062-40D2C4841DD3 rssi=-65 message_id_hash=db881c7b64714134 sender_peer_id_hash=da6e783394329649 payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=E9197816-4D2B-0883-D062-40D2C4841DD3 rssi=-63 message_id_hash=db881c7b64714134 sender_peer_id_hash=da6e783394329649 payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=E9197816-4D2B-0883-D062-40D2C4841DD3 rssi=-60 message_id_hash=db881c7b64714134 sender_peer_id_hash=da6e783394329649 payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=E9197816-4D2B-0883-D062-40D2C4841DD3 rssi=-60 message_id_hash=db881c7b64714134 sender_peer_id_hash=da6e783394329649 payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=4D8A820B-B90A-3EDA-2636-7F919557B97A rssi=-52 message_id_hash=e91b22a374aa1b32 sender_peer_id_hash=f70806eddc285bcc payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=4D8A820B-B90A-3EDA-2636-7F919557B97A rssi=-52 message_id_hash=e91b22a374aa1b32 sender_peer_id_hash=f70806eddc285bcc payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=8B73AAED-84F3-1A4D-5B90-B2D9D776E0BB rssi=-52 message_id_hash=2d568db8adb5f6f8 sender_peer_id_hash=f70806eddc285bcc payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=8B73AAED-84F3-1A4D-5B90-B2D9D776E0BB rssi=-52 message_id_hash=2d568db8adb5f6f8 sender_peer_id_hash=f70806eddc285bcc payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=8B73AAED-84F3-1A4D-5B90-B2D9D776E0BB rssi=-52 message_id_hash=2d568db8adb5f6f8 sender_peer_id_hash=f70806eddc285bcc payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=8B73AAED-84F3-1A4D-5B90-B2D9D776E0BB rssi=-53 message_id_hash=2d568db8adb5f6f8 sender_peer_id_hash=f70806eddc285bcc payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=8B73AAED-84F3-1A4D-5B90-B2D9D776E0BB rssi=-53 message_id_hash=2d568db8adb5f6f8 sender_peer_id_hash=f70806eddc285bcc payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=8B73AAED-84F3-1A4D-5B90-B2D9D776E0BB rssi=-55 message_id_hash=2d568db8adb5f6f8 sender_peer_id_hash=f70806eddc285bcc payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=8B73AAED-84F3-1A4D-5B90-B2D9D776E0BB rssi=-52 message_id_hash=2d568db8adb5f6f8 sender_peer_id_hash=f70806eddc285bcc payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=8B73AAED-84F3-1A4D-5B90-B2D9D776E0BB rssi=-52 message_id_hash=2d568db8adb5f6f8 sender_peer_id_hash=f70806eddc285bcc payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=8B73AAED-84F3-1A4D-5B90-B2D9D776E0BB rssi=-54 message_id_hash=2d568db8adb5f6f8 sender_peer_id_hash=f70806eddc285bcc payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=86046E69-338D-8131-1602-7146824EC980 rssi=-66 message_id_hash=bda85f2c366af91d sender_peer_id_hash=da6e783394329649 payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=86046E69-338D-8131-1602-7146824EC980 rssi=-66 message_id_hash=bda85f2c366af91d sender_peer_id_hash=da6e783394329649 payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=86046E69-338D-8131-1602-7146824EC980 rssi=-66 message_id_hash=bda85f2c366af91d sender_peer_id_hash=da6e783394329649 payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=86046E69-338D-8131-1602-7146824EC980 rssi=-66 message_id_hash=bda85f2c366af91d sender_peer_id_hash=da6e783394329649 payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=6369BE5A-A4A7-0E2E-4699-25E0E2355981 rssi=-53 message_id_hash=a7ff52b491242e71 sender_peer_id_hash=f70806eddc285bcc payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=6369BE5A-A4A7-0E2E-4699-25E0E2355981 rssi=-54 message_id_hash=a7ff52b491242e71 sender_peer_id_hash=f70806eddc285bcc payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=5E7D6735-C147-9921-3A01-02D0FFE14FE7 rssi=-63 message_id_hash=44c4fe6c0bb02724 sender_peer_id_hash=da6e783394329649 payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=5E7D6735-C147-9921-3A01-02D0FFE14FE7 rssi=-63 message_id_hash=44c4fe6c0bb02724 sender_peer_id_hash=da6e783394329649 payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=5E7D6735-C147-9921-3A01-02D0FFE14FE7 rssi=-67 message_id_hash=44c4fe6c0bb02724 sender_peer_id_hash=da6e783394329649 payload_kind=TX beacon_version=1 envelope_version=1
+MeshxMessageObserver: legacy_beacon_received device_id=5E7D6735-C147-9921-3A01-02D0FFE14FE7 rssi=-68 message_id_hash=44c4fe6c0bb02724 sender_peer_id_hash=da6e783394329649 payload_kind=TX beacon_version=1 envelope_version=1
+### Stream truncated for artifact (~70+ entries captured; on-device cadence
+### was unbroken until devicectl --console attach was stopped). Multiple
+### chat-level rate-limit suppressions occurred; the original radio-level
+### cadence on the iPhone was uninterrupted. CoreBluetooth
+### CBCentralManagerScanOptionAllowDuplicatesKey was active, so each
+### radio packet triggered a delegate call — observed ~10 callbacks/sec
+### across the two-Android population.
+###
+### rssi=127 is the CoreBluetooth sentinel for "unknown RSSI" returned
+### when the radio sample is unavailable; treat as missing, not as
+### in-range.

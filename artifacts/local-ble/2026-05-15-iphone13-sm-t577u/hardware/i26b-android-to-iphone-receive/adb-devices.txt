@@ -1,0 +1,6 @@
+# adb -s R52W90AW7EN getprop snapshot, captured 2026-05-15
+adb_serial=R52W90AW7EN
+ro.product.model=SM-T577U
+ro.build.version.release=13
+ro.build.version.sdk=33
+android.hardware.bluetooth_le=true

@@ -207,50 +207,80 @@ surface they expose is asymmetric today.
 | `start_advertising/2` returns `:ok` | ✅ | ✅ | Same NIF surface. |
 | Receive `%DeviceDiscovered{}` | ✅ | ❌ | iOS emits legacy `{:connected, peer_id}` / `{:disconnected, peer_id}` tuples (GATT path) — there's no equivalent "I saw an ambient BLE device" event. Adding it means surfacing `CBCentralManager` discovery results into a `meshx_ble_emit_device_discovered` NIF entry. |
 | Receive `%AdvertisementReceived{}` | ✅ | ❌ | Same reasoning as `DeviceDiscovered`. |
-| Receive `%ReceivedMessageBeacon{}` (22-byte `MB` legacy beacon) | ✅ | ✅ | `MeshxBLEClient.meshxDidObserveLegacyBeacon` → `meshx_ble_emit_received_message_beacon` → v1 atom-keyed map. |
-| Receive `%ReceivedMessage{}` (full `MX` envelope, extended advertising) | ✅ | ❌ | Android decodes via `MeshxMessageAdvertisement.decodeScanRecord`; iOS has no equivalent path on the central side. |
-| Dispatch send via legacy-beacon advertise | ✅ | ❌ | Android: `BleDispatcher.dispatch(payload, forceLegacyBeacon: true)` builds a `MeshxMessageEnvelope`, derives the beacon, advertises via manufacturer data. iOS: `sendPing` only does GATT-connection writes (`client.send` / `peripheral.send`). For advert-only parity, iOS needs an equivalent that advertises the 22-byte beacon via `CBPeripheralManager` with `CBAdvertisementDataManufacturerDataKey` (company id `0xFFFF`). |
+| Receive `%ReceivedMessageBeacon{}` (22-byte `MB` legacy beacon) | ✅ | ✅ | App bridge: `MeshxBLEClient.meshxDidObserveLegacyBeacon` → `meshx_ble_emit_received_message_beacon` → v1 atom-keyed map. Harness (post `fb5afa8`): `MessageAdvertisementObserver` falls through to `MeshxLegacyBeaconAdvertisement.parse` after MX decode declines, surfacing `meshxMessageObserverDidObserveLegacyBeacon`. Validated cross-platform on hardware (Android SM-T577U → iPhone 13, see `artifacts/local-ble/2026-05-15-iphone13-sm-t577u/`). |
+| Receive `%ReceivedMessage{}` (full `MX` envelope, extended advertising) | ✅ | partial | Harness `MessageAdvertisementObserver` already decodes `MX` envelopes via `MessageAdvertisement.decode` and emits `ReceivedMessageEvent` to the delegate. iOS production bridge (`MeshxNativeBLEBridge`) does not yet run an equivalent promiscuous observer or emit a `meshx_ble_emit_received_message` NIF entry — see gap (2) below. |
+| Dispatch send via legacy-beacon advertise | ✅ | ✅ | Android: `BleDispatcher.dispatch(payload, forceLegacyBeacon: true)` builds a `MeshxMessageEnvelope`, derives the beacon, advertises via manufacturer data. iOS: `MeshxBLEPeripheral.advertiseLegacyBeacon(messageId:senderPeerId:payloadKind:)` puts the 22-byte beacon on air via `CBAdvertisementDataManufacturerDataKey` with company id `0xFFFF`; bridge exposes this through `MeshxNativeBLEBridge.sendPing` fallback when no GATT peer is paired (commit `022b6f4`). Harness exercises the same path under `--meshx-auto-beacon`. Hardware-validated on iPhone 13 (commit `fb5afa8` evidence bundle). |
 | Canonical `%BLE.Events.Error{kind, detail}` surface | ✅ | partial | Android emits typed `BleEvent.Error(kind = SCAN_FAILED/UNAUTHORIZED/BLUETOOTH_OFF/...)`. iOS emits legacy `{:error, string}` tuples — the kind taxonomy isn't enforced on the iOS path. |
 | Adapter-state recovery (auto-replay intent) | ✅ | n/a | Android uses `BluetoothAdapter.ACTION_STATE_CHANGED` + intent replay. iOS BLE state restoration is a separate CoreBluetooth mechanism (`CBCentralManagerOptionRestoreIdentifierKey`); the equivalent is opt-in via `MeshxBLEClient`'s manager init options. |
 
 ### iOS parity gap — minimum work to close
 
-Shipping the advert-only contract end to end on iOS requires three
-pieces of native work that don't exist today:
+Two of the three pieces originally called out here have landed and been
+exercised on hardware. The remaining gap is the full-envelope (`MX`)
+receive path on the production app bridge.
 
-1. **Advert-only send path.** A Swift component that takes a payload,
-   builds a v1 `MeshxMessageEnvelope`, derives the 22-byte legacy
-   beacon (the receive side's `MeshxLegacyBeaconAdvertisement` already
-   defines the layout), and advertises via
+1. ~~**Advert-only send path.**~~ **Closed.**
+   `MeshxBLEPeripheral.advertiseLegacyBeacon(messageId:senderPeerId:payloadKind:)`
+   builds the 22-byte beacon and advertises via
    `CBAdvertisementDataManufacturerDataKey` with company id `0xFFFF`.
-   `sendPing` then prefers the GATT path when a paired peer exists
-   and falls back to the beacon dispatch otherwise — mirroring
-   Android's `MeshxBleNative.sendToPeer(forceLegacyBeacon: true)`.
+   `MeshxNativeBLEBridge.sendPing` falls back to this path when no
+   GATT peer is paired, mirroring Android's
+   `MeshxBleNative.sendToPeer(forceLegacyBeacon: true)`. Validated on
+   iPhone 13 hardware in commit `fb5afa8`'s evidence bundle.
 2. **Full-envelope (`MX` magic) advert decode on the central side.**
-   Extended-advertising scans surface as `CBCentralManager` discovery
-   results with a `kCBAdvDataManufacturerData` blob; parsing it to a
-   `MeshxMessageEnvelope` and emitting a new
-   `meshx_ble_emit_received_message` NIF entry gives iOS the same
-   wire-shape coverage Android has today.
-3. **v1 wire migration for the legacy tuples.** The iOS NIF still
-   emits `{:status, _}`, `{:connected, _}`, `{:disconnected, _}`,
-   `{:received, _, _}` legacy tuples. `BridgeProtocol.decode`
-   accepts them for backward compatibility, but the long-term
-   contract is v1; each legacy emitter should be migrated to its v1
-   wire-map counterpart (`device_discovered`,
+   Still open for the production bridge. The harness's
+   `MessageAdvertisementObserver` already decodes `MX` envelopes and
+   surfaces `ReceivedMessageEvent`, but `MeshxNativeBLEBridge` does
+   not yet instantiate an equivalent promiscuous observer. Closing
+   this means either (a) wiring `MessageAdvertisementObserver` into
+   `MeshxNativeBLEBridge` and routing its `ReceivedMessageEvent`
+   through a new `meshx_ble_emit_received_message` NIF entry, or
+   (b) extending `MeshxBLEClient.didDiscover` to attempt
+   `MessageAdvertisement.decode` symmetrically to the current MB
+   legacy-beacon check. Either way the BEAM-side
+   `BridgeProtocol.decode` already understands the resulting v1
+   `received_message` map.
+3. **v1 wire migration for the legacy tuples.** Still open. The iOS
+   NIF still emits `{:status, _}`, `{:connected, _}`,
+   `{:disconnected, _}`, `{:received, _, _}` legacy tuples.
+   `BridgeProtocol.decode` accepts them for backward compatibility,
+   but the long-term contract is v1; each legacy emitter should be
+   migrated to its v1 wire-map counterpart (`device_discovered`,
    `connection_state_changed`, `received_message`) so both platforms
    produce the same shape.
 
-None of these require BEAM-side changes — the Elixir decoder already
-accepts every shape both bridges produce, and `CONTRACTS.md §11.1`
-defines what advert-only delivery means independent of platform.
-Matching iOS to that contract is the remaining native work.
+Neither of the remaining items requires BEAM-side changes — the Elixir
+decoder already accepts every shape both bridges produce, and
+`CONTRACTS.md §11.1` defines what advert-only delivery means
+independent of platform.
 
 ### Hardware proof of the advert-only path
 
-The Android side has been exercised on two physical tablets
+The Android-only side has been exercised on two physical tablets
 (SM-T577U / API 33 and SM-T390 / API 28) — bidirectional MeshX
-message-reference exchange verified in commit `cd5b473`. iOS-side
-hardware verification of the advert-only contract is the remaining
-on-device deliverable; the matrix above is what an iOS bring-up
-session must satisfy to claim parity.
+message-reference exchange verified in commit `cd5b473` and archived
+under `artifacts/local-ble/2026-05-12-sm-t577u-sm-t390/`.
+
+The iOS leg landed 2026-05-15 (commit `fb5afa8`). Both iPhone dispatch
+and Android → iPhone receive are validated on hardware:
+
+* iPhone 13 (DairyPhoneDeaux, ECID `00008110-0006619A2132801E`, iOS
+  26.4.2) dispatched 59 consecutive MB legacy beacons at a 1.5 s
+  cadence via the harness's `--meshx-auto-beacon` driver.
+* The same iPhone, scanning simultaneously, decoded MB legacy beacons
+  from two Android peers in radio range — the USB-attached
+  SM-T577U (`sender_peer_id_hash` `da6e7833…49`, matching the
+  base64 `2m54M5Qylkk=` the Android side emits in
+  `MeshxBleDispatch.legacy_beacon_advertising_started`) and an
+  ambient Android peer (`f70806ed…cc`) — with byte-for-byte v1
+  envelope/beacon/payload-kind match. ~10 callbacks/sec with
+  `CBCentralManagerScanOptionAllowDuplicatesKey`.
+
+Full logs and per-leg JSON summaries:
+`artifacts/local-ble/2026-05-15-iphone13-sm-t577u/`.
+
+iPhone → Android receive is **not** in scope of this bundle: the
+shipping Android app's MeshX-level scanner was not running in the
+capture (only `BleSelfTest` dispatch was active). Reliably starting
+the Android scanner from the session-bring-up path is the remaining
+work to close the loop in the other direction.

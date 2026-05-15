@@ -1,0 +1,3 @@
+Name              Hostname                           Identifier                             State                Model                           
+---------------   --------------------------------   ------------------------------------   ------------------   --------------------------------
+DairyPhoneDeaux   DairyPhoneDeaux.coredevice.local   1780F216-CB5C-560B-A86F-85D31F79ADEF   connected            iPhone 13 (iPhone14,5)          

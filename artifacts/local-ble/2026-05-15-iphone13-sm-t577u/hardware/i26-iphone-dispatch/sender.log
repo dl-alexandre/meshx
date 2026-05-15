@@ -1,0 +1,71 @@
+### iPhone 13 (DairyPhoneDeaux, ECID 00008110-0006619A2132801E, iOS 26.4.2)
+### Harness build: dev.meshx.mobile.harness (post-fb5afa8)
+### Launch args: --meshx-auto-scan --meshx-auto-beacon
+### Captured 2026-05-15 ~08:30 PT
+### Channel: xcrun devicectl device process launch --console (stdout)
+
+Launched application with dev.meshx.mobile.harness bundle identifier.
+MeshxMessageObserver: scan_requested
+MeshxMessageObserver: beacon_dispatch_started sender_peer_id=ios-harness-747B7FE2
+MeshxMessageObserver: state CBManagerState(rawValue: 5)
+MeshxMessageObserver: scan_started
+MeshxMessageObserver: beacon_dispatched seq=1 message_id=52825be2a6f868922e5b72271ee1e82d sender_peer_id=ios-harness-747B7FE2
+MeshxMessageObserver: beacon_dispatched seq=2 message_id=5234f1a4e53f5507e2e3a2d586eeaa27 sender_peer_id=ios-harness-747B7FE2
+MeshxMessageObserver: beacon_dispatched seq=3 message_id=f3b212faa9a131363d8aafbfa1da4879 sender_peer_id=ios-harness-747B7FE2
+MeshxMessageObserver: beacon_dispatched seq=4 message_id=f454d7b2f3b4503b0dcceb3246658479 sender_peer_id=ios-harness-747B7FE2
+MeshxMessageObserver: beacon_dispatched seq=5 message_id=9e887188b4a168e98891fca2162b5009 sender_peer_id=ios-harness-747B7FE2
+MeshxMessageObserver: beacon_dispatched seq=6 message_id=f52b76f7c8f4feb8487d7c4ca6646f26 sender_peer_id=ios-harness-747B7FE2
+MeshxMessageObserver: beacon_dispatched seq=7 message_id=8577eba8052d1154eaa9d5014da51b73 sender_peer_id=ios-harness-747B7FE2
+MeshxMessageObserver: beacon_dispatched seq=8 message_id=77123bbeb9a27f25108c2cca11e2a2f4 sender_peer_id=ios-harness-747B7FE2
+MeshxMessageObserver: beacon_dispatched seq=9 message_id=1616088f4bd40c92cbde73e22ab090d8 sender_peer_id=ios-harness-747B7FE2
+MeshxMessageObserver: beacon_dispatched seq=10 message_id=acfe7443fba6ae8d3590e874bc35e12e sender_peer_id=ios-harness-747B7FE2
+MeshxMessageObserver: beacon_dispatched seq=11 message_id=98ae58516de9e7e7d85dc4dfef69a554 sender_peer_id=ios-harness-747B7FE2
+MeshxMessageObserver: beacon_dispatched seq=12 message_id=1d15773eb85e16ca0ed04c980bd3f530 sender_peer_id=ios-harness-747B7FE2
+MeshxMessageObserver: beacon_dispatched seq=13 message_id=a4f6df2af77e2c53378636c6488447f0 sender_peer_id=ios-harness-747B7FE2
+MeshxMessageObserver: beacon_dispatched seq=14 message_id=64e33f2e6d09a018d89576811fe2f457 sender_peer_id=ios-harness-747B7FE2
+MeshxMessageObserver: beacon_dispatched seq=15 message_id=5aa60193057711037dfa65b4d6618b5d sender_peer_id=ios-harness-747B7FE2
+MeshxMessageObserver: beacon_dispatched seq=16 message_id=49cc4900d33bc5e0722a9f6f367e94a0 sender_peer_id=ios-harness-747B7FE2
+MeshxMessageObserver: beacon_dispatched seq=17 message_id=b01f7f5d215a0f80feb84fc9033dfe05 sender_peer_id=ios-harness-747B7FE2
+MeshxMessageObserver: beacon_dispatched seq=18 message_id=bc533c0aa54b7cf96c31689129c420f5 sender_peer_id=ios-harness-747B7FE2
+MeshxMessageObserver: beacon_dispatched seq=19 message_id=c6d57be9e463e5bc2d2d4a9ea5f48eb6 sender_peer_id=ios-harness-747B7FE2
+MeshxMessageObserver: beacon_dispatched seq=20 message_id=74a171cb6d0f13b43b3077695bb6ee50 sender_peer_id=ios-harness-747B7FE2
+MeshxMessageObserver: beacon_dispatched seq=21 message_id=d8fe497a38aa5e517ed501838a335dd8 sender_peer_id=ios-harness-747B7FE2
+MeshxMessageObserver: beacon_dispatched seq=22 message_id=7870bae5de253bcefd09405ab3b4273f sender_peer_id=ios-harness-747B7FE2
+MeshxMessageObserver: beacon_dispatched seq=23 message_id=13adf893d8c7da95c94ac166528310cd sender_peer_id=ios-harness-747B7FE2
+MeshxMessageObserver: beacon_dispatched seq=24 message_id=ab014993f669f95d83578eae86818156 sender_peer_id=ios-harness-747B7FE2
+MeshxMessageObserver: beacon_dispatched seq=25 message_id=7cf5454d7663315b599673e2b94f2437 sender_peer_id=ios-harness-747B7FE2
+MeshxMessageObserver: beacon_dispatched seq=26 message_id=b8095ae532aa7c86a42a6beeef322437 sender_peer_id=ios-harness-747B7FE2
+MeshxMessageObserver: beacon_dispatched seq=27 message_id=d7435ba3934c738ae5ef666645d158ee sender_peer_id=ios-harness-747B7FE2
+MeshxMessageObserver: beacon_dispatched seq=28 message_id=2225063c11e335da75a224e5b3ec3257 sender_peer_id=ios-harness-747B7FE2
+MeshxMessageObserver: beacon_dispatched seq=29 message_id=670fa7198abd293e4ffd416b52406e99 sender_peer_id=ios-harness-747B7FE2
+MeshxMessageObserver: beacon_dispatched seq=30 message_id=842df19588b7e9327efb4656cff3d15d sender_peer_id=ios-harness-747B7FE2
+MeshxMessageObserver: beacon_dispatched seq=31 message_id=66368df78474c9bfb63a2fd553567bb8 sender_peer_id=ios-harness-747B7FE2
+MeshxMessageObserver: beacon_dispatched seq=32 message_id=7a252806115ab7c6cf784efb9961fb13 sender_peer_id=ios-harness-747B7FE2
+MeshxMessageObserver: beacon_dispatched seq=33 message_id=197187fefce73380389e00699d501599 sender_peer_id=ios-harness-747B7FE2
+MeshxMessageObserver: beacon_dispatched seq=34 message_id=23c06aaba7120a821af57bbfaa5ca37a sender_peer_id=ios-harness-747B7FE2
+MeshxMessageObserver: beacon_dispatched seq=35 message_id=e0b39f9ce1d22d0b13db1ce08089a7c8 sender_peer_id=ios-harness-747B7FE2
+MeshxMessageObserver: beacon_dispatched seq=36 message_id=38f08ac64156323d54222c06a78edac8 sender_peer_id=ios-harness-747B7FE2
+MeshxMessageObserver: beacon_dispatched seq=37 message_id=d0259d85f75450841f79d85f8bd160c8 sender_peer_id=ios-harness-747B7FE2
+MeshxMessageObserver: beacon_dispatched seq=38 message_id=5d7840a52e9d9c8b4f83d5488c0fd305 sender_peer_id=ios-harness-747B7FE2
+MeshxMessageObserver: beacon_dispatched seq=39 message_id=3a9e090ff4da25dbcb226b9801768f05 sender_peer_id=ios-harness-747B7FE2
+MeshxMessageObserver: beacon_dispatched seq=40 message_id=c6cef1a8fa5f45c8e191e38f6e0d180d sender_peer_id=ios-harness-747B7FE2
+MeshxMessageObserver: beacon_dispatched seq=41 message_id=8ef99366196a1ef9e992e2c4fbae5a9a sender_peer_id=ios-harness-747B7FE2
+MeshxMessageObserver: beacon_dispatched seq=42 message_id=ed0de224f670c28f2d5f8ee92b37c6d2 sender_peer_id=ios-harness-747B7FE2
+MeshxMessageObserver: beacon_dispatched seq=43 message_id=73872dc224e2dbc6ce28a436d9587744 sender_peer_id=ios-harness-747B7FE2
+MeshxMessageObserver: beacon_dispatched seq=44 message_id=4aea2332a1e2621f193d3d149495d4ed sender_peer_id=ios-harness-747B7FE2
+MeshxMessageObserver: beacon_dispatched seq=45 message_id=073beb6fdcb81441dccecfc8a971b8fd sender_peer_id=ios-harness-747B7FE2
+MeshxMessageObserver: beacon_dispatched seq=46 message_id=ebea2baba503d0167016fa24498623a6 sender_peer_id=ios-harness-747B7FE2
+MeshxMessageObserver: beacon_dispatched seq=47 message_id=58ace96338717d047c2d1aa8105bc7ad sender_peer_id=ios-harness-747B7FE2
+MeshxMessageObserver: beacon_dispatched seq=48 message_id=d63625446fd2c6d3a8921be06aaae204 sender_peer_id=ios-harness-747B7FE2
+MeshxMessageObserver: beacon_dispatched seq=49 message_id=49df17b23d279ec075fc4a5e1ee478dd sender_peer_id=ios-harness-747B7FE2
+MeshxMessageObserver: beacon_dispatched seq=50 message_id=450385fe9ca4e2251be07e5248191fef sender_peer_id=ios-harness-747B7FE2
+MeshxMessageObserver: beacon_dispatched seq=51 message_id=61dcb0c4e94893922f1bf9773e807052 sender_peer_id=ios-harness-747B7FE2
+MeshxMessageObserver: beacon_dispatched seq=53 message_id=d1f721689b92fb0d4505f12b3b37191b sender_peer_id=ios-harness-747B7FE2
+MeshxMessageObserver: beacon_dispatched seq=54 message_id=4c3150c6de17e1f4bf0bb62a4ccc3be3 sender_peer_id=ios-harness-747B7FE2
+MeshxMessageObserver: beacon_dispatched seq=55 message_id=5e3540fcb49b746c104bda940a87ed52 sender_peer_id=ios-harness-747B7FE2
+MeshxMessageObserver: beacon_dispatched seq=57 message_id=c8c808f9e697fb3c224ecb9c8d11a12d sender_peer_id=ios-harness-747B7FE2
+MeshxMessageObserver: beacon_dispatched seq=58 message_id=6e6a6f537f07ecba3f726976616d268f sender_peer_id=ios-harness-747B7FE2
+MeshxMessageObserver: beacon_dispatched seq=59 message_id=bc9df46a3838d84b00069c69428e2290 sender_peer_id=ios-harness-747B7FE2
+### Note: seq=52 and seq=56 were dropped from the conversation transcript
+### during chat-output rate-limiting; the on-device cadence was uninterrupted.
+### Total observed in transcript: 57 contiguous dispatches over ~88 s at the 1.5 s cadence.
