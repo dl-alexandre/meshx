@@ -277,6 +277,49 @@ final class MessageAdvertisementTests: XCTestCase {
         XCTAssertEqual(beacon.senderPeerIdHash, Data(expectedSenderHash))
     }
 
+    func testIOSParseDecodesAndroidEmittedBeaconByteForByte() throws {
+        // Bytes captured from the bidirectional run on real hardware
+        // (commit cd5b473, T390 dispatching a beacon decoded by T577U):
+        //   MeshxBleDispatch: legacy_beacon_advertising_started
+        //     beacon = "TUIBAQEAIfYKelgWpNr3CAbt3ChbzA=="  (22 bytes)
+        //     message_id_hash    = "IfYKelgWpNo="          (8 bytes)
+        //     sender_peer_id_hash = "9wgG7dwoW8w="          (8 bytes)
+        //     payload_kind = "TX", envelope_version = 1
+        //
+        // This is the empirical iOS↔Android wire-compatibility check the
+        // parity goal asks for, *without* needing an iOS device: the
+        // Swift parser MUST decode an Android-emitted beacon to the
+        // same field values the Android side logged at emit time. If
+        // the layouts ever drift, this test fails at exactly the byte
+        // that broke.
+
+        let beaconPayload = try XCTUnwrap(
+            Data(base64Encoded: "TUIBAQEAIfYKelgWpNr3CAbt3ChbzA==")
+        )
+        XCTAssertEqual(beaconPayload.count, 22)
+
+        var manufacturerData = Data([0xFF, 0xFF]) // company id 0xFFFF, little-endian
+        manufacturerData.append(beaconPayload)
+
+        let parsed = try XCTUnwrap(
+            MeshxLegacyBeaconAdvertisement.parse(manufacturerData: manufacturerData)
+        )
+
+        XCTAssertEqual(parsed.beaconVersion, 1)
+        XCTAssertEqual(parsed.envelopeVersion, 1)
+        XCTAssertEqual(parsed.payloadKind, "TX")
+        XCTAssertEqual(
+            parsed.messageIdHash,
+            try XCTUnwrap(Data(base64Encoded: "IfYKelgWpNo="))
+        )
+        XCTAssertEqual(
+            parsed.senderPeerIdHash,
+            try XCTUnwrap(Data(base64Encoded: "9wgG7dwoW8w="))
+        )
+        XCTAssertEqual(parsed.beaconPayload, beaconPayload)
+        XCTAssertEqual(parsed.manufacturerData, manufacturerData)
+    }
+
     func testLegacyBeaconBuildAcceptsUnknownPayloadKindCodeZero() {
         let beacon = MeshxLegacyBeaconAdvertisement.build(
             messageId: Data(repeating: 0xAA, count: 16),
