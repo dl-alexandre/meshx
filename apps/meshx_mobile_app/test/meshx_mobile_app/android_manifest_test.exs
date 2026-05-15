@@ -1,8 +1,11 @@
 defmodule MeshxMobileApp.AndroidManifestTest do
   use ExUnit.Case, async: true
 
-  @manifest Path.expand("../../android/AndroidManifest.xml", __DIR__)
-  @gradle Path.expand("../../android/build.gradle.kts", __DIR__)
+  # Paths follow the Mob Android app-module layout the project restructure
+  # adopted (commit a4c80ec). The bare-Gradle layout these tests originally
+  # targeted no longer exists; manifest and gradle live under android/app/.
+  @manifest Path.expand("../../android/app/src/main/AndroidManifest.xml", __DIR__)
+  @gradle Path.expand("../../android/app/build.gradle", __DIR__)
 
   test "Android manifest declares required BLE permissions for both permission eras" do
     xml = File.read!(@manifest)
@@ -32,9 +35,10 @@ defmodule MeshxMobileApp.AndroidManifestTest do
   test "Gradle module targets BLE-capable API floor and matches iOS bundle id" do
     gradle = File.read!(@gradle)
 
-    assert gradle =~ ~s(applicationId = "dev.meshx.mob")
-    # minSdk 26 is the floor for BLE peripheral advertising support.
-    assert gradle =~ "minSdk = 26"
-    assert gradle =~ "compileSdk = 34"
+    # The Mob template ships Groovy-flavoured Gradle (no `=` between key and
+    # value); minSdk 28 is the floor Mob's bundled OTP runtime targets.
+    assert gradle =~ ~s(applicationId "dev.meshx.mob")
+    assert gradle =~ "minSdk 28"
+    assert gradle =~ "compileSdk 34"
   end
 end

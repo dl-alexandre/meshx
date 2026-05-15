@@ -293,6 +293,12 @@ defmodule MeshxMobileApp.Session do
   end
 
   defp track(state, event) do
+    # Forks every canonical BLE event to the in-process observability
+    # surface so `MeshxMobileApp.BLE.Observability.snapshot/0` reflects
+    # production session traffic, not just the self-test probe. The call
+    # is best-effort — `record/2` returns `:ok` when the Observability
+    # server isn't running, so it never blocks the session pipeline.
+    MeshxMobileApp.BLE.Observability.record(event)
     %{state | peers: PeerTable.update(state.peers, event)}
   end
 
