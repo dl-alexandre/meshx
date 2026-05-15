@@ -114,9 +114,17 @@ defmodule MeshxMobileApp.BleSelfTest do
   def handle_info({MeshxMobileApp.NativeBridge, :bridge_event, _raw} = msg, state) do
     {MeshxMobileApp.NativeBridge, :bridge_event, raw} = msg
     state = %{state | event_count: state.event_count + 1}
+    decoded = Adapter.event_message(raw)
+
+    # Fork the canonical event to the in-process observability surface.
+    # No-op (returns :ok) when the Observability server isn't running.
+    case decoded do
+      {Adapter, :event, event} -> MeshxMobileApp.BLE.Observability.record(event)
+      _ -> :ok
+    end
 
     state =
-      case Adapter.event_message(raw) do
+      case decoded do
         {Adapter, :event, %MeshxMobileApp.BLE.Events.DeviceDiscovered{} = e} ->
           maybe_log_meshx_peer(e.device_id, e.rssi, e.advertisement, state)
 

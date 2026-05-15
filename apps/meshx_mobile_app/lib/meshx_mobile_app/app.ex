@@ -20,9 +20,27 @@ defmodule MeshxMobileApp.App do
   def on_start do
     configure_native_bridge()
     start_meshx_runtime()
+    start_ble_observability()
     maybe_start_distribution()
     maybe_start_ble_self_test()
     Mob.Screen.start_root(MeshxMobileApp.HomeScreen)
+  end
+
+  # Best-effort in-process BLE observability surface. Started before any
+  # event consumer so `Observability.record/2` calls from BleSelfTest /
+  # Session are never dropped. Failures here never abort startup —
+  # observability is an instrument, not a hard dependency.
+  defp start_ble_observability do
+    case MeshxMobileApp.BLE.Observability.start_link([]) do
+      {:ok, _pid} ->
+        Logger.info("meshx_mobile_app: BLE.Observability started")
+
+      {:error, {:already_started, _pid}} ->
+        :ok
+
+      other ->
+        Logger.warning("meshx_mobile_app: BLE.Observability not started: #{inspect(other)}")
+    end
   end
 
   # Headless BLE bring-up probe — only when MESHX_BLE_SELFTEST is set
