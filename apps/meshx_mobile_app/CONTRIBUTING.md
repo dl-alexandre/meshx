@@ -57,6 +57,73 @@ need to update the existing patches (or add a new one). Specifically:
 For each, regenerate the affected `.patch` file (see above) so the
 diff stays clean.
 
+## Android dev opt-in: sending full MX envelopes
+
+By default, `MeshxBleNative.sendToPeer/2` dispatches a 22-byte MB
+legacy beacon — fleet-safe across all hardware including API 28
+devices that cannot scan BLE 5 extended advertising. Full envelope
+delivery on iOS goes through the MB beacon cue + GATT fetch path
+([docs/BLE_BRIDGE.md] explains why direct extended-advert delivery
+is empirically unreliable on current iOS).
+
+For development & cross-platform integration testing, you can flip
+the build to route `sendToPeer` through the full-MX path (envelope +
+connectable `MeshxFetchGatt` responder). The flag has two equivalent
+inputs:
+
+**Option A: `android/local.properties`** (persistent per-engineer):
+
+```properties
+meshx.mx.send=true
+```
+
+**Option B: environment variable** (one-off / CI):
+
+```bash
+MESHX_MX_SEND=true ./gradlew :app:assembleDebug
+```
+
+Either flips a `BuildConfig.USE_FULL_MX_ENVELOPES` compile-time
+constant; the dispatcher reads it in `sendToPeer`. The branch is a
+compile-time constant so R8 strips the unused path from release
+builds.
+
+### Release-build safety
+
+Setting the flag for a release build (`./gradlew assembleRelease`,
+`bundleRelease`, etc.) fails with a build-time error. You cannot
+accidentally ship the dev MX path:
+
+```
+> meshx.mx.send=true is incompatible with the release build. …
+```
+
+To build a release, remove the line from `local.properties` (or
+unset `MESHX_MX_SEND`) first.
+
+### Hardware caveat (API 28)
+
+Older Android devices (e.g. some Samsung tablets at API 28) can
+broadcast extended advertising but cannot reliably **scan** for
+non-Apple AUX_ADV_IND packets — same constraint as iOS, see
+[docs/BLE_BRIDGE.md] § "Extended-advertising AUX delivery
+limitation". Android-to-Android dev testing with both ends at API
+28 will not see the MX envelope via the air. The iOS-side observer
+(iPad/iPhone) still works because it uses the MB beacon as the cue
+and pulls the envelope via GATT — that path doesn't depend on the
+peer being able to scan extended advertising.
+
+If your dev workflow needs Android-to-Android MX delivery, prefer a
+newer Android device on at least one side.
+
+### Force-MX hook for tests
+
+`MeshxBleNative.sendFullMxEnvelope/2` remains a Kotlin-only public
+entry point that always uses the MX path regardless of the
+`BuildConfig` flag. The instrumented `MXFullEnvelopeSmokeTest` calls
+it directly so test coverage doesn't depend on how the build was
+configured.
+
 ## CI
 
 `mix meshx.patch_deps --check` exits non-zero if any patch is

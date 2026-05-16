@@ -41,6 +41,12 @@ mix mob.deploy --native
 > applied by `mix meshx.patch_deps`, wired into the `deps.*` aliases.
 > See [CONTRIBUTING.md](CONTRIBUTING.md) for when you'll run into them
 > and how to handle upstream drift.
+>
+> For Android dev opt-in (route `sendToPeer` through the full MX
+> envelope + GATT fetch responder instead of the default MB-only
+> path), see [CONTRIBUTING.md](CONTRIBUTING.md) § "Android dev
+> opt-in: sending full MX envelopes". Release builds are hard-gated
+> against the flag so it cannot accidentally ship.
 
 For a physical iPhone or iPad, provision once first:
 
