@@ -50,6 +50,15 @@ defmodule MeshxNoise.Session do
     * `:protocol` — protocol name string (default: `#{@default_protocol}`).
     * `:keys` — map of pre-message keys passed to `Decibel.new/4`.
     * `:opts` — extra options passed to `Decibel.new/4`.
+    * `:auto_generate_static` — boolean. When `true` and `:keys` does not
+      already contain `:s`, an ephemeral X25519 static keypair is
+      generated and added before passing `:keys` to Decibel. Default:
+      `true` when `:protocol` is the default
+      `#{@default_protocol}` (ergonomic for tests and doc examples),
+      `false` otherwise. Production callers should pass `:keys` from a
+      durable identity (e.g. `MeshxStore.Identity.static_keys/0`); the
+      auto-generation path produces a fresh per-session identity which
+      is rarely what you want.
   """
   @spec start_link(keyword()) :: GenServer.on_start()
   def start_link(opts \\ []) do
@@ -136,6 +145,7 @@ defmodule MeshxNoise.Session do
     protocol = Keyword.get(opts, :protocol, @default_protocol)
     keys = Keyword.get(opts, :keys, %{})
     decibel_opts = Keyword.get(opts, :opts, [])
+    auto_generate_static = Keyword.get(opts, :auto_generate_static, protocol == @default_protocol)
 
     decibel_role =
       case role do
@@ -143,9 +153,8 @@ defmodule MeshxNoise.Session do
         :responder -> :rsp
       end
 
-    # Auto-generate static key pair if the protocol requires it and none provided.
     keys =
-      if not Map.has_key?(keys, :s) and protocol_uses_static?(protocol) do
+      if auto_generate_static and not Map.has_key?(keys, :s) do
         {pub, priv} = :crypto.generate_key(:ecdh, :x25519)
         Map.put(keys, :s, {pub, priv})
       else
@@ -155,11 +164,6 @@ defmodule MeshxNoise.Session do
     ref = Decibel.new(protocol, decibel_role, keys, decibel_opts)
     state = %{ref: ref, role: role, protocol: protocol}
     {:ok, state}
-  end
-
-  defp protocol_uses_static?(name) do
-    # Heuristic: protocol names containing XX, IX, XK, etc. use static keys.
-    name =~ ~r/Noise_.*[IX].*_/ or name =~ ~r/Noise_.*K.*_/
   end
 
   @impl true
@@ -181,8 +185,15 @@ defmodule MeshxNoise.Session do
         Logger.warning("Noise handshake decrypt failed: #{inspect(e)}")
         {:reply, {:error, :decryption_failed}, state}
 
-      e ->
-        Logger.warning("Noise handshake decode failed: #{inspect(e)}")
+      e in MatchError ->
+        # Decibel raises MatchError from Handshake.read_step/2 when the
+        # input bytes don't have the shape its handshake state machine
+        # expects (e.g. truncated / corrupted handshake messages). This
+        # is an API quirk — Decibel uses pattern matching as its parser,
+        # so malformed input surfaces as MatchError rather than a typed
+        # error. Mapping it to :decryption_failed keeps the wrapper's
+        # contract that handshake_recv never crashes the GenServer.
+        Logger.warning("Noise handshake decode failed (malformed input): #{inspect(e)}")
         {:reply, {:error, :decryption_failed}, state}
     end
   end
@@ -209,10 +220,6 @@ defmodule MeshxNoise.Session do
         e in Decibel.DecryptionError ->
           Logger.warning("Noise decrypt failed: #{inspect(e)}")
           {:reply, {:error, :decryption_failed}, state}
-
-        e ->
-          Logger.warning("Noise decode failed: #{inspect(e)}")
-          {:reply, {:error, :decryption_failed}, state}
       end
     else
       {:reply, {:error, :not_established}, state}
@@ -230,5 +237,10 @@ defmodule MeshxNoise.Session do
   def handle_call(:close, _from, %{ref: ref} = state) do
     Decibel.close(ref)
     {:reply, :ok, state}
+  end
+
+  @impl true
+  def terminate(_reason, %{ref: ref}) do
+    Decibel.close(ref)
   end
 end

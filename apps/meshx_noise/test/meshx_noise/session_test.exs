@@ -70,6 +70,42 @@ defmodule MeshxNoise.SessionTest do
     refute Session.established?(pid)
   end
 
+  test "auto_generate_static: false suppresses ephemeral key generation for default XX" do
+    # Default behavior: XX without :keys auto-generates :s and the
+    # responder can complete the first read step.
+    {:ok, ini_default} = Session.start_link(role: :initiator)
+    {:ok, rsp_default} = Session.start_link(role: :responder)
+    {:ok, msg1} = Session.handshake_send(ini_default)
+    :ok = Session.handshake_recv(rsp_default, msg1)
+    assert {:ok, _} = Session.handshake_send(rsp_default)
+
+    # Opt-out: starting XX without :keys and auto_generate_static=false
+    # does NOT inject an ephemeral identity. Decibel accepts the session
+    # at init but the handshake fails downstream (responder cannot send
+    # its `s` token). The behavior we're locking in is "no silent
+    # generation" — the failure surface is whatever Decibel does next.
+    Process.flag(:trap_exit, true)
+
+    {:ok, rsp_no_static} =
+      Session.start_link(role: :responder, auto_generate_static: false)
+
+    :ok = Session.handshake_recv(rsp_no_static, msg1)
+    # Step 2 (responder's `e, ee, s, es`) requires the static key; without
+    # it Decibel raises rather than producing a message.
+    assert catch_exit(Session.handshake_send(rsp_no_static))
+  end
+
+  test "auto_generate_static: true overrides the non-default-protocol default" do
+    {:ok, ini} =
+      Session.start_link(
+        role: :initiator,
+        protocol: "Noise_XX_25519_ChaChaPoly_BLAKE2s",
+        auto_generate_static: true
+      )
+
+    refute Session.established?(ini)
+  end
+
   test "non-static Noise protocols do not require generated static keys" do
     {:ok, ini} =
       Session.start_link(role: :initiator, protocol: "Noise_NN_25519_ChaChaPoly_BLAKE2s")
