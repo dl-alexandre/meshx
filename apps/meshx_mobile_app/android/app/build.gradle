@@ -14,6 +14,26 @@ def mobOtpRelease     = localProps.getProperty('mob.otp_release',      System.ge
 def mobOtpReleaseArm32 = localProps.getProperty('mob.otp_release_arm32', System.getenv('MOB_ANDROID_OTP_RELEASE_ARM32') ?: mobOtpRelease)
 def mobDir             = localProps.getProperty('mob.mob_dir',           System.getenv('MOB_DIR')                       ?: '')
 
+// ── Dev opt-in: full MX envelope send path ───────────────────────────────────
+// Default false (shipping behavior = 22-byte MB legacy beacon, fleet-safe
+// for API 28 hardware). Flip to true to make MeshxBleNative.sendToPeer
+// route through MeshxFetchGatt (full MX envelope + connectable GATT
+// fetch responder). Intended for development & cross-platform iOS
+// integration testing only; the BuildConfig constant lets R8 strip the
+// MX branch from release builds.
+//
+// Set via either:
+//   - android/local.properties:  meshx.mx.send=true
+//   - environment variable:      MESHX_MX_SEND=true ./gradlew assembleDebug
+//
+// Hard-gated below: enabling for a release build type is a build-time
+// error, so the flag cannot accidentally leak into shipping artifacts.
+def useFullMxEnvelopes = (
+    localProps.getProperty('meshx.mx.send')
+        ?: System.getenv('MESHX_MX_SEND')
+        ?: 'false'
+).toLowerCase() in ['true', '1', 'yes', 'on']
+
 // Auto-detect ERTS version from the OTP release directory (arm64 is canonical).
 def ertsVsn = new File(mobOtpRelease).listFiles()
     ?.find { it.name.startsWith('erts-') }?.name ?: 'erts-17.0'
@@ -66,6 +86,10 @@ android {
 
     buildFeatures {
         compose true
+        // Generates BuildConfig.java with the fields injected per build
+        // type below (USE_FULL_MX_ENVELOPES). Compile-time constants let
+        // R8 dead-strip the unused branch from release builds.
+        buildConfig true
     }
 
     composeOptions {
@@ -77,8 +101,21 @@ android {
     }
 
     buildTypes {
-        release { minifyEnabled false }
-        debug   { jniDebuggable true }
+        release {
+            minifyEnabled false
+            // Release builds never carry the dev MX flag. The
+            // buildConfigField is hard-coded false here regardless of
+            // local.properties / env var. The release-task guard
+            // below additionally rejects an attempt to assemble a
+            // release while the flag is set, so a forgotten flag fails
+            // loudly at build time rather than ending up as confusing
+            // shipped behavior.
+            buildConfigField "boolean", "USE_FULL_MX_ENVELOPES", "false"
+        }
+        debug {
+            jniDebuggable true
+            buildConfigField "boolean", "USE_FULL_MX_ENVELOPES", "${useFullMxEnvelopes}"
+        }
     }
 
     // Local unit tests run against the Android stub classpath where
@@ -90,6 +127,22 @@ android {
     // before the Mob restructure.
     testOptions {
         unitTests.returnDefaultValues = true
+    }
+}
+
+// Release-build guard for the dev MX flag. Hooks into any task whose
+// name starts with `assembleRelease` (or bundles), executing the check
+// at task-run time rather than configuration time so unrelated
+// commands like `assembleDebug` aren't blocked when the flag is set.
+tasks.matching { it.name.startsWith('assembleRelease') || it.name.startsWith('bundleRelease') }.configureEach {
+    doFirst {
+        if (useFullMxEnvelopes) {
+            throw new GradleException(
+                "meshx.mx.send=true is incompatible with the release build. " +
+                "Remove the flag from android/local.properties (or unset MESHX_MX_SEND) " +
+                "before building release. See apps/meshx_mobile_app/CONTRIBUTING.md."
+            )
+        }
     }
 }
 
