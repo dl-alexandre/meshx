@@ -208,16 +208,16 @@ surface they expose is asymmetric today.
 | Receive `%DeviceDiscovered{}` | ✅ | ❌ | iOS emits legacy `{:connected, peer_id}` / `{:disconnected, peer_id}` tuples (GATT path) — there's no equivalent "I saw an ambient BLE device" event. Adding it means surfacing `CBCentralManager` discovery results into a `meshx_ble_emit_device_discovered` NIF entry. |
 | Receive `%AdvertisementReceived{}` | ✅ | ❌ | Same reasoning as `DeviceDiscovered`. |
 | Receive `%ReceivedMessageBeacon{}` (22-byte `MB` legacy beacon) | ✅ | ✅ | App bridge: `MeshxBLEClient.meshxDidObserveLegacyBeacon` → `meshx_ble_emit_received_message_beacon` → v1 atom-keyed map. Harness (post `fb5afa8`): `MessageAdvertisementObserver` falls through to `MeshxLegacyBeaconAdvertisement.parse` after MX decode declines, surfacing `meshxMessageObserverDidObserveLegacyBeacon`. Validated cross-platform on hardware (Android SM-T577U → iPhone 13, see `artifacts/local-ble/2026-05-15-iphone13-sm-t577u/`). |
-| Receive `%ReceivedMessage{}` (full `MX` envelope, extended advertising) | ✅ | partial | Harness `MessageAdvertisementObserver` already decodes `MX` envelopes via `MessageAdvertisement.decode` and emits `ReceivedMessageEvent` to the delegate. iOS production bridge (`MeshxNativeBLEBridge`) does not yet run an equivalent promiscuous observer or emit a `meshx_ble_emit_received_message` NIF entry — see gap (2) below. |
+| Receive `%ReceivedMessage{}` (full `MX` envelope, extended advertising) | ✅ | iOS bridge present; PHY-blocked | Bridge integration done end-to-end: `MeshxNativeBLEBridge` instantiates `MessageAdvertisementObserver`, `meshxDidObserveReceivedMessage` calls `meshx_ble_emit_received_message`, NIF emits the v1 `received_message` map, `BridgeProtocol.decode/1` parses the envelope. `dev.meshx.mob-central-…` confirmed registered with `bluetoothd` on hardware. **However:** iPhone 13 / iOS 26.4 does not deliver any non-Apple extended-advertising (AUX_ADV_IND) packets to `CBCentralManager.didDiscover`, regardless of `withServices` filter, `AllowDuplicates`, or whether Android puts the data in scan-response or primary AUX. Hardware-validated on 2026-05-15: bluetoothd log shows only `FF FF 4D 42` (MB legacy beacons) during the test window; zero `FF FF 4D 58` (MX magic) instances captured. This is an iOS CoreBluetooth API limitation, not a bridge defect. Full MX envelopes on iOS arrive via the existing MB legacy-beacon + GATT-fetch path. |
 | Dispatch send via legacy-beacon advertise | ✅ | ✅ | Android: `BleDispatcher.dispatch(payload, forceLegacyBeacon: true)` builds a `MeshxMessageEnvelope`, derives the beacon, advertises via manufacturer data. iOS: `MeshxBLEPeripheral.advertiseLegacyBeacon(messageId:senderPeerId:payloadKind:)` puts the 22-byte beacon on air via `CBAdvertisementDataManufacturerDataKey` with company id `0xFFFF`; bridge exposes this through `MeshxNativeBLEBridge.sendPing` fallback when no GATT peer is paired (commit `022b6f4`). Harness exercises the same path under `--meshx-auto-beacon`. Hardware-validated on iPhone 13 (commit `fb5afa8` evidence bundle). |
 | Canonical `%BLE.Events.Error{kind, detail}` surface | ✅ | partial | Android emits typed `BleEvent.Error(kind = SCAN_FAILED/UNAUTHORIZED/BLUETOOTH_OFF/...)`. iOS emits legacy `{:error, string}` tuples — the kind taxonomy isn't enforced on the iOS path. |
 | Adapter-state recovery (auto-replay intent) | ✅ | n/a | Android uses `BluetoothAdapter.ACTION_STATE_CHANGED` + intent replay. iOS BLE state restoration is a separate CoreBluetooth mechanism (`CBCentralManagerOptionRestoreIdentifierKey`); the equivalent is opt-in via `MeshxBLEClient`'s manager init options. |
 
 ### iOS parity gap — minimum work to close
 
-Two of the three pieces originally called out here have landed and been
-exercised on hardware. The remaining gap is the full-envelope (`MX`)
-receive path on the production app bridge.
+The two advert-only delivery paths (send + full-envelope receive) have
+both landed in the production bridge. The remaining gap is the v1 wire
+migration for the legacy event tuples.
 
 1. ~~**Advert-only send path.**~~ **Closed.**
    `MeshxBLEPeripheral.advertiseLegacyBeacon(messageId:senderPeerId:payloadKind:)`
@@ -227,19 +227,16 @@ receive path on the production app bridge.
    GATT peer is paired, mirroring Android's
    `MeshxBleNative.sendToPeer(forceLegacyBeacon: true)`. Validated on
    iPhone 13 hardware in commit `fb5afa8`'s evidence bundle.
-2. **Full-envelope (`MX` magic) advert decode on the central side.**
-   Still open for the production bridge. The harness's
-   `MessageAdvertisementObserver` already decodes `MX` envelopes and
-   surfaces `ReceivedMessageEvent`, but `MeshxNativeBLEBridge` does
-   not yet instantiate an equivalent promiscuous observer. Closing
-   this means either (a) wiring `MessageAdvertisementObserver` into
-   `MeshxNativeBLEBridge` and routing its `ReceivedMessageEvent`
-   through a new `meshx_ble_emit_received_message` NIF entry, or
-   (b) extending `MeshxBLEClient.didDiscover` to attempt
-   `MessageAdvertisement.decode` symmetrically to the current MB
-   legacy-beacon check. Either way the BEAM-side
-   `BridgeProtocol.decode` already understands the resulting v1
-   `received_message` map.
+2. ~~**Full-envelope (`MX` magic) advert decode on the central side.**~~
+   **Closed (compile gate; hardware pending).** `MeshxNativeBLEBridge`
+   now owns a `MessageAdvertisementObserver` alongside `MeshxBLEClient`,
+   started/stopped on the same lifecycle. Its
+   `meshxDidObserveReceivedMessage` callback forwards the
+   `ReceivedMessageEvent` through the new
+   `meshx_ble_emit_received_message` NIF entry, which builds the v1
+   `received_message` map (envelope as raw `MX` bytes; BEAM-side
+   `MessageEnvelope.parse/1` does the structural decode via
+   `BridgeProtocol.decode_envelope/1`). No BEAM-side changes required.
 3. **v1 wire migration for the legacy tuples.** Still open. The iOS
    NIF still emits `{:status, _}`, `{:connected, _}`,
    `{:disconnected, _}`, `{:received, _, _}` legacy tuples.
@@ -253,6 +250,75 @@ Neither of the remaining items requires BEAM-side changes — the Elixir
 decoder already accepts every shape both bridges produce, and
 `CONTRACTS.md §11.1` defines what advert-only delivery means
 independent of platform.
+
+### iOS production receive capabilities (end of 2026-05-15 session)
+
+| Receive mechanism | Status | Notes |
+|---|---|---|
+| MB legacy beacon (22 byte) | ✅ Working | `MessageAdvertisementObserver` decodes via `MeshxLegacyBeaconAdvertisement.parse`; emits `received_message_beacon` v1 map through `meshx_ble_emit_received_message_beacon`. Hardware proof: commit `fb5afa8` evidence bundle (iPhone 13). |
+| Full MX envelope receive (advert direct) | ⚠ Wired, PHY-blocked on iOS | All Swift + NIF + Elixir pieces ship in the production binary (`_meshx_ble_nif_nif_init` registered in `erts_static_nif_tab`, MeshxNativeBLEBridge hosts `MessageAdvertisementObserver`, `meshx_ble_emit_received_message` emits to the bridge). However iOS 26.4 / iPhone 13 + iPad12,1 / Broadcom BCM4387 does not deliver AUX_ADV_IND data from non-Apple `AdvertisingSet` broadcasts to `CBCentralManager.didDiscover`, regardless of scan filter or advertising-set parameter tuning. See "Extended-advertising AUX delivery limitation" below. |
+| MB beacon → GATT fetch | ✅ Working | New in this session. `MessageAdvertisementObserver.rememberBeacon` caches recent MB beacons by `messageIdHash`; when a connectable advert for the MeshX fetch service UUID arrives (from a different private random address per Android `AdvertisingSet` semantics), `maybeStartFetchOnFetchService` instantiates `MeshxFetchGattClient`, which performs the MFQ Request / MFR Response cycle and synthesizes a `ReceivedMessageEvent` with `transport: "ble_ios_gatt_fetch"`. Hardware-validated on iPad12,1 ↔ Samsung SM-T577U: bluetoothd shows `Le topology – role: central, state: CONNECTED` to the fetch responder's MAC; Android responder logs `fetch_request_received {status: ok}` for the matched hash; iPad disconnects immediately after the read response (visible in bluetoothd) — the only path that triggers `central.cancelPeripheralConnection` in `MeshxFetchGattClient.finish(envelope:)`. |
+
+### Android `MeshxBleNative` send surface
+
+The Android side exposes two distinct send paths:
+
+| Method | Use case | Wire shape |
+|---|---|---|
+| `sendToPeer(peerId, payload)` | Production / fleet-safe default. JNI-callable. | 22-byte MB legacy beacon (primary-channel manufacturer data). Every device in the fleet — including API 28 hardware that cannot scan extended advertising — can both send and receive it. |
+| `sendFullMxEnvelope(peerId, payload)` | Dev/test opt-in. Kotlin-only (not on JNI surface yet). Exercised by `MXFullEnvelopeSmokeTest`. | Starts a `MeshxFetchGatt` responder serving the full envelope + dispatches an MB legacy beacon as the cue. iOS peers running the matching `MessageAdvertisementObserver` + fetch-client see the beacon → connect to the responder → pull the full envelope via the MFQ/MFR GATT protocol. |
+
+Pair `sendFullMxEnvelope/2` with `stopFullMxResponder/0` to tear down
+the GATT server when done; sending again before stopping replaces the
+previously-served envelope.
+
+When the BEAM transport policy is ready to direct individual messages
+through the full-MX path, lift `sendFullMxEnvelope` to a JNI method and
+add a matching NIF entry point (`meshx_ble_send_full_mx_envelope`).
+Until then, the JNI surface stays MB-only for backwards compatibility.
+
+### Build system note: vendored-dep patches
+
+The iOS production app's Swift package (`meshx_mobile/Sources/MeshxMobile/*.swift`,
+including `MessageAdvertisementObserver`, `MeshxFetchGatt*`, etc.) and the
+`meshx_ble_nif` statically-linked NIF require additions to two vendored
+deps that `mix mob.deploy --native` consumes:
+
+- `deps/mob_dev/lib/mob_dev/native_build.ex` — the `build_device.sh` heredoc
+  template needs the extra Swift files in the `swiftc` arg list, a
+  `meshx_ble_nif.m` compile step, and a `meshx_ble_nif.o` entry in the link
+  step.
+- `deps/mob/ios/driver_tab_ios.c` — the `erts_static_nif_tab[]` needs an
+  entry for `meshx_ble_nif_nif_init`, otherwise `erlang:load_nif/2` cannot
+  find the statically-linked init function and the NIF silently fails to load.
+
+These additions are carried as standard unified-diff `.patch` files in
+`patches/` at the repo root and applied automatically by
+`mix meshx.patch_deps`, which is wired into the `deps.get` /
+`deps.update` / `deps.compile` aliases in
+`apps/meshx_mobile_app/mix.exs`. The task uses `git apply` and is
+idempotent (skips patches whose reverse-apply succeeds, i.e.
+already-applied). See `apps/meshx_mobile_app/CONTRIBUTING.md` for the
+developer workflow and `patches/README.md` for the patch authoring
+convention.
+
+If the upstream `mob_dev` / `mob` ever accept these additions (or grow proper
+extension points so projects can register their own Swift sources / NIFs),
+the task, the patches, and the aliases can be removed.
+
+### Extended-advertising AUX delivery limitation
+
+Empirically determined this session across three Android advertising configurations and two iOS scan-options configurations, on iPhone 13 / iOS 26.4 and iPad (9th generation) / iPadOS 26.4:
+
+| Android advertising mode | iOS scan filter | Result |
+|---|---|---|
+| `setLegacyMode(false)` + data in `setScanResponseData` | `withServices: nil` | bluetoothd never logs MX manufacturer data (`FF FF 4D 58`) |
+| `setLegacyMode(false)` + data in `setAdvertisingData` (primary AUX_ADV_IND) | `withServices: nil` | No MX delivery |
+| Same as above | `withServices: [MeshxBLEUUID.service]` | No MX delivery |
+
+In all three cases the iPhone's BLE controller continued to deliver `FF FF 4D 42` (MB legacy beacons, primary advertising channels) reliably — proving radio link and scan engine are working. No `CBCentralManagerScanOption*` or `AdvertisingSetParameters` tuning surfaced AUX_ADV_IND data to `didDiscover`. This is an iOS CoreBluetooth API limitation, not a defect in the bridge.
+
+The MB beacon → GATT fetch path is the production-supported way to deliver >31-byte envelopes from Android to iOS.
 
 ### Hardware proof of the advert-only path
 

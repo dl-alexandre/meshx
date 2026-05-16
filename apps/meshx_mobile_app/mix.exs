@@ -8,8 +8,21 @@ defmodule MeshxMobileApp.MixProject do
       elixir: "~> 1.18",
       start_permanent: false,
       deps: deps(),
+      aliases: aliases(),
       erlc_paths: ["src"],
       erlc_options: [:debug_info]
+    ]
+  end
+
+  # Project-local patches to vendored deps (mob_dev build template + mob
+  # static NIF table) for our extra Swift sources and meshx_ble_nif. The
+  # `meshx.patch_deps` task is idempotent — safe to run on every deps
+  # change. See `mix help meshx.patch_deps`.
+  defp aliases do
+    [
+      "deps.get": ["deps.get", "meshx.patch_deps"],
+      "deps.update": ["deps.update", "meshx.patch_deps"],
+      "deps.compile": ["meshx.patch_deps", "deps.compile"]
     ]
   end
 
