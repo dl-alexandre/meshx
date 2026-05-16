@@ -51,6 +51,32 @@ class MeshxFetchGatt(
     private var servedMessageHash: ByteArray? = null
     private var advertiseCallback: AdvertiseCallback? = null
 
+    // Success-observation counters for the smoke test. The
+    // BluetoothGattServerCallback callbacks run on a binder thread, so
+    // the test's main thread reads these via the public accessors below;
+    // AtomicInteger keeps the visibility cheap and correct.
+    private val preparedOkCount = java.util.concurrent.atomic.AtomicInteger(0)
+    private val servedReadCount = java.util.concurrent.atomic.AtomicInteger(0)
+
+    /**
+     * Number of times this responder prepared a STATUS_OK response for an
+     * inbound MFQ Request whose `messageIdHash` matched what the server
+     * has cached (i.e. the requester asked for the envelope this server
+     * is serving). Increments BEFORE the response characteristic is read,
+     * so the count can be >= [servedReadCount].
+     */
+    fun preparedOkCount(): Int = preparedOkCount.get()
+
+    /**
+     * Number of times the response characteristic was successfully read
+     * by a remote central AFTER a STATUS_OK response was prepared. This
+     * is the strongest "the fetch protocol completed end-to-end" signal
+     * available on the server side: it means the requester wrote a
+     * valid MFQ Request, the responder prepared the envelope, and the
+     * requester then read it back over GATT.
+     */
+    fun servedReadCount(): Int = servedReadCount.get()
+
     @SuppressLint("MissingPermission")
     fun startResponder(envelope: ByteArray, responderPeerId: String): Boolean {
         stopResponder()
@@ -266,6 +292,9 @@ class MeshxFetchGatt(
 
                 responseBytes = MeshxFetchProtocol.encodeResponse(response)
                 responseCharacteristic.value = responseBytes
+                if (response.status == MeshxFetchProtocol.STATUS_OK) {
+                    preparedOkCount.incrementAndGet()
+                }
                 log("fetch_request_received") {
                     put("target_address", device?.address ?: JSONObject.NULL)
                     put("request_id", response.requestId)
@@ -287,7 +316,14 @@ class MeshxFetchGatt(
                     sendServerResponse(device, requestId, true, BluetoothGatt.GATT_FAILURE, null)
                     return
                 }
-                sendServerResponse(device, requestId, true, BluetoothGatt.GATT_SUCCESS, responseBytes ?: ByteArray(0))
+                val bytes = responseBytes ?: ByteArray(0)
+                sendServerResponse(device, requestId, true, BluetoothGatt.GATT_SUCCESS, bytes)
+                // Only count reads that delivered an actual envelope: a
+                // zero-length response means no prior write prepared one,
+                // which the test should not interpret as success.
+                if (bytes.isNotEmpty()) {
+                    servedReadCount.incrementAndGet()
+                }
             }
         }
 

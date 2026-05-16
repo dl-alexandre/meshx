@@ -19,6 +19,12 @@ import java.security.SecureRandom
  *                   in `{MeshxMobileApp.NativeBridge, :bridge_event, json}`
  *                   and sends it to the owner pid.
  *
+ * `sendFullMxEnvelope` / `stopFullMxResponder` are deliberately
+ * Kotlin-only (no JNI binding yet). They're the dev-mode opt-in for
+ * full-MX-envelope dispatch via GATT fetch; the JNI surface stays
+ * MB-only until the BEAM transport policy explicitly asks for the new
+ * mode. See `docs/BLE_BRIDGE.md` § "iOS production receive capabilities".
+ *
  * `init/1` must be called once (from MainActivity.onCreate) to supply an
  * application Context — `RealBleBridge` / `BleDispatcher` are created lazily
  * on first use so a BLE-less host/unit context never touches the adapter.
@@ -35,6 +41,7 @@ object MeshxBleNative {
     @Volatile private var appContext: Context? = null
     @Volatile private var bridge: RealBleBridge? = null
     @Volatile private var dispatcher: BleDispatcher? = null
+    @Volatile private var fetchResponder: MeshxFetchGatt? = null
     private val random = SecureRandom()
 
     /** Kotlin → NIF. Implemented in c_src/meshx_ble_nif.c. */
@@ -198,6 +205,160 @@ object MeshxBleNative {
             )
         }
     }
+
+    /**
+     * Dev-mode full-MX-envelope send.
+     *
+     * Wraps `payload` in a v1 `MeshxMessageEnvelope` (broadcast),
+     * starts a `MeshxFetchGatt` responder serving that envelope (so
+     * peers can pull it via GATT — see `docs/BLE_BRIDGE.md` for why
+     * iOS needs this), and dispatches a 22-byte MB legacy beacon
+     * cueing peers to fetch.
+     *
+     * Default `sendToPeer/2` continues to dispatch MB-only, which is
+     * what the shipping app should keep doing — extended advertising
+     * is not universally receivable across the fleet. This method is
+     * the deliberate opt-in for cross-platform validation builds and
+     * the `MXFullEnvelopeSmokeTest` instrumented test. It is not
+     * (yet) wired through the JNI surface; callers are limited to
+     * Kotlin code (MainActivity dev hooks, instrumented tests).
+     *
+     * The responder remains advertising the connectable fetch service
+     * indefinitely until `stopFullMxResponder/0` is called. Calling
+     * this method again with a different envelope tears down the
+     * previous responder and starts a fresh one.
+     *
+     * Returns `true` if both the responder started AND the MB beacon
+     * dispatch was accepted by the radio. A `false` return leaves no
+     * responder running.
+     */
+    @JvmStatic
+    fun sendFullMxEnvelope(peerId: String, payload: ByteArray): Boolean {
+        val ctx = contextOrNull() ?: return false
+        val disp = ensureDispatcherOrNull() ?: return false
+        val adapter = (ctx.getSystemService(Context.BLUETOOTH_SERVICE)
+            as? BluetoothManager)?.adapter
+        if (adapter == null) {
+            emitBridgeError(
+                BleEvent.Companion.ErrorKind.BLUETOOTH_OFF,
+                "sendFullMxEnvelope: BluetoothAdapter unavailable"
+            )
+            return false
+        }
+
+        val target = peerId.ifBlank { "broadcast" }
+        val messageId = ByteArray(16).also { random.nextBytes(it) }
+        val envelope = try {
+            MeshxMessageEnvelope.buildV1(
+                messageId = messageId,
+                senderPeerId = localName(),
+                recipientPeerId = null,
+                createdAtMs = System.currentTimeMillis(),
+                ttl = 1,
+                payloadType = "TX",
+                payload = payload
+            )
+        } catch (e: IllegalArgumentException) {
+            emitBridgeError(
+                BleEvent.Companion.ErrorKind.UNKNOWN,
+                "sendFullMxEnvelope: envelope build rejected: ${e.message ?: "invalid argument"}"
+            )
+            return false
+        } catch (t: Throwable) {
+            emitBridgeError(
+                BleEvent.Companion.ErrorKind.UNKNOWN,
+                "sendFullMxEnvelope: envelope build threw: ${t.message ?: t.javaClass.simpleName}"
+            )
+            return false
+        }
+
+        // Tear down any previous responder before starting a new one.
+        // MeshxFetchGatt only serves one envelope at a time; starting a
+        // second responder over an old one would race the advertise
+        // session and confuse fetch clients still mid-handshake.
+        synchronized(this) {
+            fetchResponder?.stopResponder()
+            fetchResponder = null
+        }
+
+        val responder = MeshxFetchGatt(ctx, adapter)
+        val responderStarted = try {
+            responder.startResponder(envelope = envelope, responderPeerId = localName())
+        } catch (t: Throwable) {
+            emitBridgeError(
+                BleEvent.Companion.ErrorKind.UNKNOWN,
+                "sendFullMxEnvelope: responder start threw: ${t.message ?: t.javaClass.simpleName}"
+            )
+            false
+        }
+        if (!responderStarted) {
+            // startResponder already logged the failure reason via its
+            // own event sink; surface a structured rejection too.
+            emitBridgeError(
+                BleEvent.Companion.ErrorKind.ADVERTISE_FAILED,
+                "sendFullMxEnvelope: MeshxFetchGatt responder failed to start"
+            )
+            return false
+        }
+        fetchResponder = responder
+
+        return try {
+            val result = disp.dispatch(
+                attemptId = "mx-${System.currentTimeMillis()}",
+                messageId = messageId,
+                targetPeerId = target,
+                targetDeviceIds = listOf(target),
+                payload = envelope,
+                forceLegacyBeacon = true
+            )
+            val accepted = result.kind == BleDispatcher.BleDispatchResult.Kind.DISPATCHED
+            Log.i(TAG, "sendFullMxEnvelope($target, ${payload.size}B) -> ${result.kind} reason=${result.reason}")
+            if (!accepted) {
+                // Beacon dispatch failed → tear down the responder so
+                // we don't leave it advertising for a message no peer
+                // was cued to fetch.
+                responder.stopResponder()
+                fetchResponder = null
+            }
+            accepted
+        } catch (t: Throwable) {
+            emitBridgeError(
+                BleEvent.Companion.ErrorKind.UNKNOWN,
+                "sendFullMxEnvelope: dispatch threw: ${t.message ?: t.javaClass.simpleName}"
+            )
+            responder.stopResponder()
+            fetchResponder = null
+            false
+        }
+    }
+
+    /**
+     * Tears down any GATT-fetch responder started by
+     * [sendFullMxEnvelope]. Safe to call when nothing is running.
+     */
+    @JvmStatic
+    fun stopFullMxResponder(): Boolean {
+        val responder = synchronized(this) {
+            val r = fetchResponder
+            fetchResponder = null
+            r
+        } ?: return true
+
+        return try {
+            responder.stopResponder()
+            true
+        } catch (t: Throwable) {
+            emitBridgeError(
+                BleEvent.Companion.ErrorKind.UNKNOWN,
+                "stopFullMxResponder threw: ${t.message ?: t.javaClass.simpleName}"
+            )
+            false
+        }
+    }
+
+    /** Test-only accessor for the active responder's success counters. */
+    @JvmStatic
+    internal fun activeResponder(): MeshxFetchGatt? = fetchResponder
 
     /**
      * Real directed send: wrap `payload` in a v1 `MeshxMessageEnvelope`

@@ -36,6 +36,14 @@ android {
         versionCode 1
         versionName "1.0"
 
+        // Instrumented test runner — required by the MX full-envelope
+        // advert smoke test (app/src/androidTest/.../MXFullEnvelopeSmokeTest.kt).
+        // Drive via:
+        //   adb shell am instrument -w \
+        //     -e class dev.meshx.mob.ble.MXFullEnvelopeSmokeTest \
+        //     dev.meshx.mob.test/androidx.test.runner.AndroidJUnitRunner
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
         ndk { abiFilters 'arm64-v8a', 'armeabi-v7a' }
 
         externalNativeBuild {
@@ -90,6 +98,14 @@ dependencies {
     // MeshxMessageEnvelope, etc.) on JUnit 4 — the mix mob.new template
     // doesn't carry these testImplementation deps so wire them explicitly.
     testImplementation 'junit:junit:4.13.2'
+
+    // Instrumented tests (app/src/androidTest/). Used by
+    // MXFullEnvelopeSmokeTest to drive a real MX-envelope advert from
+    // hardware so the iOS production bridge's new MX receive path can
+    // be exercised end-to-end.
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+    androidTestImplementation 'androidx.test:runner:1.5.2'
+    androidTestImplementation 'androidx.test:rules:1.5.0'
 
     def composeBom = platform('androidx.compose:compose-bom:2024.02.00')
     implementation composeBom
