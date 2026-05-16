@@ -34,6 +34,14 @@ mix deps.get
 mix mob.deploy --native
 ```
 
+> The `mix deps.get` step also applies project-local patches to the
+> vendored `mob_dev` / `mob` deps (extra Swift sources for the
+> MeshxMobile package, `meshx_ble_nif` registration in the static NIF
+> table). The patches live in `patches/` at the repo root and are
+> applied by `mix meshx.patch_deps`, wired into the `deps.*` aliases.
+> See [CONTRIBUTING.md](CONTRIBUTING.md) for when you'll run into them
+> and how to handle upstream drift.
+
 For a physical iPhone or iPad, provision once first:
 
 ```bash
