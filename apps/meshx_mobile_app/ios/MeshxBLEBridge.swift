@@ -2,23 +2,29 @@ import Foundation
 import CoreBluetooth
 import Security
 // MeshxLegacyBeaconAdvertisement, MeshxBLEClient, MeshxBLEPeripheral,
-// Packet, Frame live in the local meshx_mobile Swift package. The
-// Xcode project pulls them in via the package product import; this
-// declaration is the explicit form when this file is added to the
-// project target's Sources list.
+// Packet, Frame live in the local meshx_mobile Swift package.
+// Under `xcodebuild`, the Xcode project pulls them in via the
+// MeshxMobile package product (so `import MeshxMobile` is needed).
+// Under `mix mob.deploy --native`, the shell script compiles every
+// .swift file into a single module, so the import would fail. Use
+// `canImport` to keep both paths working.
+#if canImport(MeshxMobile)
 import MeshxMobile
+#endif
 
 final class MeshxNativeBLEBridge: NSObject {
     static let shared = MeshxNativeBLEBridge()
 
     private var client: MeshxBLEClient?
     private var peripheral: MeshxBLEPeripheral?
+    private var messageObserver: MessageAdvertisementObserver?
     private var centralPeers = Set<String>()
     private var peripheralPeers = Set<String>()
     private var messageId: UInt32 = 1
 
     func startScan() {
         ensureClient().startScan()
+        ensureMessageObserver().startScan()
         emitStatus("Scanning")
     }
 
@@ -30,6 +36,7 @@ final class MeshxNativeBLEBridge: NSObject {
     func stop() {
         client?.stopScan()
         peripheral?.stopAdvertising()
+        messageObserver?.stopScan()
         emitStatus("Stopped")
     }
 
@@ -93,6 +100,15 @@ final class MeshxNativeBLEBridge: NSObject {
         client.delegate = self
         self.client = client
         return client
+    }
+
+    private func ensureMessageObserver() -> MessageAdvertisementObserver {
+        if let messageObserver { return messageObserver }
+
+        let observer = MessageAdvertisementObserver()
+        observer.delegate = self
+        self.messageObserver = observer
+        return observer
     }
 
     private func ensurePeripheral() -> MeshxBLEPeripheral {
@@ -219,6 +235,122 @@ extension MeshxNativeBLEBridge: MeshxBLEPeripheralDelegate {
     }
 }
 
+extension MeshxNativeBLEBridge: MessageAdvertisementObserverDelegate {
+    func meshxDidObserveReceivedMessage(_ event: ReceivedMessageEvent) {
+        let metadata = event.rawTransportMetadata
+
+        event.receivedDeviceId.withCString { deviceIdPtr in
+            event.senderPeerId.withCString { senderPtr in
+                event.messageId.withUnsafeBytes { messageIdBuffer in
+                    metadata.messagePayload.withUnsafeBytes { messagePayloadBuffer in
+                        metadata.advertisement.withUnsafeBytes { advertisementBuffer in
+                            metadata.manufacturerData.withUnsafeBytes { manufacturerBuffer in
+                                let recipientCString = event.recipientPeerId.flatMap { $0.cString(using: .utf8) }
+
+                                recipientCString.withOptionalCStringPointer { recipientPtr in
+                                    meshx_ble_emit_received_message(
+                                        deviceIdPtr,
+                                        Int32(event.rssi),
+                                        Int64(event.receivedAt),
+                                        messageIdBuffer.bindMemory(to: UInt8.self).baseAddress,
+                                        UInt32(event.messageId.count),
+                                        senderPtr,
+                                        recipientPtr,
+                                        messagePayloadBuffer.bindMemory(to: UInt8.self).baseAddress,
+                                        UInt32(metadata.messagePayload.count),
+                                        advertisementBuffer.bindMemory(to: UInt8.self).baseAddress,
+                                        UInt32(metadata.advertisement.count),
+                                        messagePayloadBuffer.bindMemory(to: UInt8.self).baseAddress,
+                                        UInt32(metadata.messagePayload.count),
+                                        manufacturerBuffer.bindMemory(to: UInt8.self).baseAddress,
+                                        UInt32(metadata.manufacturerData.count),
+                                        UInt32(metadata.companyIdentifier)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    func meshxDidObserveMessageDecodeError(_ reason: String, deviceId: String, rssi: Int) {
+        emitError("message_advertisement_decode_error[\(deviceId)@\(rssi)]: \(reason)")
+    }
+
+    func meshxMessageObserverDidStartScan() {}
+
+    func meshxMessageObserverDidUpdateState(_ state: String) {
+        emitStatus("MessageObserver state: \(state)")
+    }
+
+    func meshxMessageObserverDidError(_ error: Error) {
+        emitError(String(describing: error))
+    }
+
+    func meshxMessageObserverDidFetchEnvelope(
+        envelope: Data,
+        fromDeviceId: String,
+        beacon: MeshxLegacyBeaconAdvertisement,
+        rssi: Int
+    ) {
+        // Synthesize a ReceivedMessageEvent from the fetched MX bytes so
+        // we can reuse the existing meshx_ble_emit_received_message NIF
+        // path. `MessageAdvertisement.decode` rejects bytes that aren't
+        // wrapped in a manufacturer-data envelope, so parse the raw MX
+        // envelope directly and build the event here.
+        switch MessageEnvelope.parse(envelope) {
+        case .success(let parsed):
+            let now = UInt64(Date().timeIntervalSince1970 * 1000)
+            let event = ReceivedMessageEvent(
+                messageId: parsed.messageId,
+                senderPeerId: parsed.senderPeerId,
+                recipientPeerId: parsed.recipientPeerId,
+                receivedDeviceId: fromDeviceId,
+                receivedAt: now,
+                rssi: rssi,
+                envelope: parsed,
+                rawTransportMetadata: .init(
+                    transport: "ble_ios_gatt_fetch",
+                    sourceEvent: "gatt_fetch_response",
+                    receivedDeviceId: fromDeviceId,
+                    advertisement: beacon.advertisement,
+                    messagePayload: envelope,
+                    manufacturerData: beacon.manufacturerData,
+                    companyIdentifier: MeshxLegacyBeaconAdvertisement.manufacturerCompanyIdentifier,
+                    adType: MeshxLegacyBeaconAdvertisement.manufacturerDataAdType
+                )
+            )
+            meshxDidObserveReceivedMessage(event)
+        case .failure(let reason):
+            emitError("gatt_fetch_decode_error: \(reason)")
+        }
+    }
+
+    func meshxMessageObserverDidFailFetch(
+        reason: String,
+        detail: String?,
+        fromDeviceId: String,
+        beacon: MeshxLegacyBeaconAdvertisement
+    ) {
+        emitStatus("Fetch failed [\(fromDeviceId)]: \(reason)\(detail.map { " (\($0))" } ?? "")")
+    }
+}
+
+private extension Optional where Wrapped == [CChar] {
+    func withOptionalCStringPointer<R>(_ body: (UnsafePointer<CChar>?) -> R) -> R {
+        switch self {
+        case .some(let chars):
+            return chars.withUnsafeBufferPointer { buffer in
+                body(buffer.baseAddress)
+            }
+        case .none:
+            return body(nil)
+        }
+    }
+}
+
 @_cdecl("meshx_ble_start_scan")
 public func meshx_ble_start_scan() {
     DispatchQueue.main.async {
@@ -285,6 +417,26 @@ func meshx_ble_emit_received_message_beacon(
     _ advertisementLength: UInt32,
     _ beaconPayload: UnsafePointer<UInt8>?,
     _ beaconPayloadLength: UInt32,
+    _ manufacturerData: UnsafePointer<UInt8>?,
+    _ manufacturerDataLength: UInt32,
+    _ companyIdentifier: UInt32
+)
+
+@_silgen_name("meshx_ble_emit_received_message")
+func meshx_ble_emit_received_message(
+    _ deviceId: UnsafePointer<CChar>,
+    _ rssi: Int32,
+    _ receivedAtMs: Int64,
+    _ messageId: UnsafePointer<UInt8>?,
+    _ messageIdLength: UInt32,
+    _ senderPeerId: UnsafePointer<CChar>,
+    _ recipientPeerId: UnsafePointer<CChar>?,
+    _ envelope: UnsafePointer<UInt8>?,
+    _ envelopeLength: UInt32,
+    _ advertisement: UnsafePointer<UInt8>?,
+    _ advertisementLength: UInt32,
+    _ messagePayload: UnsafePointer<UInt8>?,
+    _ messagePayloadLength: UInt32,
     _ manufacturerData: UnsafePointer<UInt8>?,
     _ manufacturerDataLength: UInt32,
     _ companyIdentifier: UInt32

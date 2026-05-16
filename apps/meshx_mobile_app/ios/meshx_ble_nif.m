@@ -183,6 +183,55 @@ void meshx_ble_emit_received_message_beacon(
     enif_free_env(env);
 }
 
+void meshx_ble_emit_received_message(
+    const char *device_id,
+    int32_t rssi,
+    int64_t received_at_ms,
+    const uint8_t *message_id,
+    uint32_t message_id_len,
+    const char *sender_peer_id,
+    const char *recipient_peer_id,
+    const uint8_t *envelope,
+    uint32_t envelope_len,
+    const uint8_t *advertisement,
+    uint32_t advertisement_len,
+    const uint8_t *message_payload,
+    uint32_t message_payload_len,
+    const uint8_t *manufacturer_data,
+    uint32_t manufacturer_data_len,
+    uint32_t company_identifier
+) {
+    ErlNifEnv *env = enif_alloc_env();
+
+    ERL_NIF_TERM metadata = enif_make_new_map(env);
+    enif_make_map_put(env, metadata, atom(env, "transport"), binary_string(env, "ble_ios_advertisement"), &metadata);
+    enif_make_map_put(env, metadata, atom(env, "source_event"), binary_string(env, "advertisement_received"), &metadata);
+    enif_make_map_put(env, metadata, atom(env, "received_device_id"), binary_string(env, device_id), &metadata);
+    enif_make_map_put(env, metadata, atom(env, "advertisement"), binary_bytes(env, advertisement, advertisement_len), &metadata);
+    enif_make_map_put(env, metadata, atom(env, "message_payload"), binary_bytes(env, message_payload, message_payload_len), &metadata);
+    enif_make_map_put(env, metadata, atom(env, "manufacturer_data"), binary_bytes(env, manufacturer_data, manufacturer_data_len), &metadata);
+    enif_make_map_put(env, metadata, atom(env, "company_identifier"), enif_make_uint(env, company_identifier), &metadata);
+    enif_make_map_put(env, metadata, atom(env, "ad_type"), enif_make_uint(env, 0xFF), &metadata);
+
+    ERL_NIF_TERM recipient_term =
+        (recipient_peer_id == NULL) ? atom(env, "nil") : binary_string(env, recipient_peer_id);
+
+    ERL_NIF_TERM event = enif_make_new_map(env);
+    enif_make_map_put(env, event, atom(env, "v"), enif_make_uint(env, 1), &event);
+    enif_make_map_put(env, event, atom(env, "event"), binary_string(env, "received_message"), &event);
+    enif_make_map_put(env, event, atom(env, "message_id"), binary_bytes(env, message_id, message_id_len), &event);
+    enif_make_map_put(env, event, atom(env, "sender_peer_id"), binary_string(env, sender_peer_id), &event);
+    enif_make_map_put(env, event, atom(env, "recipient_peer_id"), recipient_term, &event);
+    enif_make_map_put(env, event, atom(env, "received_device_id"), binary_string(env, device_id), &event);
+    enif_make_map_put(env, event, atom(env, "received_at"), enif_make_int64(env, received_at_ms), &event);
+    enif_make_map_put(env, event, atom(env, "rssi"), enif_make_int(env, rssi), &event);
+    enif_make_map_put(env, event, atom(env, "envelope"), binary_bytes(env, envelope, envelope_len), &event);
+    enif_make_map_put(env, event, atom(env, "raw_transport_metadata"), metadata, &event);
+
+    send_event(env, event);
+    enif_free_env(env);
+}
+
 void meshx_ble_emit_error(const char *message) {
     ErlNifEnv *env = enif_alloc_env();
     ERL_NIF_TERM event = enif_make_tuple2(env, atom(env, "error"), binary_string(env, message));
