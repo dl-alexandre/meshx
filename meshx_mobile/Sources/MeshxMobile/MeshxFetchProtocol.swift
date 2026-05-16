@@ -67,6 +67,73 @@ public enum MeshxFetchProtocol {
         return out
     }
 
+    /// Decode a peer's MFQ Request. Used by the responder
+    /// (`MeshxFetchGattResponder`) to parse what a client wrote.
+    public static func decodeRequest(_ bytes: Data) -> Request? {
+        guard bytes.count >= 3 + 1 + 1 + 8 + 1 else { return nil }
+        let start = bytes.startIndex
+        guard bytes[start..<start.advanced(by: 3)] == requestMagic else { return nil }
+        guard bytes[start.advanced(by: 3)] == version else { return nil }
+
+        var offset = start.advanced(by: 4)
+        let requestIdLength = Int(bytes[offset])
+        offset = offset.advanced(by: 1)
+        guard offset.advanced(by: requestIdLength + 8 + 1) <= bytes.endIndex else { return nil }
+
+        let requestIdRange = offset..<offset.advanced(by: requestIdLength)
+        guard let requestId = String(data: bytes[requestIdRange], encoding: .utf8),
+              !requestId.isEmpty else { return nil }
+        offset = offset.advanced(by: requestIdLength)
+
+        let hash = Data(bytes[offset..<offset.advanced(by: 8)])
+        offset = offset.advanced(by: 8)
+
+        let requesterLength = Int(bytes[offset])
+        offset = offset.advanced(by: 1)
+        guard offset.advanced(by: requesterLength) <= bytes.endIndex else { return nil }
+
+        let requesterPeerId: String?
+        if requesterLength == 0 {
+            requesterPeerId = nil
+        } else {
+            let requesterRange = offset..<offset.advanced(by: requesterLength)
+            requesterPeerId = String(data: bytes[requesterRange], encoding: .utf8)
+        }
+
+        return Request(
+            requestId: requestId,
+            messageIdHash: hash,
+            requesterPeerId: requesterPeerId
+        )
+    }
+
+    /// Encode an MFR Response. Used by the responder to produce the
+    /// bytes a client will read.
+    public static func encodeResponse(_ response: Response) -> Data {
+        precondition(!response.requestId.isEmpty)
+        precondition(response.messageIdHash.count == 8)
+        let requestId = Data(response.requestId.utf8)
+        let payload = response.envelope
+            ?? response.reason.map { Data($0.utf8) }
+            ?? Data()
+        precondition(requestId.count <= 255)
+        precondition(payload.count <= 0xFFFF)
+
+        var out = Data()
+        out.append(responseMagic)
+        out.append(version)
+        out.append(response.status)
+        out.append(UInt8(requestId.count))
+        out.append(requestId)
+        out.append(response.messageIdHash)
+        // Big-endian 16-bit payload length — matches Android's
+        // ByteBuffer.allocate(2).order(BIG_ENDIAN).putShort(...).
+        out.append(UInt8((payload.count >> 8) & 0xFF))
+        out.append(UInt8(payload.count & 0xFF))
+        out.append(payload)
+        return out
+    }
+
     public static func decodeResponse(_ bytes: Data) -> Response? {
         guard bytes.count >= 3 + 1 + 1 + 1 + 8 + 2 else { return nil }
         let start = bytes.startIndex
