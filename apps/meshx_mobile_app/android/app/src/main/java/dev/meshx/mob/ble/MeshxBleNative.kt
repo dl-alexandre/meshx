@@ -3,6 +3,7 @@ package dev.meshx.mob.ble
 import android.bluetooth.BluetoothManager
 import android.content.Context
 import android.util.Log
+import dev.meshx.mob.BuildConfig
 import java.security.SecureRandom
 
 /**
@@ -361,22 +362,46 @@ object MeshxBleNative {
     internal fun activeResponder(): MeshxFetchGatt? = fetchResponder
 
     /**
-     * Real directed send: wrap `payload` in a v1 `MeshxMessageEnvelope`
-     * (broadcast — `recipientPeerId = null`, so any MeshX scanner ingests
-     * it) and dispatch it through `BleDispatcher` as a legacy beacon.
+     * Public send entry point — called from the JNI bridge.
      *
-     * `forceLegacyBeacon = true` is deliberate: the full envelope only
-     * fits in BLE 5 extended advertising, which older peers (e.g. API 28
-     * hardware) cannot *scan*. The 22-byte legacy beacon carries a MeshX
-     * message reference (message-id + sender hashes) in a legacy
-     * manufacturer-data advertisement every device can both send and
-     * receive — so the exchange is symmetric across the fleet. Peers
-     * decode it via `MeshxMessageAdvertisement.decodeScanRecord` into a
-     * `received_message_beacon` event. Full-payload retrieval is a
-     * separate GATT-fetch concern.
+     * Routes based on `BuildConfig.USE_FULL_MX_ENVELOPES`:
+     *
+     *   - false (production / default debug builds): dispatch a 22-byte
+     *     MB legacy beacon. Fleet-safe — every device including API 28
+     *     hardware can both send and receive it. Full-payload retrieval
+     *     is a separate concern (GATT fetch on a per-peer basis).
+     *   - true (debug builds opting in via `local.properties`
+     *     `meshx.mx.send=true` or `MESHX_MX_SEND=true` env var):
+     *     dispatch the full MX envelope via [sendFullMxEnvelope], which
+     *     pairs the MB beacon cue with a connectable GATT fetch
+     *     responder serving the envelope.
+     *
+     * The branch is on a compile-time `BuildConfig` constant so R8
+     * strips the unused path from release builds. See
+     * `apps/meshx_mobile_app/CONTRIBUTING.md` for the dev opt-in
+     * workflow and the API 28 caveat.
      */
     @JvmStatic
     fun sendToPeer(peerId: String, payload: ByteArray): Boolean {
+        return if (BuildConfig.USE_FULL_MX_ENVELOPES) {
+            sendFullMxEnvelope(peerId, payload)
+        } else {
+            sendMbBeaconOnly(peerId, payload)
+        }
+    }
+
+    /**
+     * MB legacy beacon path — the fleet-safe default. Builds a v1
+     * `MeshxMessageEnvelope` (broadcast, `recipientPeerId = null`) and
+     * dispatches it through `BleDispatcher.dispatch(..., forceLegacyBeacon = true)`.
+     *
+     * The 22-byte beacon carries a MeshX message reference (message-id
+     * hash + sender hash) that every device can scan, regardless of
+     * BLE 5 extended-advertising support. Peers decode it via
+     * `MeshxMessageAdvertisement.decodeScanRecord` into a
+     * `received_message_beacon` event.
+     */
+    private fun sendMbBeaconOnly(peerId: String, payload: ByteArray): Boolean {
         val disp = ensureDispatcherOrNull() ?: return false
         val target = peerId.ifBlank { "broadcast" }
 
