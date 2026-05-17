@@ -88,8 +88,8 @@ defmodule MeshxMobileApp.BLE.LocalIOSParityNegativeValidation do
         :audit_summary
       ],
       notes: [
-        "No iOS legacy beacon gossip dispatcher exists.",
-        "A future dispatcher must stay behind the same adapter boundary."
+        "Foreground iOS MB beacon emit exists, but iOS-origin cross-radio gossip proof is still missing.",
+        "Any autonomous gossip behavior must stay behind the same adapter boundary."
       ]
     },
     %{
@@ -152,7 +152,7 @@ defmodule MeshxMobileApp.BLE.LocalIOSParityNegativeValidation do
       ios_hardware_claims_allowed?: false,
       ios_parity_claims_allowed?: false,
       notes: [
-        "iOS advert-only participation is contract-only until native implementation and hardware proof exist.",
+        "iOS has partial hardware evidence for foreground legacy-beacon observe and Android fetch from iOS responder, but broad parity remains blocked.",
         "Negative validation cases protect against reusing Android evidence or bridge shells as iOS parity.",
         "Future iOS work must add replay-normalized hardware evidence and keep these negative cases covered."
       ]

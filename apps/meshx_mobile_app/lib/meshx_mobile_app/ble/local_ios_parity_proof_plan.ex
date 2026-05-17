@@ -94,7 +94,9 @@ defmodule MeshxMobileApp.BLE.LocalIOSParityProofPlan do
         "Audit summary proving beacon gossip without full-message delivery claims."
       ],
       blocked_claims: [:ios_legacy_beacon_gossip, :ios_one_hop_gossip_hardware_proof],
-      notes: ["No iOS legacy beacon gossip dispatcher exists today."]
+      notes: [
+        "Foreground iOS MB beacon emit exists, but iOS-origin cross-radio gossip proof is still missing."
+      ]
     },
     full_envelope_advert: %{
       status: :hardware_blocked,

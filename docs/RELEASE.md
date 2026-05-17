@@ -81,7 +81,9 @@ Before any version bump:
 - [ ] `mix meshx.mobile.local_completion.audit --allow-open | tee tmp/local-completion-audit.txt` archived for plain-text open-objective review
 - [ ] `mix meshx.mobile.local_completion.audit --allow-open --json --out tmp/local-completion-audit.json` archived for whole-project completion audit
 - [ ] `mix meshx.mobile.local_completion.blocker_matrix --json --out tmp/local-completion-blocker-matrix.json` archived for whole-project blocker classification
+- [ ] `mix meshx.mobile.remaining_items.audit --json --out tmp/focused-remaining-items-audit.json` archived for the responder/AUX/upstream/startup focused objective state
 - [ ] `mix meshx.mobile.local_release.artifact_bundle --json --out tmp/local-release-artifact-bundle.json` archived for release-candidate artifact checklist
+- [ ] `mix meshx.mobile.local_release.recent_evidence --json --out tmp/local-release-recent-evidence.json` archived for recent evidence slices and closure artifact pointers
 - [ ] `tmp/local-release-artifact-bundle.json` reviewed for `required_commands`; generated and review command gates remain visible
 - [ ] `mix meshx.mobile.local_release.manifest --json --out tmp/local-release.json` archived for mobile advert-only release boundary
 - [ ] CI `Generate mobile local release manifests` step passes on the release commit
@@ -141,7 +143,9 @@ mix meshx.mobile.local_readiness.audit --allow-open --out tmp/local-readiness.js
 mix meshx.mobile.local_completion.audit --allow-open | tee tmp/local-completion-audit.txt
 mix meshx.mobile.local_completion.audit --allow-open --json --out tmp/local-completion-audit.json
 mix meshx.mobile.local_completion.blocker_matrix --json --out tmp/local-completion-blocker-matrix.json
+mix meshx.mobile.remaining_items.audit --json --out tmp/focused-remaining-items-audit.json
 mix meshx.mobile.local_release.artifact_bundle --json --out tmp/local-release-artifact-bundle.json
+mix meshx.mobile.local_release.recent_evidence --json --out tmp/local-release-recent-evidence.json
 mix meshx.mobile.local_release.manifest --json --out tmp/local-release.json
 ```
 
@@ -149,7 +153,8 @@ The local release manifest is intentionally constrained. It may describe
 "messages seen nearby" from passive BLE advertisement observations. It
 must not claim whole-project completion, guaranteed delivery, trusted
 message delivery, live routing, background mobile behavior, iOS
-advert-only participation, or full message resolution from beacon refs.
+advert-only participation, full message resolution from beacon refs,
+direct full-MX AUX completion, or upstream patch migration completion.
 
 The manifest's `completion_audit` section is the whole-project claim
 gate. It maps the ten project-level objectives to readiness status,
@@ -164,6 +169,20 @@ The standalone `tmp/local-completion-blocker-matrix.json` artifact classifies
 remaining completion work by hardware, transport, product, implementation,
 security, and release-evidence blockers. Hardware-blocked items must stay
 separate from work that can progress through product or release decisions.
+
+The focused remaining-items audit is the release-time check for the current
+responder/AUX/upstream/startup objective. It must keep
+`extended_advertising_interop_aux_scan_response` and
+`upstreaming_mob_dev_mob_patches` in `incomplete_rows`, and
+`completion_decision.update_goal_allowed` must remain false until direct
+full-MX AUX callback/parse evidence exists and upstream `mob_dev` / `mob_new`
+patch migration is complete.
+
+The recent-evidence inventory must include the direct full-MX AUX validation checklist
+and upstream maintainer handoff entries. The direct full-MX AUX validation checklist
+and upstream maintainer handoff preserve the required closure paths while still
+blocking direct full-MX AUX completion, upstream patch migration completion,
+iOS parity, and whole-project completion.
 
 The manifest's `hardware_evidence` section is a release-candidate
 checklist. It records which hardware gates have passed and which remain

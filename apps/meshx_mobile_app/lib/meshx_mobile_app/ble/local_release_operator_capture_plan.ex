@@ -19,7 +19,12 @@ defmodule MeshxMobileApp.BLE.LocalReleaseOperatorCapturePlan do
     :release_manifest_path,
     :completion_audit_path,
     :completion_audit_plain_text_path,
+    :focused_remaining_items_audit_path,
+    :focused_remaining_items_plain_text_path,
+    :direct_full_mx_aux_validation_checklist_path,
+    :upstream_patch_maintainer_handoff_path,
     :completion_blocker_matrix_path,
+    :recent_evidence_inventory_path,
     :advert_gossip_audit_path
   ]
 
@@ -91,7 +96,7 @@ defmodule MeshxMobileApp.BLE.LocalReleaseOperatorCapturePlan do
         :release_manifest_path_matrix,
         @manifest_paths,
         [
-          "Attach generated readiness, release, JSON completion audit, plain-text completion audit, blocker matrix, and advert-gossip audit paths."
+          "Attach generated readiness, release, JSON completion audit, plain-text completion audit, focused remaining-items audit, focused plain-text audit, AUX validation checklist, upstream maintainer handoff, blocker matrix, recent-evidence inventory, and advert-gossip audit paths."
         ],
         review.required_blocked_claims()
       ),

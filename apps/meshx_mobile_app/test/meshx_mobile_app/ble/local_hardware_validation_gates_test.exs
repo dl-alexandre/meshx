@@ -24,7 +24,63 @@ defmodule MeshxMobileApp.BLE.LocalHardwareValidationGatesTest do
     assert Enum.any?(gate.required_evidence, &String.contains?(&1, "MessageEnvelope"))
   end
 
-  test "multi-hop hardware proof and iOS advert-only participation remain open gates" do
+  test "iOS advert-only participation is partial with responder fetch evidence" do
+    assert {:ok, gate} = LocalHardwareValidationGates.get(:ios_advert_only_participation)
+
+    assert gate.status == :partial
+
+    assert Enum.any?(
+             gate.evidence,
+             &String.contains?(&1, "android-fetch-ios-responder-rerun")
+           )
+
+    assert Enum.any?(
+             gate.evidence,
+             &String.contains?(&1, "android-aux-full-mx-ios-observe")
+           )
+
+    assert Enum.any?(
+             gate.evidence,
+             &String.contains?(&1, "android-aux-full-mx-ios-observe-rerun")
+           )
+
+    assert Enum.any?(
+             gate.evidence,
+             &String.contains?(&1, "aux-alternate-ios-target-check")
+           )
+
+    assert Enum.any?(
+             gate.evidence,
+             &String.contains?(&1, "external-blocker-recheck-1358")
+           )
+
+    assert Enum.any?(
+             gate.notes,
+             &String.contains?(&1, "MeshxFetchGattResponder is hardware validated")
+           )
+
+    assert Enum.any?(
+             gate.notes,
+             &String.contains?(&1, "did not surface the MX manufacturer data callback")
+           )
+
+    assert Enum.any?(
+             gate.notes,
+             &String.contains?(&1, "no second iOS AUX receiver target")
+           )
+
+    assert Enum.any?(
+             gate.notes,
+             &String.contains?(&1, "upstream-pr-recheck-1358")
+           )
+
+    assert Enum.any?(
+             gate.required_evidence,
+             &String.contains?(&1, "Direct full-MX extended-advert receive remains blocked")
+           )
+  end
+
+  test "multi-hop hardware proof and incomplete iOS participation remain open gates" do
     open_ids = LocalHardwareValidationGates.open_gates() |> Enum.map(& &1.id)
 
     assert {:ok, multi_hop} =

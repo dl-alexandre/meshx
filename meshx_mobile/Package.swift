@@ -9,10 +9,15 @@ let package = Package(
     ],
     products: [
         .library(name: "MeshxMobile", targets: ["MeshxMobile"]),
+        .executable(name: "MeshxNoiseInteropCLI", targets: ["MeshxNoiseInteropCLI"]),
         .executable(name: "MeshxMessageObserverCLI", targets: ["MeshxMessageObserverCLI"])
     ],
     targets: [
         .target(name: "MeshxMobile"),
+        .executableTarget(
+            name: "MeshxNoiseInteropCLI",
+            dependencies: ["MeshxMobile"]
+        ),
         .executableTarget(
             name: "MeshxMessageObserverCLI",
             dependencies: ["MeshxMobile"],

@@ -10,6 +10,7 @@ defmodule MeshxMobileApp.BLE.LocalIOSParityEvidenceManifestTest do
     assert manifest.boundary == :local_ios_parity_evidence_manifest
     assert manifest.current_ios_mode == :contract_only
     assert manifest.native_foreground_legacy_beacon_observe_present?
+    assert manifest.ios_legacy_beacon_observe_hardware_validated?
     refute manifest.ios_participation_claim_allowed?
     refute manifest.ios_hardware_claim_allowed?
     refute manifest.ios_parity_claim_allowed?
@@ -20,10 +21,11 @@ defmodule MeshxMobileApp.BLE.LocalIOSParityEvidenceManifestTest do
 
     assert manifest.contract_only_scope.current_mode == :contract_only
 
-    assert :foreground_legacy_beacon_manufacturer_data_decode in manifest.contract_only_scope.implemented_unvalidated_behavior
+    assert :foreground_legacy_beacon_manufacturer_data_observe in manifest.contract_only_scope.hardware_validated_behavior
 
+    assert :foreground_legacy_beacon_manufacturer_data_emit in manifest.contract_only_scope.implemented_unvalidated_behavior
     assert :ios_legacy_beacon_gossip_emit in manifest.contract_only_scope.not_selected_behavior
-    assert :ios_hardware_participation in manifest.contract_only_scope.not_evidence_of
+    assert :ios_full_mx_direct_advert_receive in manifest.contract_only_scope.not_evidence_of
   end
 
   test "manifest embeds policy, contract, acceptance, hardware plan, and negative validation" do
@@ -33,7 +35,11 @@ defmodule MeshxMobileApp.BLE.LocalIOSParityEvidenceManifestTest do
     assert manifest.policy.ios_participation_claims_allowed? == false
     assert manifest.acceptance.boundary == :current_ios_contract_only_mode
     assert manifest.advert_carrier_decision.boundary == :ios_advert_only_carrier_decision
-    assert manifest.advert_carrier_decision.current_ios_emit_carrier == :none
+    assert manifest.advert_carrier_decision.current_ios_emit_carrier ==
+             :manufacturer_data_legacy_beacon_emit
+
+    assert manifest.advert_carrier_decision.ios_legacy_beacon_emit_implemented?
+    refute manifest.advert_carrier_decision.ios_legacy_beacon_emit_cross_radio_validated?
     refute manifest.advert_carrier_decision.ios_legacy_beacon_gossip_claim_allowed?
 
     assert manifest.ios_parity_decision_scenario_plan.boundary ==
@@ -44,7 +50,26 @@ defmodule MeshxMobileApp.BLE.LocalIOSParityEvidenceManifestTest do
     assert manifest.native_source_inventory.boundary == :ios_native_source_inventory
     assert manifest.native_source_inventory.foreground_observe_source_present?
     refute manifest.native_source_inventory.ios_parity_claim_allowed?
-    assert [%{id: :ios_foreground_legacy_beacon_scan_decode}] = manifest.implementation_evidence
+    assert Enum.any?(
+             manifest.implementation_evidence,
+             &(&1.id == :ios_foreground_legacy_beacon_scan_decode)
+           )
+
+    assert Enum.any?(
+             manifest.implementation_evidence,
+             &(&1.id == :ios_direct_full_mx_aux_scan_response_probe and
+                 &1.status == :negative_hardware_evidence and
+                 Enum.any?(
+                   &1.hardware_evidence,
+                   fn path -> String.contains?(path, "android-aux-full-mx-ios-observe-rerun") end
+                 ))
+           )
+
+    assert Enum.any?(
+             manifest.implementation_evidence,
+             &(&1.id == :ios_foreground_legacy_beacon_emit and
+                 &1.status == :implemented_unvalidated)
+           )
 
     assert manifest.hardware_validation_plan.boundary ==
              :ios_advert_only_hardware_validation_plan
@@ -145,9 +170,18 @@ defmodule MeshxMobileApp.BLE.LocalIOSParityEvidenceManifestTest do
     assert manifest["ios_parity_claim_allowed?"] == false
     assert manifest["ios_background_ble_claim_allowed?"] == false
     assert manifest["native_foreground_legacy_beacon_observe_present?"] == true
+    assert manifest["ios_legacy_beacon_observe_hardware_validated?"] == true
     assert manifest["contract_only_scope"]["current_mode"] == "contract_only"
 
-    assert "canonical_received_message_beacon_wire_map" in manifest["contract_only_scope"][
+    assert "foreground_legacy_beacon_manufacturer_data_observe" in manifest[
+             "contract_only_scope"
+           ][
+             "hardware_validated_behavior"
+           ]
+
+    assert "foreground_legacy_beacon_manufacturer_data_emit" in manifest[
+             "contract_only_scope"
+           ][
              "implemented_unvalidated_behavior"
            ]
 
@@ -156,7 +190,28 @@ defmodule MeshxMobileApp.BLE.LocalIOSParityEvidenceManifestTest do
            ]
 
     assert "ios_parity_claim" in manifest["contract_only_scope"]["not_evidence_of"]
-    assert manifest["advert_carrier_decision"]["current_ios_emit_carrier"] == "none"
+    assert manifest["advert_carrier_decision"]["current_ios_emit_carrier"] ==
+             "manufacturer_data_legacy_beacon_emit"
+
+    assert manifest["advert_carrier_decision"][
+             "ios_legacy_beacon_emit_cross_radio_validated?"
+           ] == false
+
+    assert Enum.any?(
+             manifest["implementation_evidence"],
+             &(&1["id"] == "ios_direct_full_mx_aux_scan_response_probe" and
+                 &1["status"] == "negative_hardware_evidence" and
+                 Enum.any?(
+                   &1["hardware_evidence"],
+                   fn path -> String.contains?(path, "android-aux-full-mx-ios-observe-rerun") end
+                 ))
+           )
+
+    assert Enum.any?(
+             manifest["implementation_evidence"],
+             &(&1["id"] == "ios_foreground_legacy_beacon_emit" and
+                 &1["status"] == "implemented_unvalidated")
+           )
 
     assert manifest["ios_parity_decision_scenario_plan"]["boundary"] ==
              "local_ios_parity_decision_scenario_plan"

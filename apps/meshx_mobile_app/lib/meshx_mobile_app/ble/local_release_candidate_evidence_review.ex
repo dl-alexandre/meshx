@@ -63,6 +63,10 @@ defmodule MeshxMobileApp.BLE.LocalReleaseCandidateEvidenceReview do
                :readiness_manifest_path,
                :completion_audit_path,
                :completion_audit_plain_text_path,
+               :focused_remaining_items_audit_path,
+               :focused_remaining_items_plain_text_path,
+               :direct_full_mx_aux_validation_checklist_path,
+               :upstream_patch_maintainer_handoff_path,
                :completion_blocker_matrix_path,
                :release_manifest_path,
                :recent_evidence_inventory_path,
@@ -84,6 +88,10 @@ defmodule MeshxMobileApp.BLE.LocalReleaseCandidateEvidenceReview do
       :readiness_manifest_path,
       :completion_audit_path,
       :completion_audit_plain_text_path,
+      :focused_remaining_items_audit_path,
+      :focused_remaining_items_plain_text_path,
+      :direct_full_mx_aux_validation_checklist_path,
+      :upstream_patch_maintainer_handoff_path,
       :completion_blocker_matrix_path,
       :release_manifest_path,
       :recent_evidence_inventory_path,
@@ -109,6 +117,10 @@ defmodule MeshxMobileApp.BLE.LocalReleaseCandidateEvidenceReview do
             readiness_manifest_path: binary() | nil,
             completion_audit_path: binary() | nil,
             completion_audit_plain_text_path: binary() | nil,
+            focused_remaining_items_audit_path: binary() | nil,
+            focused_remaining_items_plain_text_path: binary() | nil,
+            direct_full_mx_aux_validation_checklist_path: binary() | nil,
+            upstream_patch_maintainer_handoff_path: binary() | nil,
             completion_blocker_matrix_path: binary() | nil,
             release_manifest_path: binary() | nil,
             recent_evidence_inventory_path: binary() | nil,
@@ -573,13 +585,19 @@ defmodule MeshxMobileApp.BLE.LocalReleaseCandidateEvidenceReview do
     :multi_hop_hardware_delivery,
     :full_message_resolution_from_beacon_refs,
     :background_mobile_operation,
-    :ios_advert_only_participation
+    :ios_advert_only_participation,
+    :direct_full_mx_aux_complete,
+    :upstream_patch_migration_complete
   ]
 
   @required_paths [
     :readiness_manifest_path,
     :completion_audit_path,
     :completion_audit_plain_text_path,
+    :focused_remaining_items_audit_path,
+    :focused_remaining_items_plain_text_path,
+    :direct_full_mx_aux_validation_checklist_path,
+    :upstream_patch_maintainer_handoff_path,
     :release_manifest_path,
     :completion_blocker_matrix_path,
     :recent_evidence_inventory_path,
@@ -600,6 +618,10 @@ defmodule MeshxMobileApp.BLE.LocalReleaseCandidateEvidenceReview do
     :readiness_manifest_path,
     :completion_audit_path,
     :completion_audit_plain_text_path,
+    :focused_remaining_items_audit_path,
+    :focused_remaining_items_plain_text_path,
+    :direct_full_mx_aux_validation_checklist_path,
+    :upstream_patch_maintainer_handoff_path,
     :completion_blocker_matrix_path,
     :release_manifest_path,
     :recent_evidence_inventory_path,
@@ -751,11 +773,16 @@ defmodule MeshxMobileApp.BLE.LocalReleaseCandidateEvidenceReview do
   @spec template_input() :: map()
   def template_input do
     %{
+      "required_blocked_claims" => Enum.map(@required_blocked_claims, &Atom.to_string/1),
       "readiness_manifest_path" => "",
       "release_manifest_path" => "",
       "recent_evidence_inventory_path" => "",
       "completion_audit_path" => "",
       "completion_audit_plain_text_path" => "",
+      "focused_remaining_items_audit_path" => "",
+      "focused_remaining_items_plain_text_path" => "",
+      "direct_full_mx_aux_validation_checklist_path" => "",
+      "upstream_patch_maintainer_handoff_path" => "",
       "completion_blocker_matrix_path" => "",
       "advert_gossip_audit_path" => "",
       "persistence_lifecycle_plan_path" => "",
@@ -910,6 +937,10 @@ defmodule MeshxMobileApp.BLE.LocalReleaseCandidateEvidenceReview do
         "readiness_manifest_path" => "",
         "completion_audit_path" => "",
         "completion_audit_plain_text_path" => "",
+        "focused_remaining_items_audit_path" => "",
+        "focused_remaining_items_plain_text_path" => "",
+        "direct_full_mx_aux_validation_checklist_path" => "",
+        "upstream_patch_maintainer_handoff_path" => "",
         "completion_blocker_matrix_path" => "",
         "release_manifest_path" => "",
         "recent_evidence_inventory_path" => "",
@@ -1815,6 +1846,10 @@ defmodule MeshxMobileApp.BLE.LocalReleaseCandidateEvidenceReview do
     |> missing_operator_field(notes, :readiness_manifest_path)
     |> missing_operator_field(notes, :completion_audit_path)
     |> missing_operator_field(notes, :completion_audit_plain_text_path)
+    |> missing_operator_field(notes, :focused_remaining_items_audit_path)
+    |> missing_operator_field(notes, :focused_remaining_items_plain_text_path)
+    |> missing_operator_field(notes, :direct_full_mx_aux_validation_checklist_path)
+    |> missing_operator_field(notes, :upstream_patch_maintainer_handoff_path)
     |> missing_operator_field(notes, :completion_blocker_matrix_path)
     |> missing_operator_field(notes, :release_manifest_path)
     |> missing_operator_field(notes, :recent_evidence_inventory_path)
@@ -1833,6 +1868,10 @@ defmodule MeshxMobileApp.BLE.LocalReleaseCandidateEvidenceReview do
     |> mismatched_operator_path(input, notes, :readiness_manifest_path)
     |> mismatched_operator_path(input, notes, :completion_audit_path)
     |> mismatched_operator_path(input, notes, :completion_audit_plain_text_path)
+    |> mismatched_operator_path(input, notes, :focused_remaining_items_audit_path)
+    |> mismatched_operator_path(input, notes, :focused_remaining_items_plain_text_path)
+    |> mismatched_operator_path(input, notes, :direct_full_mx_aux_validation_checklist_path)
+    |> mismatched_operator_path(input, notes, :upstream_patch_maintainer_handoff_path)
     |> mismatched_operator_path(input, notes, :completion_blocker_matrix_path)
     |> mismatched_operator_path(input, notes, :release_manifest_path)
     |> mismatched_operator_path(input, notes, :recent_evidence_inventory_path)
@@ -2068,6 +2107,13 @@ defmodule MeshxMobileApp.BLE.LocalReleaseCandidateEvidenceReview do
       readiness_manifest_path: get_field(input, :readiness_manifest_path),
       completion_audit_path: get_field(input, :completion_audit_path),
       completion_audit_plain_text_path: get_field(input, :completion_audit_plain_text_path),
+      focused_remaining_items_audit_path: get_field(input, :focused_remaining_items_audit_path),
+      focused_remaining_items_plain_text_path:
+        get_field(input, :focused_remaining_items_plain_text_path),
+      direct_full_mx_aux_validation_checklist_path:
+        get_field(input, :direct_full_mx_aux_validation_checklist_path),
+      upstream_patch_maintainer_handoff_path:
+        get_field(input, :upstream_patch_maintainer_handoff_path),
       completion_blocker_matrix_path: get_field(input, :completion_blocker_matrix_path),
       release_manifest_path: get_field(input, :release_manifest_path),
       recent_evidence_inventory_path: get_field(input, :recent_evidence_inventory_path),

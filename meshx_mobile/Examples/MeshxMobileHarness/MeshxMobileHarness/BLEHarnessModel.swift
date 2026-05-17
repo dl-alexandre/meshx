@@ -31,6 +31,7 @@ final class BLEHarnessModel: NSObject, ObservableObject {
     private var logMessageObserverCandidateDiscoveries = false
     private var beaconDispatchTimer: Timer?
     private var beaconDispatchCount: UInt32 = 0
+    private var fetchResponder: MeshxFetchGattResponder?
 
     override init() {
         super.init()
@@ -71,8 +72,10 @@ final class BLEHarnessModel: NSObject, ObservableObject {
 
         let autoScan = arguments.contains("--meshx-auto-scan")
         let autoBeacon = arguments.contains("--meshx-auto-beacon")
+        let autoBeaconBasic = arguments.contains("--meshx-auto-beacon-basic")
+        let autoServiceAdvertise = arguments.contains("--meshx-auto-service-advertise")
 
-        guard autoScan || autoBeacon else {
+        guard autoScan || autoBeacon || autoBeaconBasic || autoServiceAdvertise else {
             return
         }
 
@@ -80,7 +83,12 @@ final class BLEHarnessModel: NSObject, ObservableObject {
         if autoScan {
             startMessageObserverOnly()
         }
-        if autoBeacon {
+        if autoServiceAdvertise {
+            startServiceAdvertiseOnly()
+        }
+        if autoBeaconBasic {
+            startBasicAutoBeaconDispatch()
+        } else if autoBeacon {
             startAutoBeaconDispatch()
         }
     }
@@ -89,20 +97,66 @@ final class BLEHarnessModel: NSObject, ObservableObject {
         let senderPeerId = "ios-harness-\(UUID().uuidString.prefix(8))"
         print("MeshxMessageObserver: beacon_dispatch_started sender_peer_id=\(senderPeerId)")
         beaconDispatchTimer?.invalidate()
+        beaconDispatchTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: false) { [weak self] _ in
+            guard let self else { return }
+            var messageId = Data(count: 16)
+            _ = messageId.withUnsafeMutableBytes { buf in
+                SecRandomCopyBytes(kSecRandomDefault, 16, buf.baseAddress!)
+            }
+            let payload = Data("ios-full-envelope-smoke-\(self.beaconDispatchCount + 1)".utf8)
+            let envelope: Data
+            do {
+                envelope = try MessageEnvelope.buildV1(
+                    messageId: messageId,
+                    senderPeerId: senderPeerId,
+                    createdAt: UInt64(Date().timeIntervalSince1970 * 1000),
+                    payload: payload
+                )
+            } catch {
+                print("MeshxMessageObserver: fetch_responder_envelope_failed error=\(String(describing: error))")
+                return
+            }
+            let beacon = MeshxLegacyBeaconAdvertisement.build(messageId: messageId, senderPeerId: senderPeerId)
+            let messageHashHex = beacon.messageIdHash.map { String(format: "%02x", $0) }.joined()
+            let responderPeerId = "mx\(messageHashHex)"
+            do {
+                self.fetchResponder?.stop()
+                let responder = try MeshxFetchGattResponder(envelope: envelope, responderPeerId: responderPeerId)
+                responder.delegate = self
+                self.fetchResponder = responder
+                responder.start()
+                self.peripheral.startBeaconAdvertising(beacon)
+            } catch {
+                print("MeshxMessageObserver: fetch_responder_start_failed error=\(String(describing: error))")
+                return
+            }
+            self.beaconDispatchCount &+= 1
+            let hex = messageId.map { String(format: "%02x", $0) }.joined()
+            let shash = beacon.senderPeerIdHash.map { String(format: "%02x", $0) }.joined()
+            print("MeshxMessageObserver: beacon_dispatched seq=\(self.beaconDispatchCount) message_id=\(hex) message_id_hash=\(messageHashHex) sender_peer_id=\(senderPeerId) sender_peer_id_hash=\(shash)")
+        }
+    }
+
+    private func startBasicAutoBeaconDispatch() {
+        let senderPeerId = "ios-harness-\(UUID().uuidString.prefix(8))"
+        print("MeshxMessageObserver: basic_beacon_dispatch_started sender_peer_id=\(senderPeerId)")
+        beaconDispatchTimer?.invalidate()
         beaconDispatchTimer = Timer.scheduledTimer(withTimeInterval: 1.5, repeats: true) { [weak self] _ in
             guard let self else { return }
             var messageId = Data(count: 16)
             _ = messageId.withUnsafeMutableBytes { buf in
                 SecRandomCopyBytes(kSecRandomDefault, 16, buf.baseAddress!)
             }
-            self.peripheral.advertiseLegacyBeacon(
+            let beacon = self.peripheral.advertiseLegacyBeacon(
                 messageId: messageId,
                 senderPeerId: senderPeerId,
                 payloadKind: "TX"
             )
             self.beaconDispatchCount &+= 1
             let hex = messageId.map { String(format: "%02x", $0) }.joined()
-            print("MeshxMessageObserver: beacon_dispatched seq=\(self.beaconDispatchCount) message_id=\(hex) sender_peer_id=\(senderPeerId)")
+            let mhash = beacon.messageIdHash.map { String(format: "%02x", $0) }.joined()
+            let shash = beacon.senderPeerIdHash.map { String(format: "%02x", $0) }.joined()
+            print("MeshxMessageObserver: beacon_dispatched seq=\(self.beaconDispatchCount) message_id=\(hex) message_id_hash=\(mhash) sender_peer_id=\(senderPeerId) sender_peer_id_hash=\(shash)")
         }
     }
 
@@ -110,6 +164,8 @@ final class BLEHarnessModel: NSObject, ObservableObject {
         client.stopScan()
         messageObserver.stopScan()
         peripheral.stopAdvertising()
+        fetchResponder?.stop()
+        fetchResponder = nil
         updateStatus("Stopped")
         record("Stopped", detail: "BLE activity paused.")
     }
@@ -122,6 +178,15 @@ final class BLEHarnessModel: NSObject, ObservableObject {
         print("MeshxMessageObserver: scan_requested")
         updateStatus("Message observer")
         record("Message observer started", detail: "Manufacturer data scan")
+    }
+
+    private func startServiceAdvertiseOnly() {
+        print("MeshxMessageObserver: service_advertise_requested service_uuid=\(MeshxBLEUUID.service.uuidString) local_name=meshx-ipad")
+        client.stopScan()
+        messageObserver.stopScan()
+        peripheral.startAdvertising(localName: "meshx-ipad")
+        updateStatus("Service advertising")
+        record("Service advertising", detail: MeshxBLEUUID.service.uuidString)
     }
 
     func sendPing() {
@@ -227,6 +292,7 @@ extension BLEHarnessModel: MeshxBLEClientDelegate {
 extension BLEHarnessModel: MeshxBLEPeripheralDelegate {
     func meshxPeripheralDidStartAdvertising() {
         updateStatus("Advertising")
+        print("MeshxMessageObserver: peripheral_advertising_started")
         record("Advertising", detail: MeshxBLEUUID.service.uuidString)
     }
 
@@ -263,7 +329,29 @@ extension BLEHarnessModel: MeshxBLEPeripheralDelegate {
     }
 
     func meshxPeripheralDidError(_ error: Error) {
+        print("MeshxMessageObserver: peripheral_error \(String(describing: error))")
         record("Error", detail: String(describing: error))
+    }
+}
+
+extension BLEHarnessModel: MeshxFetchGattResponderDelegate {
+    func meshxFetchResponderDidStart() {
+        print("MeshxMessageObserver: fetch_responder_advertising_started")
+        record("Fetch responder", detail: MeshxFetchGattUUID.service.uuidString)
+    }
+
+    func meshxFetchResponderDidFail(reason: String) {
+        print("MeshxMessageObserver: fetch_responder_failed reason=\(reason)")
+        record("Fetch responder failed", detail: reason)
+    }
+
+    func meshxFetchResponderDidServeRequest(
+        request: MeshxFetchProtocol.Request,
+        status: UInt8
+    ) {
+        let requestHash = request.messageIdHash.map { String(format: "%02x", $0) }.joined()
+        print("MeshxMessageObserver: fetch_responder_served request_id=\(request.requestId) message_id_hash=\(requestHash) status=\(status)")
+        record("Fetch served", detail: "\(request.requestId) status=\(status)")
     }
 }
 

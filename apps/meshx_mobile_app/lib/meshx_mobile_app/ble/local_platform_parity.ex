@@ -4,7 +4,7 @@ defmodule MeshxMobileApp.BLE.LocalPlatformParity do
 
   This is an evidence ledger, not a transport implementation. It records
   which local BLE capabilities have Android hardware proof, which iOS
-  paths are contract-only or unvalidated, and which behaviors remain
+  paths have hardware proof or remain unvalidated, and which behaviors remain
   explicitly blocked. It does not touch native code, scan, advertise,
   fetch, route, persist, ACK, retry, encrypt, or run in the background.
   """
@@ -98,15 +98,17 @@ defmodule MeshxMobileApp.BLE.LocalPlatformParity do
     %{
       platform: :ios,
       capability: :legacy_beacon_observe,
-      status: :implemented_unvalidated,
+      status: :hardware_validated,
       evidence: [
         "meshx_mobile/Sources/MeshxMobile/BLE.swift",
         "apps/meshx_mobile_app/ios/MeshxBLEBridge.swift",
-        "apps/meshx_mobile_app/ios/meshx_ble_nif.m"
+        "apps/meshx_mobile_app/ios/meshx_ble_nif.m",
+        "artifacts/local-ble/2026-05-15-iphone13-sm-t577u/hardware/i26b-android-to-iphone-receive/summary.json"
       ],
       notes: [
         "iOS foreground scanner decodes MeshX legacy beacon manufacturer advertisements into canonical received_message_beacon wire maps.",
-        "No iOS received_message_beacon hardware proof is recorded."
+        "iPhone 13 hardware observed Android SM-T577U legacy beacons on 2026-05-15.",
+        "This is beacon/ref observation proof only; iOS beacon gossip and direct full-envelope adverts remain separate claims."
       ]
     },
     %{
@@ -119,10 +121,14 @@ defmodule MeshxMobileApp.BLE.LocalPlatformParity do
     %{
       platform: :ios,
       capability: :full_envelope_advert,
-      status: :contract_only,
-      evidence: ["apps/meshx_mobile_app/lib/meshx_mobile_app/ble/bridge_protocol.ex"],
+      status: :blocked_current_hardware,
+      evidence: [
+        "docs/BLE_BRIDGE.md#extended-advertising-aux-delivery-limitation",
+        "apps/meshx_mobile_app/lib/meshx_mobile_app/ble/bridge_protocol.ex"
+      ],
       notes: [
-        "Canonical receive contract is shared, but iOS full-envelope advert participation is not validated."
+        "Canonical receive contract is shared and bridge code is wired.",
+        "Tested iOS hardware did not surface non-Apple AUX_ADV_IND manufacturer data to CoreBluetooth."
       ]
     },
     %{

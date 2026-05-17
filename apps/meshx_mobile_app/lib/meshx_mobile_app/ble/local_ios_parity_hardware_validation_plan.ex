@@ -104,15 +104,17 @@ defmodule MeshxMobileApp.BLE.LocalIOSParityHardwareValidationPlan do
         :full_envelope_capability_probe,
         [
           "iOS BLE capability probe for full-envelope advert payload size and scan compatibility.",
-          "Observer log containing canonical received_message if full-envelope advert is supported."
+          "Observer log containing canonical received_message if full-envelope advert is supported.",
+          "Negative capability ledger if the sender emits a full-MX AUX payload and iOS does not surface it."
         ],
         [
-          "iOS full-envelope payload budget evidence.",
-          "Capability-proven iOS hardware pair or explicit negative capability ledger."
+          "iOS full-envelope payload budget evidence for any future iOS-origin full-envelope advert.",
+          "Capability-proven iOS hardware pair before allowing the claim; current explicit negative capability ledger remains blocked evidence."
         ],
         [:ios_full_envelope_advert, :ios_full_message_observation],
         [
-          "Full-envelope adverts remain capability-proven only; legacy beacons must not be promoted."
+          "Full-envelope adverts remain capability-proven only; legacy beacons must not be promoted.",
+          "The 2026-05-17 SM-T577U -> iPad12,1 AUX probe and 11:19 rerun are negative evidence: Android emitted scan-response MX, iOS did not surface the callback."
         ]
       ),
       gate(
@@ -183,7 +185,7 @@ defmodule MeshxMobileApp.BLE.LocalIOSParityHardwareValidationPlan do
         :ios_parity_claim
       ],
       notes: [
-        "iOS remains contract-only until native advert-only behavior and hardware evidence exist.",
+        "iOS has partial foreground observe/responder-fetch hardware evidence; broad iOS parity remains blocked.",
         "Android hardware evidence cannot satisfy iOS parity gates.",
         "This plan adds evidence gates only; it does not change iOS runtime behavior."
       ]

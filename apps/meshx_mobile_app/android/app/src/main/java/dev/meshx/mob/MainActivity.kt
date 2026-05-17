@@ -158,6 +158,21 @@ class MainActivity : ComponentActivity() {
             Log.i(TAG, "onCreate: MESHX_BLE_SELFTEST=1")
         }
 
+        if (intent?.extras?.containsKey("meshx_ble_selftest_send") == true) {
+            val enabled = intent?.extras?.getBoolean("meshx_ble_selftest_send", true) != false
+            android.system.Os.setenv("MESHX_BLE_SELFTEST_SEND", if (enabled) "1" else "0", true)
+            MeshxBleNative.setSelftestSendEnabled(enabled)
+            Log.i(TAG, "onCreate: MESHX_BLE_SELFTEST_SEND=${if (enabled) "1" else "0"}")
+        } else {
+            MeshxBleNative.setSelftestSendEnabled(true)
+        }
+
+        val fetchOnBeacon = intent?.extras?.getBoolean("meshx_ble_fetch_on_beacon", false) == true
+        MeshxBleNative.setFetchOnBeaconEnabled(fetchOnBeacon)
+        if (fetchOnBeacon) {
+            Log.i(TAG, "onCreate: meshx_ble_fetch_on_beacon=true")
+        }
+
         // Check if launched from a notification tap
         intent?.extras?.getString("mob_notification_json")?.let { json ->
             MobBridge.setLaunchNotification(json)

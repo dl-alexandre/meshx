@@ -163,6 +163,42 @@ defmodule MeshxMobileApp.BLE.BridgeProtocolTest do
       assert e.envelope == envelope
     end
 
+    test "Android GATT fetch JSON becomes canonical ReceivedMessage" do
+      envelope = envelope(sender_peer_id: "ios-harness", recipient_peer_id: nil)
+      encoded = MessageEnvelope.encode(envelope)
+
+      assert {:ok, %Events.ReceivedMessage{} = e} =
+               BridgeProtocol.decode(%{
+                 "v" => 1,
+                 "event" => "received_message",
+                 "message_id" => Base.encode64(envelope.message_id),
+                 "sender_peer_id" => "ios-harness",
+                 "recipient_peer_id" => nil,
+                 "received_device_id" => "54:18:6A:E8:A8:D7",
+                 "received_at" => 1_779_045_000_000,
+                 "rssi" => -48,
+                 "envelope" => Base.encode64(encoded),
+                 "raw_transport_metadata" => %{
+                   "transport" => "ble_android_gatt_fetch",
+                   "source_event" => "gatt_fetch_response",
+                   "received_device_id" => "54:18:6A:E8:A8:D7",
+                   "advertisement" => Base.encode64(<<2, 1, 6>>),
+                   "message_payload" => Base.encode64(encoded),
+                   "manufacturer_data" => Base.encode64(<<>>),
+                   "company_identifier" => 0,
+                   "ad_type" => 0
+                 }
+               })
+
+      assert e.message_id == envelope.message_id
+      assert e.sender_peer_id == "ios-harness"
+      assert e.recipient_peer_id == nil
+      assert e.envelope == envelope
+      assert e.raw_transport_metadata.transport == "ble_android_gatt_fetch"
+      assert e.raw_transport_metadata.source_event == "gatt_fetch_response"
+      assert e.raw_transport_metadata.message_payload == encoded
+    end
+
     test "malformed MeshX message advertisement becomes tagged Error event" do
       bad = <<2, 0x01, 0x06, 9, 0xFF, 0xFF, 0xFF, "MX", 1, 0, 1, 2, 3>>
 

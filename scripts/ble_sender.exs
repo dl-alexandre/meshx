@@ -98,7 +98,9 @@ defmodule MeshxScripts.BLESender do
       Application.put_env(:meshx_store, :data_dir, data_dir)
     end
 
+    {:ok, _apps} = Application.ensure_all_started(:meshx_store)
     {:ok, _apps} = Application.ensure_all_started(:meshx_runtime)
+    :ok = MeshxRuntime.ensure_dependency_workers_started()
     {:ok, _} = Application.ensure_all_started(:meshx_transport_ble)
   end
 end

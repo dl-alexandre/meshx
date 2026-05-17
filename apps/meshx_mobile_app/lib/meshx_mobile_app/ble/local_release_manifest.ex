@@ -39,6 +39,8 @@ defmodule MeshxMobileApp.BLE.LocalReleaseManifest do
     "mix meshx.mobile.local_completion.audit --allow-open --json --out tmp/ci-local-completion-audit.json",
     "mix meshx.mobile.local_completion.blocker_matrix --json --out <path>",
     "mix meshx.mobile.local_completion.blocker_matrix --json --out tmp/local-completion-blocker-matrix.json",
+    "mix meshx.mobile.remaining_items.audit --json --out <path>",
+    "mix meshx.mobile.remaining_items.audit | tee <path>",
     "mix meshx.mobile.local_readiness.audit --allow-open --json",
     "mix meshx.mobile.local_readiness.audit --allow-open --json --out <path>",
     "mix meshx.mobile.local_readiness.audit --allow-open --out tmp/ci-local-readiness.json",
@@ -260,6 +262,39 @@ defmodule MeshxMobileApp.BLE.LocalReleaseManifest do
           "Archive blocker categories for remaining hardware, transport, product, implementation, security, and release-evidence work."
       },
       %{
+        id: :focused_remaining_items_audit,
+        command: "mix meshx.mobile.remaining_items.audit --json --out <path>",
+        purpose:
+          "Archive the focused four-row remaining-items objective, including the two completed rows and two externally blocked rows."
+      },
+      %{
+        id: :focused_remaining_items_plain_text_review,
+        command: "mix meshx.mobile.remaining_items.audit | tee <path>",
+        purpose:
+          "Archive the focused four-row remaining-items checklist and blocked completion decision as plain text."
+      },
+      %{
+        id: :direct_full_mx_aux_validation_checklist,
+        command:
+          "Archive artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/android-aux-full-mx-ios-observe-rerun/aux-validation-checklist.md",
+        purpose:
+          "Archive the exact platform callback, canonical parse, MB fallback, and metadata evidence required before direct full-MX AUX interop can be marked complete."
+      },
+      %{
+        id: :upstream_patch_maintainer_handoff,
+        command:
+          "Archive artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/upstream-pr-recheck-1358/maintainer-handoff.md",
+        purpose:
+          "Archive the upstream maintainer merge/release actions and MeshX post-merge migration gates required before downstream patches can be removed."
+      },
+      %{
+        id: :upstream_patch_migration_progress,
+        command:
+          "Archive artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/upstream-pr-recheck-1358/upstream-migration-progress.json",
+        purpose:
+          "Archive the machine-readable upstream migration progress gate, including satisfied pre-merge criteria and missing merge/release/migration criteria."
+      },
+      %{
         id: :ux_validation_plan,
         command: "mix meshx.mobile.local_inbox.ux_validation_plan --json --out <path>",
         purpose:
@@ -385,7 +420,7 @@ defmodule MeshxMobileApp.BLE.LocalReleaseManifest do
         id: :ios_parity_evidence_manifest,
         command: "mix meshx.mobile.local_ios_parity.evidence --json --out <path>",
         purpose:
-          "Archive iOS contract-only state, open hardware gates, and blocked iOS parity claims."
+          "Archive partial iOS hardware evidence, open hardware gates, and blocked iOS parity claims."
       },
       %{
         id: :ios_parity_decision_scenario_plan,

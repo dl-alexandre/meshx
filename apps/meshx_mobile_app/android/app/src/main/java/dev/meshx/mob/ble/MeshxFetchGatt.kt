@@ -33,8 +33,24 @@ import org.json.JSONObject
 @Suppress("DEPRECATION")
 class MeshxFetchGatt(
     context: Context,
-    private val adapter: BluetoothAdapter?
-) {
+    private val adapter: BluetoothAdapter?,
+    private val clientListener: ClientListener? = null
+) : MeshxBeaconFetchClient {
+    interface ClientListener {
+        fun onFetchComplete(
+            deviceAddress: String,
+            request: MeshxFetchProtocol.Request,
+            envelope: ByteArray
+        )
+
+        fun onFetchFailed(
+            deviceAddress: String?,
+            request: MeshxFetchProtocol.Request?,
+            reason: String,
+            detail: String?
+        )
+    }
+
     private val appContext = context.applicationContext
     private val handler = Handler(Looper.getMainLooper())
     private val bluetoothManager =
@@ -45,6 +61,7 @@ class MeshxFetchGatt(
     private var activeRequest: MeshxFetchProtocol.Request? = null
     private var activeTargetAddress: String? = null
     private var activePhase: String? = null
+    private var serviceDiscoveryRetryCount = 0
     private var timeoutRunnable: Runnable? = null
     private var responseBytes: ByteArray? = null
     private var servedEnvelope: ByteArray? = null
@@ -57,6 +74,10 @@ class MeshxFetchGatt(
     // AtomicInteger keeps the visibility cheap and correct.
     private val preparedOkCount = java.util.concurrent.atomic.AtomicInteger(0)
     private val servedReadCount = java.util.concurrent.atomic.AtomicInteger(0)
+    private val lastClientTerminalEvent = java.util.concurrent.atomic.AtomicReference<String?>(null)
+    private val lastClientReason = java.util.concurrent.atomic.AtomicReference<String?>(null)
+    private val lastClientResponseStatus = java.util.concurrent.atomic.AtomicReference<String?>(null)
+    private val lastClientEnvelope = java.util.concurrent.atomic.AtomicReference<ByteArray?>(null)
 
     /**
      * Number of times this responder prepared a STATUS_OK response for an
@@ -76,6 +97,11 @@ class MeshxFetchGatt(
      * requester then read it back over GATT.
      */
     fun servedReadCount(): Int = servedReadCount.get()
+
+    fun lastClientTerminalEvent(): String? = lastClientTerminalEvent.get()
+    fun lastClientReason(): String? = lastClientReason.get()
+    fun lastClientResponseStatus(): String? = lastClientResponseStatus.get()
+    fun lastClientEnvelope(): ByteArray? = lastClientEnvelope.get()
 
     @SuppressLint("MissingPermission")
     fun startResponder(envelope: ByteArray, responderPeerId: String): Boolean {
@@ -166,7 +192,7 @@ class MeshxFetchGatt(
     }
 
     @SuppressLint("MissingPermission")
-    fun fetchOnce(
+    override fun fetchOnce(
         deviceAddress: String,
         request: MeshxFetchProtocol.Request
     ): Boolean {
@@ -204,6 +230,11 @@ class MeshxFetchGatt(
         activeRequest = request
         activeTargetAddress = deviceAddress
         activePhase = "connect"
+        serviceDiscoveryRetryCount = 0
+        lastClientTerminalEvent.set(null)
+        lastClientReason.set(null)
+        lastClientResponseStatus.set(null)
+        lastClientEnvelope.set(null)
 
         log("fetch_gatt_experimental_warning") {
             put("reason", "gatt_fetch_unvalidated_hardware")
@@ -240,7 +271,7 @@ class MeshxFetchGatt(
     }
 
     @SuppressLint("MissingPermission")
-    fun stopClient() {
+    override fun stopClient() {
         finishClient("manual_stop", "manual_stop")
     }
 
@@ -456,10 +487,49 @@ class MeshxFetchGatt(
                     return
                 }
 
-                val characteristic = gatt
-                    ?.getService(SERVICE_UUID)
-                    ?.getCharacteristic(REQUEST_CHARACTERISTIC_UUID)
+                val service = gatt?.getService(SERVICE_UUID)
+                val characteristic = service?.getCharacteristic(REQUEST_CHARACTERISTIC_UUID)
                 if (characteristic == null) {
+                    log("fetch_service_characteristics_missing") {
+                        put("request_id", request.requestId)
+                        put("target_address", activeTargetAddress ?: JSONObject.NULL)
+                        put("service_uuid", SERVICE_UUID.toString())
+                        put("expected_request_characteristic_uuid", REQUEST_CHARACTERISTIC_UUID.toString())
+                        put("expected_response_characteristic_uuid", RESPONSE_CHARACTERISTIC_UUID.toString())
+                        put(
+                            "characteristic_uuids",
+                            service?.characteristics?.map { it.uuid.toString() } ?: emptyList<String>()
+                        )
+                        put(
+                            "characteristic_properties",
+                            JSONObject(
+                                service?.characteristics
+                                    ?.associate { it.uuid.toString() to it.properties }
+                                    ?: emptyMap<String, Int>()
+                            )
+                        )
+                        putDeviceDiagnostics()
+                    }
+
+                    if (service != null && serviceDiscoveryRetryCount == 0) {
+                        serviceDiscoveryRetryCount += 1
+                        activePhase = "service_discovery_retry"
+                        handler.postDelayed({
+                            val currentGatt = clientGatt
+                            if (currentGatt != null && activeRequest === request) {
+                                log("fetch_service_discovery_retry") {
+                                    put("request_id", request.requestId)
+                                    put("target_address", activeTargetAddress ?: JSONObject.NULL)
+                                    put("reason", "missing_request_characteristic")
+                                    put("attempt", serviceDiscoveryRetryCount)
+                                    putDeviceDiagnostics()
+                                }
+                                startServiceDiscovery(currentGatt, request)
+                            }
+                        }, 750)
+                        return
+                    }
+
                     finishClient("service_discovery_failed", "missing_request_characteristic")
                     return
                 }
@@ -611,12 +681,20 @@ class MeshxFetchGatt(
                 put("target_address", activeTargetAddress ?: JSONObject.NULL)
                 putDeviceDiagnostics()
             }
+            clientListener?.onFetchFailed(
+                activeTargetAddress,
+                request,
+                "invalid_response",
+                "invalid_response"
+            )
             finishClient("invalid_response", "invalid_response")
             return
         }
 
         val parsedEnvelope =
             response.envelope?.let { MeshxMessageEnvelope.parse(it) } as? MeshxMessageEnvelope.ParseResult.Ok
+        lastClientResponseStatus.set(MeshxFetchProtocol.statusName(response.status))
+        lastClientEnvelope.set(response.envelope)
         log("fetch_response_received") {
             put("request_id", response.requestId)
             put("target_address", activeTargetAddress ?: JSONObject.NULL)
@@ -629,6 +707,27 @@ class MeshxFetchGatt(
             )
             put("reason", response.reason ?: JSONObject.NULL)
             putDeviceDiagnostics()
+        }
+        if (response.status == MeshxFetchProtocol.STATUS_OK && parsedEnvelope != null) {
+            clientListener?.onFetchComplete(
+                activeTargetAddress ?: request.requestId,
+                request,
+                response.envelope
+            )
+        } else if (response.status != MeshxFetchProtocol.STATUS_OK) {
+            clientListener?.onFetchFailed(
+                activeTargetAddress,
+                request,
+                MeshxFetchProtocol.statusName(response.status),
+                response.reason
+            )
+        } else {
+            clientListener?.onFetchFailed(
+                activeTargetAddress,
+                request,
+                "envelope_parse_error",
+                "fetch response envelope failed MeshX parse"
+            )
         }
         finishClient("complete", "complete")
     }
@@ -671,6 +770,12 @@ class MeshxFetchGatt(
             putDeviceDiagnostics()
         }
 
+        if (event != "complete") {
+            clientListener?.onFetchFailed(targetAddress, activeRequest, event, reason)
+        }
+
+        lastClientTerminalEvent.set(event)
+        lastClientReason.set(reason)
         clientGatt = null
         activeRequest = null
         activeTargetAddress = null

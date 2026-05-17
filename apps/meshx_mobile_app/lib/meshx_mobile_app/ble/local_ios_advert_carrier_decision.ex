@@ -2,11 +2,14 @@ defmodule MeshxMobileApp.BLE.LocalIOSAdvertCarrierDecision do
   @moduledoc """
   iOS advert-only carrier decision for legacy beacon refs.
 
-  Android can emit the compact legacy beacon as manufacturer data and has
-  one-hop hardware proof. iOS now has a foreground observe path for that
-  manufacturer-data shape, but the project still has no validated iOS emission
-  carrier for beacon gossip. This module records that decision boundary as
-  data only.
+  Android can emit the compact legacy beacon as manufacturer data and iOS now
+  has hardware proof for observing that manufacturer-data shape. The project
+  has a foreground iOS MB beacon emission implementation. That emission is not
+  enough to claim iOS beacon gossip or broad parity: the current iPad evidence
+  does not include Android receipt of an iOS-origin beacon, and there is no
+  autonomous iOS gossip dispatcher. Direct full MX envelope delivery over
+  extended advertising remains blocked by iOS CoreBluetooth AUX delivery
+  behavior. This module records that decision boundary as data only.
 
   It does not touch native code, scan, advertise, fetch, route, persist, ACK,
   retry, encrypt, authenticate, fragment, or run background work.
@@ -21,6 +24,7 @@ defmodule MeshxMobileApp.BLE.LocalIOSAdvertCarrierDecision do
 
     @type id ::
             :manufacturer_data_legacy_beacon_observe
+            | :full_mx_extended_advert_observe
             | :manufacturer_data_legacy_beacon_emit
             | :service_uuid_identity_advert
             | :service_data_beacon_ref
@@ -30,6 +34,8 @@ defmodule MeshxMobileApp.BLE.LocalIOSAdvertCarrierDecision do
 
     @type status ::
             :implemented_unvalidated
+            | :hardware_validated
+            | :phy_blocked
             | :not_selected
             | :insufficient_for_beacon_ref
             | :candidate_unvalidated
@@ -49,31 +55,55 @@ defmodule MeshxMobileApp.BLE.LocalIOSAdvertCarrierDecision do
     %{
       id: :manufacturer_data_legacy_beacon_observe,
       direction: :observe,
-      status: :implemented_unvalidated,
+      status: :hardware_validated,
       evidence: [
         "meshx_mobile/Sources/MeshxMobile/BLE.swift",
         "apps/meshx_mobile_app/ios/MeshxBLEBridge.swift",
         "apps/meshx_mobile_app/ios/meshx_ble_nif.m",
-        "meshx_mobile/Tests/MeshxMobileTests/MessageAdvertisementTests.swift"
+        "meshx_mobile/Tests/MeshxMobileTests/MessageAdvertisementTests.swift",
+        "artifacts/local-ble/2026-05-15-iphone13-sm-t577u/hardware/i26b-android-to-iphone-receive/summary.json"
       ],
       blocked_claims: [
-        :ios_hardware_participation,
-        :ios_legacy_beacon_observed,
+        :ios_legacy_beacon_gossip,
         :ios_parity_claim
       ],
       notes: [
         "Foreground scanner code decodes MeshX 22-byte legacy beacon manufacturer data.",
         "Swift fixtures pin the parser shape.",
-        "No iOS hardware capture or replay-normalized fixture is recorded."
+        "Hardware capture on 2026-05-15 proves Android SM-T577U to iPhone 13 legacy-beacon observation."
+      ]
+    },
+    %{
+      id: :full_mx_extended_advert_observe,
+      direction: :observe,
+      status: :phy_blocked,
+      evidence: [
+        "docs/BLE_BRIDGE.md#extended-advertising-aux-delivery-limitation",
+        "artifacts/local-ble/2026-05-15-iphone13-sm-t577u/hardware/i26b-android-to-iphone-receive/summary.json",
+        "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/android-aux-full-mx-ios-observe/summary.md",
+        "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/android-aux-full-mx-ios-observe-rerun/summary.md"
+      ],
+      blocked_claims: [
+        :ios_full_mx_direct_advert_receive,
+        :ios_full_envelope_advert_direct,
+        :ios_parity_claim
+      ],
+      notes: [
+        "Production bridge code is wired for received_message MX decode, but iOS did not surface non-Apple AUX_ADV_IND manufacturer data to CoreBluetooth on tested hardware.",
+        "Bluetooth logs showed MB legacy beacons during both test windows and zero MX magic packets.",
+        "Use MB legacy beacon plus GATT fetch for full-envelope delivery to iOS."
       ]
     },
     %{
       id: :manufacturer_data_legacy_beacon_emit,
       direction: :emit,
-      status: :not_selected,
+      status: :implemented_unvalidated,
       evidence: [
         "meshx_mobile/Sources/MeshxMobile/BLE.swift",
-        "apps/meshx_mobile_app/ios/MeshxBLEBridge.swift"
+        "apps/meshx_mobile_app/ios/MeshxBLEBridge.swift",
+        "meshx_mobile/Examples/MeshxMobileHarness/MeshxMobileHarness/BLEHarnessModel.swift",
+        "artifacts/local-ble/2026-05-15-iphone13-sm-t577u/hardware/i26-iphone-dispatch/summary.json",
+        "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/summary.json"
       ],
       blocked_claims: [
         :ios_legacy_beacon_gossip,
@@ -81,9 +111,9 @@ defmodule MeshxMobileApp.BLE.LocalIOSAdvertCarrierDecision do
         :ios_parity_claim
       ],
       notes: [
-        "The current iOS peripheral bridge advertises MeshX service identity, not the 22-byte beacon reference payload.",
-        "No implementation path in the repo emits the Android-compatible manufacturer-data beacon from iOS.",
-        "This carrier cannot be treated as selected until implementation and observer hardware evidence exist."
+        "The foreground iOS bridge can advertise the 22-byte MB beacon reference payload through CBAdvertisementDataManufacturerDataKey.",
+        "The app bridge uses this as the no-GATT fallback cue for the GATT fetch responder; the harness drives the same path with --meshx-auto-beacon.",
+        "The latest iPad evidence records beacon dispatch but zero matched Android receive lines, so this remains unvalidated for iOS-origin gossip or parity claims."
       ]
     },
     %{
@@ -146,8 +176,12 @@ defmodule MeshxMobileApp.BLE.LocalIOSAdvertCarrierDecision do
       decision_version: 1,
       boundary: :ios_advert_only_carrier_decision,
       current_ios_observe_carrier: :manufacturer_data_legacy_beacon_observe,
-      current_ios_emit_carrier: :none,
+      current_ios_emit_carrier: :manufacturer_data_legacy_beacon_emit,
       ios_legacy_beacon_observe_implemented?: true,
+      ios_legacy_beacon_observe_hardware_validated?: true,
+      ios_legacy_beacon_emit_implemented?: true,
+      ios_legacy_beacon_emit_cross_radio_validated?: false,
+      ios_full_mx_direct_advert_receive_allowed?: false,
       ios_legacy_beacon_gossip_implemented?: false,
       ios_legacy_beacon_gossip_claim_allowed?: false,
       ios_parity_claim_allowed?: false,
@@ -156,8 +190,10 @@ defmodule MeshxMobileApp.BLE.LocalIOSAdvertCarrierDecision do
       blocked_claims: blocked_claims(carriers),
       notes: [
         "iOS observe and iOS emit are separate claims.",
-        "The current validated local mode remains Android one-hop legacy beacon gossip plus advert-only local inbox.",
-        "iOS emission should stay disabled until a carrier is selected, implemented, hardware-captured, and replay-normalized."
+        "The current validated cross-platform full-message mode is MB legacy beacon cue plus GATT fetch.",
+        "Foreground iOS MB beacon emission exists, but iOS-origin cross-radio receipt remains unproven in the attached iPad run.",
+        "Direct full-MX extended advertising remains disabled for iOS because hardware scans did not deliver AUX manufacturer data through CoreBluetooth.",
+        "iOS gossip and parity claims stay blocked until iOS-origin emission is observer-captured, replay-normalized, and bounded by negative fixtures."
       ]
     }
   end

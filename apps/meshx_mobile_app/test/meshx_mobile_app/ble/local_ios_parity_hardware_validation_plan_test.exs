@@ -39,8 +39,16 @@ defmodule MeshxMobileApp.BLE.LocalIOSParityHardwareValidationPlanTest do
     assert gate(snapshot, :legacy_beacon_gossip_hardware).missing_evidence
            |> Enum.any?(&String.contains?(&1, "Observer capture"))
 
-    assert gate(snapshot, :full_envelope_capability_probe).missing_evidence
-           |> Enum.any?(&String.contains?(&1, "Capability-proven"))
+    full_envelope_gate = gate(snapshot, :full_envelope_capability_probe)
+
+    assert full_envelope_gate.missing_evidence
+           |> Enum.any?(&String.contains?(&1, "negative capability ledger remains blocked"))
+
+    assert full_envelope_gate.required_evidence
+           |> Enum.any?(&String.contains?(&1, "Negative capability ledger"))
+
+    assert full_envelope_gate.notes
+           |> Enum.any?(&String.contains?(&1, "iOS did not surface the callback"))
 
     assert gate(snapshot, :hardware_replay_fixture).missing_evidence
            |> Enum.any?(&String.contains?(&1, "Replay-normalized"))

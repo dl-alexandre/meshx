@@ -18,9 +18,11 @@ final class MeshxNativeBLEBridge: NSObject {
     private var client: MeshxBLEClient?
     private var peripheral: MeshxBLEPeripheral?
     private var messageObserver: MessageAdvertisementObserver?
+    private var fetchResponder: MeshxFetchGattResponder?
     private var centralPeers = Set<String>()
     private var peripheralPeers = Set<String>()
     private var messageId: UInt32 = 1
+    private var localPeerId = "meshx-ios"
 
     func startScan() {
         ensureClient().startScan()
@@ -29,6 +31,7 @@ final class MeshxNativeBLEBridge: NSObject {
     }
 
     func startAdvertising(localName: String) {
+        localPeerId = localName
         ensurePeripheral().startAdvertising(localName: localName)
         emitStatus("Advertising as \(localName)")
     }
@@ -37,6 +40,8 @@ final class MeshxNativeBLEBridge: NSObject {
         client?.stopScan()
         peripheral?.stopAdvertising()
         messageObserver?.stopScan()
+        fetchResponder?.stop()
+        fetchResponder = nil
         emitStatus("Stopped")
     }
 
@@ -56,25 +61,22 @@ final class MeshxNativeBLEBridge: NSObject {
                 return
             }
 
-            // No GATT-connected peer — fall back to the advert-only
-            // profile. Mirrors Android's
-            // `MeshxBleNative.sendToPeer(forceLegacyBeacon: true)` so
-            // iOS and Android exchange message *references* even when
-            // neither side has a paired GATT connection. The payload's
-            // 16-byte messageId is derived from a random UUID; the
-            // beacon carries the hash, not the bytes.
-            dispatchLegacyBeacon(senderPeerId: peerId, payload: payload)
+            // No secure GATT-connected peer: publish a full MX envelope
+            // through MeshxFetchGattResponder and advertise an MB beacon
+            // cue carrying the envelope's messageId hash. This is the
+            // iOS counterpart to Android MeshxBleNative.sendFullMxEnvelope.
+            dispatchFullEnvelopeBeacon(payload: payload)
         } catch {
             emitError(String(describing: error))
         }
     }
 
-    /// Build a legacy beacon from a payload and put it on the air via
-    /// the peripheral's beacon advertise path. The 22-byte beacon
-    /// carries `sha256(messageId)[0..8]` and
-    /// `sha256(senderPeerId)[0..8]` — exact byte-compatibility with the
-    /// Android side per `WIRE_FORMAT.md §10`.
-    private func dispatchLegacyBeacon(senderPeerId: String, payload: Data) {
+    /// Build a full MX envelope, serve it over the fetch GATT service,
+    /// and advertise the MB legacy beacon cue. The MB manufacturer
+    /// payload and 128-bit fetch-service UUID do not fit reliably in a
+    /// single legacy advertisement, so they are published through the
+    /// same two-signal shape the Android path uses.
+    private func dispatchFullEnvelopeBeacon(payload: Data) {
         var messageId = Data(count: 16)
         let result = messageId.withUnsafeMutableBytes { buffer in
             SecRandomCopyBytes(kSecRandomDefault, 16, buffer.baseAddress!)
@@ -84,13 +86,36 @@ final class MeshxNativeBLEBridge: NSObject {
             return
         }
 
-        let peripheral = ensurePeripheral()
-        peripheral.advertiseLegacyBeacon(
-            messageId: messageId,
-            senderPeerId: senderPeerId,
-            payloadKind: "TX"
-        )
-        emitStatus("Beacon dispatched (\(payload.count)B payload referenced)")
+        do {
+            let envelope = try MessageEnvelope.buildV1(
+                messageId: messageId,
+                senderPeerId: localPeerId,
+                recipientPeerId: nil,
+                createdAt: UInt64(Date().timeIntervalSince1970 * 1000),
+                ttl: 1,
+                payloadType: "TX",
+                payload: payload
+            )
+            let beacon = MeshxLegacyBeaconAdvertisement.build(
+                messageId: messageId,
+                senderPeerId: localPeerId,
+                payloadKind: "TX"
+            )
+
+            fetchResponder?.stop()
+            let responder = try MeshxFetchGattResponder(
+                envelope: envelope,
+                responderPeerId: localPeerId
+            )
+            responder.delegate = self
+            fetchResponder = responder
+            responder.start()
+            ensurePeripheral().startBeaconAdvertising(beacon)
+            emitStatus("Full envelope responder starting (\(payload.count)B payload)")
+        } catch {
+            fetchResponder = nil
+            emitError("full envelope dispatch failed: \(String(describing: error))")
+        }
     }
 
     private func ensureClient() -> MeshxBLEClient {
@@ -232,6 +257,23 @@ extension MeshxNativeBLEBridge: MeshxBLEPeripheralDelegate {
 
     func meshxPeripheralDidError(_ error: Error) {
         emitError(String(describing: error))
+    }
+}
+
+extension MeshxNativeBLEBridge: MeshxFetchGattResponderDelegate {
+    func meshxFetchResponderDidStart() {
+        emitStatus("Full envelope responder advertising")
+    }
+
+    func meshxFetchResponderDidFail(reason: String) {
+        emitError("full envelope responder failed: \(reason)")
+    }
+
+    func meshxFetchResponderDidServeRequest(
+        request: MeshxFetchProtocol.Request,
+        status: UInt8
+    ) {
+        emitStatus("Fetch served \(request.requestId) status=\(status)")
     }
 }
 

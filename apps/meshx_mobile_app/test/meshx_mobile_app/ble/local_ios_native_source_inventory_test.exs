@@ -3,12 +3,13 @@ defmodule MeshxMobileApp.BLE.LocalIOSNativeSourceInventoryTest do
 
   alias MeshxMobileApp.BLE.LocalIOSNativeSourceInventory
 
-  test "snapshot verifies current iOS foreground beacon observe source markers" do
+  test "snapshot verifies current iOS foreground beacon observe and emit source markers" do
     snapshot = LocalIOSNativeSourceInventory.snapshot()
 
     assert snapshot.boundary == :ios_native_source_inventory
     assert snapshot.source_inventory_complete?
     assert snapshot.foreground_observe_source_present?
+    assert snapshot.foreground_emit_source_present?
     refute snapshot.ios_hardware_claim_allowed?
     refute snapshot.ios_parity_claim_allowed?
     assert snapshot.missing_files == []
@@ -17,6 +18,11 @@ defmodule MeshxMobileApp.BLE.LocalIOSNativeSourceInventoryTest do
     assert Enum.any?(
              snapshot.files,
              &(&1.id == :swift_bridge and &1.present? and &1.missing_markers == [])
+           )
+
+    assert Enum.any?(
+             snapshot.files,
+             &(&1.id == :swift_peripheral and &1.present? and &1.missing_markers == [])
            )
 
     assert Enum.any?(
@@ -30,7 +36,8 @@ defmodule MeshxMobileApp.BLE.LocalIOSNativeSourceInventoryTest do
 
     refute snapshot.source_inventory_complete?
     refute snapshot.foreground_observe_source_present?
-    assert length(snapshot.missing_files) == 3
+    refute snapshot.foreground_emit_source_present?
+    assert length(snapshot.missing_files) == 4
     refute snapshot.ios_hardware_claim_allowed?
     refute snapshot.ios_parity_claim_allowed?
   end
@@ -41,6 +48,7 @@ defmodule MeshxMobileApp.BLE.LocalIOSNativeSourceInventoryTest do
     assert snapshot["boundary"] == "ios_native_source_inventory"
     assert snapshot["source_inventory_complete?"] == true
     assert snapshot["foreground_observe_source_present?"] == true
+    assert snapshot["foreground_emit_source_present?"] == true
     assert snapshot["ios_hardware_claim_allowed?"] == false
     assert snapshot["ios_parity_claim_allowed?"] == false
     assert "ios_hardware_participation" in snapshot["blocked_claims"]

@@ -167,6 +167,9 @@ does not:
 - [Runtime API](docs/RUNTIME_API.md)
 - [Transport Integration](docs/TRANSPORTS.md)
 - [BLE Native Bridge Guide](docs/BLE_BRIDGE.md)
+- [BLE Remaining Items Audit](docs/remaining_items_audit.md) — focused status
+  for the iOS responder proof, direct full-MX AUX boundary, upstream Mob PRs,
+  and `--no-start` startup fix
 - [Operations](docs/OPERATIONS.md)
 - [Deployment](docs/DEPLOYMENT.md)
 - [Metrics](docs/METRICS.md)

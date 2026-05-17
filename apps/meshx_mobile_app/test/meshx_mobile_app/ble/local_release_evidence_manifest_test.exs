@@ -41,12 +41,39 @@ defmodule MeshxMobileApp.BLE.LocalReleaseEvidenceManifestTest do
     assert Enum.any?(gatt.missing_evidence, &String.contains?(&1, "Known-good hardware pair"))
   end
 
+  test "iOS participation release evidence includes AUX alternate target check" do
+    entry =
+      LocalReleaseEvidenceManifest.open_entries()
+      |> Enum.find(&(&1.gate_id == :ios_advert_only_participation))
+
+    assert Enum.any?(
+             entry.accepted_evidence,
+             &String.contains?(&1, "aux-alternate-ios-target-check")
+           )
+
+    assert Enum.any?(
+             entry.notes,
+             &String.contains?(&1, "no second iOS AUX receiver target")
+           )
+  end
+
   test "local release manifest includes hardware evidence manifest" do
     manifest = LocalReleaseManifest.snapshot()
 
     assert manifest.hardware_evidence.open_count == 4
     refute manifest.hardware_evidence.release_candidate_complete?
     assert Enum.any?(manifest.required_artifacts, &(&1.id == :hardware_evidence_manifest))
+
+    ios_entry =
+      Enum.find(
+        manifest.hardware_evidence.open_entries,
+        &(&1.gate_id == :ios_advert_only_participation)
+      )
+
+    assert Enum.any?(
+             ios_entry.accepted_evidence,
+             &String.contains?(&1, "aux-alternate-ios-target-check")
+           )
   end
 
   test "json snapshot is machine readable" do

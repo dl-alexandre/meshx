@@ -9,6 +9,10 @@ and crypto work can sit on top of without changing the contract.
 This is not a design document. It's a reference for "what's already
 true and what isn't yet."
 
+For the focused updated remaining-items audit covering the iOS responder
+hardware proof, direct full-MX AUX boundary, upstream `mob_dev` / `mob_new`
+PRs, and `--no-start` startup fix, see `docs/remaining_items_audit.md`.
+
 ## Milestones
 
 | M | Commit | Title |
@@ -109,7 +113,7 @@ true and what isn't yet."
 | M366–M370 | `1900d18` | Local security acceptance gate: unsigned local BLE observations remain untrusted until identity, authorship, replay, and beacon-auth gates pass |
 | M371–M375 | `dc75be5` | Local routing acceptance gate: route candidates remain observation-only until route table, forwarding, delivery, and multi-hop hardware gates pass |
 | M376–M380 | `c2a82a5` | Local lifecycle acceptance gate: foreground/manual BLE remains the only accepted lifecycle until background, restart, retry, and gossip gates pass |
-| M381–M385 | `e239e6b` | Local iOS parity acceptance gate: iOS remains contract-only until beacon/full-envelope implementation and replay-normalized hardware proof exist |
+| M381–M385 | `e239e6b` | Local iOS parity acceptance gate: iOS parity remains blocked until beacon/full-envelope implementation decisions and replay-normalized hardware proof exist |
 | M386–M390 | `670fe06` | Release-candidate evidence review: operator hardware attachments and release-note wording become a pure review contract |
 | M391–M395 | `d6e43d9` | Local security authorship proof boundary: domain-separated Ed25519 verification for full MessageEnvelope values without trust promotion |
 | M396–M400 | `9990ccc` | Local security peer identity binding: supplied peer_id to Ed25519 key binding for authorship proofs without trust-store promotion |
@@ -1939,9 +1943,11 @@ Android and iOS capabilities:
 - Android full-envelope advertisements are `:capability_proven_limited`;
 - Android GATT fetch is `:blocked_current_hardware`;
 - Android background BLE is `:not_implemented`;
-- iOS legacy beacon observation is `:not_validated`;
+- iOS legacy beacon observation is now `:hardware_validated`;
 - iOS legacy beacon gossip is `:not_implemented`;
-- iOS full-envelope advertisement participation is `:contract_only`;
+- iOS full-envelope advertisement participation is
+  `:blocked_current_hardware` for direct AUX delivery on tested
+  hardware;
 - iOS GATT fetch is `:not_validated`;
 - iOS background BLE is `:not_implemented`.
 
@@ -1965,7 +1971,11 @@ with a closed status, existing evidence, required evidence, and notes:
 - Android full-envelope advert pair proof is `:partial`;
 - known-good GATT fetch is `:blocked`;
 - multi-hop advert gossip hardware proof is `:blocked`;
-- iOS advert-only participation is `:not_started`.
+- iOS advert-only participation is now `:partial`, with iOS legacy
+  beacon observation and Android fetch from iOS `MeshxFetchGattResponder`
+  hardware evidence, while iOS-origin beacon gossip receipt, direct
+  full-MX AUX delivery, background BLE, and replay-ledger gates remain
+  open.
 
 `LocalInbox.snapshot/1` now exposes this as `hardware_validation_gates`
 beside the transport profile, lifecycle profile, platform parity, and
@@ -2382,7 +2392,8 @@ participation in the advertisement-only local mesh. The existing
 the new policy records what current product/API surfaces may claim:
 
 - shared canonical ingress is contract-only;
-- iOS legacy beacon observation is blocked;
+- iOS legacy beacon observation now has foreground hardware evidence,
+  but does not by itself allow broad iOS parity or delivery claims;
 - iOS legacy beacon gossip is blocked;
 - iOS full-envelope advert participation is blocked;
 - iOS hardware replay fixtures are absent and blocked;
@@ -2804,7 +2815,7 @@ release claim for the whole project.
 ## M306-M310 local iOS parity negative validation
 
 M306-M310 adds `LocalIOSParityNegativeValidation`, a pure negative
-validation matrix for the current iOS contract-only state. It records
+validation matrix for the current partial iOS hardware-evidence state. It records
 cases that must remain blocked from iOS advert-only parity claims:
 
 - iOS bridge shell treated as hardware participation;
@@ -4132,8 +4143,8 @@ artifact:
 
 `LocalReleaseManifest` now embeds this as `ios_parity_evidence`, and
 `LocalReleaseArtifactBundle` lists the generated
-`ios_parity_evidence_manifest` artifact. This records that iOS remains
-contract-only while iOS hardware participation, legacy beacon observe/gossip,
+`ios_parity_evidence_manifest` artifact. This now records partial iOS
+foreground observe/responder-fetch hardware evidence while iOS gossip, direct
 full-envelope advert, hardware replay fixture, background BLE, and parity
 claims remain false.
 
@@ -4632,28 +4643,34 @@ fragmentation, and no crypto behavior.
 ## M616-M620 iOS advert carrier decision ledger
 
 M616-M620 adds `LocalIOSAdvertCarrierDecision`, a pure decision ledger for the
-iOS advertisement carrier boundary. It records that the foreground
-manufacturer-data observe path is implemented but hardware-unvalidated, while
-iOS legacy beacon emission/gossip still has no selected carrier.
+iOS advertisement carrier boundary. It now records the foreground
+manufacturer-data legacy-beacon observe path as hardware-validated by the
+2026-05-15 iPhone 13 / SM-T577U capture and foreground iOS MB beacon emission
+as implemented but cross-radio unvalidated, while iOS legacy beacon gossip and
+direct full-MX extended advertising remain blocked on tested iOS hardware.
 
 The ledger distinguishes:
 
-- `manufacturer_data_legacy_beacon_observe` as `implemented_unvalidated`;
-- `manufacturer_data_legacy_beacon_emit` as `not_selected`;
+- `manufacturer_data_legacy_beacon_observe` as `hardware_validated`;
+- `full_mx_extended_advert_observe` as `phy_blocked`;
+- `manufacturer_data_legacy_beacon_emit` as `implemented_unvalidated`;
 - `service_uuid_identity_advert` as `insufficient_for_beacon_ref`;
 - `service_data_beacon_ref` as a future `candidate_unvalidated`; and
 - `local_name_encoded_beacon_ref` as `rejected`.
 
 `LocalIOSParityEvidenceManifest` now embeds this carrier decision so release
-and readiness artifacts can show that iOS observe and iOS emit are separate
-claims. The current iOS emit carrier remains `:none`, iOS legacy beacon gossip
-claims remain blocked, and iOS parity claims remain blocked until hardware
-capture and replay-normalized evidence exist.
+and readiness artifacts can show that iOS observe, foreground emit, and
+autonomous gossip are separate claims. The current iOS emit carrier is
+`:manufacturer_data_legacy_beacon_emit`, but iOS-origin cross-radio gossip proof
+is still missing. iOS legacy beacon gossip claims remain blocked, direct
+full-MX extended-advert receive remains blocked, and broad iOS parity claims
+remain blocked until emission, full-envelope, background, and replay-normalized
+evidence gates are satisfied.
 
-This milestone adds no native iOS BLE behavior, no iOS hardware proof, no iOS
-beacon gossip dispatcher, no full-envelope advert behavior, no background BLE
-behavior, no fetch transport, no routing, no delivery, no persistence behavior,
-no ACKs, no retries, no fragmentation, and no crypto behavior.
+This milestone adds no iOS beacon gossip dispatcher, no direct full-envelope
+advert behavior, no background BLE behavior, no routing, no delivery, no
+persistence behavior, no ACKs, no retries, no fragmentation, and no crypto
+behavior.
 
 ## M621-M625 whole-project blocker matrix
 

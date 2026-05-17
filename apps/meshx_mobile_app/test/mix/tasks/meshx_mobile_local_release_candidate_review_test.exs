@@ -23,7 +23,7 @@ defmodule Mix.Tasks.MeshxMobileLocalReleaseCandidateReviewTest do
     assert output =~ "open_hardware_gates 4"
 
     assert output =~
-             "OPERATOR_NOTE_PATHS readiness=false completion_audit=false completion_audit_plain_text=false blocker_matrix=false release_manifest=false recent_evidence=false persistence_lifecycle=false lifecycle_review=false ios_parity_review=false full_resolution_review=false known_good_transport_review=false multi_hop_review=false routing_review=false security_review=false ux_review=false"
+             "OPERATOR_NOTE_PATHS readiness=false completion_audit=false completion_audit_plain_text=false focused_remaining_items_audit=false focused_remaining_items_plain_text=false direct_full_mx_aux_checklist=false upstream_patch_handoff=false blocker_matrix=false release_manifest=false recent_evidence=false persistence_lifecycle=false lifecycle_review=false ios_parity_review=false full_resolution_review=false known_good_transport_review=false multi_hop_review=false routing_review=false security_review=false ux_review=false"
 
     assert output =~ "PERSISTENCE_LIFECYCLE default="
     assert output =~ "blocked_gates=0/0"
@@ -62,7 +62,7 @@ defmodule Mix.Tasks.MeshxMobileLocalReleaseCandidateReviewTest do
     assert output =~ "LOCAL_RELEASE_CANDIDATE_REVIEW status=ready complete=true"
 
     assert output =~
-             "OPERATOR_NOTE_PATHS readiness=true completion_audit=true completion_audit_plain_text=true blocker_matrix=true release_manifest=true recent_evidence=true persistence_lifecycle=true lifecycle_review=true ios_parity_review=true full_resolution_review=true known_good_transport_review=true multi_hop_review=true routing_review=true security_review=true ux_review=true"
+             "OPERATOR_NOTE_PATHS readiness=true completion_audit=true completion_audit_plain_text=true focused_remaining_items_audit=true focused_remaining_items_plain_text=true direct_full_mx_aux_checklist=true upstream_patch_handoff=true blocker_matrix=true release_manifest=true recent_evidence=true persistence_lifecycle=true lifecycle_review=true ios_parity_review=true full_resolution_review=true known_good_transport_review=true multi_hop_review=true routing_review=true security_review=true ux_review=true"
 
     assert output =~ "PERSISTENCE_LIFECYCLE default=memory_only"
     assert output =~ "opt_in=true"
@@ -167,6 +167,10 @@ defmodule Mix.Tasks.MeshxMobileLocalReleaseCandidateReviewTest do
       "recent_evidence_inventory_path" => "tmp/local-release-recent-evidence.json",
       "completion_audit_path" => "tmp/local-completion-audit.json",
       "completion_audit_plain_text_path" => "tmp/local-completion-audit.txt",
+      "focused_remaining_items_audit_path" => "tmp/focused-remaining-items-audit.json",
+      "focused_remaining_items_plain_text_path" => "tmp/focused-remaining-items-audit.txt",
+      "direct_full_mx_aux_validation_checklist_path" => "tmp/aux-validation-checklist.md",
+      "upstream_patch_maintainer_handoff_path" => "tmp/upstream-maintainer-handoff.md",
       "completion_blocker_matrix_path" => "tmp/local-completion-blocker-matrix.json",
       "advert_gossip_audit_path" => "tmp/advert-gossip-audit.txt",
       "persistence_lifecycle_plan_path" => "tmp/local-persistence-lifecycle-plan.json",
@@ -328,6 +332,10 @@ defmodule Mix.Tasks.MeshxMobileLocalReleaseCandidateReviewTest do
         "readiness_manifest_path" => "tmp/local-readiness.json",
         "completion_audit_path" => "tmp/local-completion-audit.json",
         "completion_audit_plain_text_path" => "tmp/local-completion-audit.txt",
+        "focused_remaining_items_audit_path" => "tmp/focused-remaining-items-audit.json",
+        "focused_remaining_items_plain_text_path" => "tmp/focused-remaining-items-audit.txt",
+        "direct_full_mx_aux_validation_checklist_path" => "tmp/aux-validation-checklist.md",
+        "upstream_patch_maintainer_handoff_path" => "tmp/upstream-maintainer-handoff.md",
         "completion_blocker_matrix_path" => "tmp/local-completion-blocker-matrix.json",
         "release_manifest_path" => "tmp/local-release.json",
         "recent_evidence_inventory_path" => "tmp/local-release-recent-evidence.json",

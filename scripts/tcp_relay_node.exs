@@ -8,7 +8,7 @@ defmodule MeshxScripts.TCPRelayNode do
   def main do
     role = System.fetch_env!("MESHX_ROLE")
     id = System.fetch_env!("MESHX_NODE_ID")
-    timeout_ms = System.get_env("MESHX_TIMEOUT_MS", "15000") |> String.to_integer()
+    timeout_ms = "MESHX_TIMEOUT_MS" |> System.get_env("15000") |> String.to_integer()
 
     start_runtime!()
     Router.subscribe(self())
@@ -47,7 +47,7 @@ defmodule MeshxScripts.TCPRelayNode do
 
   defp run_relay(tcp, timeout_ms) do
     downstream_id = System.fetch_env!("MESHX_DOWNSTREAM_ID")
-    downstream_port = System.fetch_env!("MESHX_DOWNSTREAM_PORT") |> String.to_integer()
+    downstream_port = "MESHX_DOWNSTREAM_PORT" |> System.fetch_env!() |> String.to_integer()
     relayed_file = System.fetch_env!("MESHX_RELAYED_FILE")
 
     :ok = TCP.connect(tcp, ~c"127.0.0.1", downstream_port)
@@ -72,14 +72,14 @@ defmodule MeshxScripts.TCPRelayNode do
 
   defp run_sender(tcp, timeout_ms) do
     upstream_id = System.fetch_env!("MESHX_UPSTREAM_ID")
-    upstream_port = System.fetch_env!("MESHX_UPSTREAM_PORT") |> String.to_integer()
+    upstream_port = "MESHX_UPSTREAM_PORT" |> System.fetch_env!() |> String.to_integer()
     payload = System.get_env("MESHX_PAYLOAD", "hello")
-    ttl = System.get_env("MESHX_TTL", "8") |> String.to_integer()
+    ttl = "MESHX_TTL" |> System.get_env("8") |> String.to_integer()
 
     :ok = TCP.connect(tcp, ~c"127.0.0.1", upstream_port)
     wait_for_peer!(upstream_id, timeout_ms)
 
-    msg_id = System.unique_integer([:positive]) |> rem(4_000_000_000)
+    msg_id = [:positive] |> System.unique_integer() |> rem(4_000_000_000)
     packet = %{Packet.new(:data, msg_id, payload) | ttl: ttl}
     :ok = Router.send_packet(upstream_id, packet)
 
@@ -100,7 +100,9 @@ defmodule MeshxScripts.TCPRelayNode do
 
   defp start_runtime! do
     configure_store!()
+    {:ok, _apps} = Application.ensure_all_started(:meshx_store)
     {:ok, _apps} = Application.ensure_all_started(:meshx_runtime)
+    :ok = MeshxRuntime.ensure_dependency_workers_started()
   end
 
   defp configure_store! do

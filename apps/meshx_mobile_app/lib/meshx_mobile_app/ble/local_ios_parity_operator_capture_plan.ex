@@ -40,9 +40,9 @@ defmodule MeshxMobileApp.BLE.LocalIOSParityOperatorCapturePlan do
       artifact_root: "artifacts/local-ble/<run-id>/ios/",
       notes: [
         "This plan is an operator capture checklist, not evidence by itself.",
-        "iOS remains contract-only until native behavior is captured on hardware and replay-normalized.",
+        "iOS has partial foreground observe/responder-fetch evidence; broader parity still requires selected behavior to be captured on hardware and replay-normalized.",
         "Android hardware evidence cannot satisfy iOS parity gates.",
-        "iOS observe, gossip, full-envelope advert, background BLE, and parity claims remain blocked."
+        "iOS gossip, direct full-envelope advert, background BLE, and parity claims remain blocked."
       ]
     }
   end

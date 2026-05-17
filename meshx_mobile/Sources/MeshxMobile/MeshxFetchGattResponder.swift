@@ -173,7 +173,7 @@ public final class MeshxFetchGattResponder: NSObject {
 
         let req = CBMutableCharacteristic(
             type: MeshxFetchGattUUID.request,
-            properties: [.write],
+            properties: [.write, .writeWithoutResponse],
             value: nil,
             permissions: [.writeable]
         )
@@ -194,9 +194,62 @@ public final class MeshxFetchGattResponder: NSObject {
 
     private func startAdvertisingIfReady() {
         guard shouldServe, serviceAdded, !manager.isAdvertising else { return }
-        manager.startAdvertising([
+        var advertisement: [String: Any] = [
             CBAdvertisementDataServiceUUIDsKey: [MeshxFetchGattUUID.service]
-        ])
+        ]
+        if !responderPeerId.isEmpty {
+            advertisement[CBAdvertisementDataLocalNameKey] = responderPeerId
+        }
+        manager.startAdvertising(advertisement)
+    }
+
+    public struct PreparedResponse: Equatable {
+        public var request: MeshxFetchProtocol.Request
+        public var response: MeshxFetchProtocol.Response
+        public var encoded: Data
+    }
+
+    public func prepareResponse(for requestBytes: Data) -> PreparedResponse {
+        let request: MeshxFetchProtocol.Request
+        let status: UInt8
+        let envelopeBytes: Data?
+        let reason: String?
+
+        if let decoded = MeshxFetchProtocol.decodeRequest(requestBytes) {
+            request = decoded
+            if decoded.messageIdHash == self.messageIdHash {
+                status = MeshxFetchProtocol.statusOK
+                envelopeBytes = envelope
+                reason = nil
+            } else {
+                status = MeshxFetchProtocol.statusNotFound
+                envelopeBytes = nil
+                reason = "not_found"
+            }
+        } else {
+            request = MeshxFetchProtocol.Request(
+                requestId: "invalid",
+                messageIdHash: Data(repeating: 0, count: 8),
+                requesterPeerId: nil
+            )
+            status = MeshxFetchProtocol.statusInvalidRequest
+            envelopeBytes = nil
+            reason = "invalid_request"
+        }
+
+        let response = MeshxFetchProtocol.Response(
+            requestId: request.requestId,
+            messageIdHash: request.messageIdHash,
+            status: status,
+            envelope: envelopeBytes,
+            reason: reason
+        )
+
+        return PreparedResponse(
+            request: request,
+            response: response,
+            encoded: MeshxFetchProtocol.encodeResponse(response)
+        )
     }
 }
 
@@ -296,51 +349,16 @@ extension MeshxFetchGattResponder: CBPeripheralManagerDelegate {
             return
         }
 
-        // Decode the MFQ Request. Encoding via `MeshxFetchProtocol`
-        // ensures the responder sees exactly the same bytes the Android
-        // client would, and vice versa.
-        let request: MeshxFetchProtocol.Request
-        let status: UInt8
-        let envelopeBytes: Data?
-        let reason: String?
-
-        if let decoded = MeshxFetchProtocol.decodeRequest(value) {
-            request = decoded
-            if decoded.messageIdHash == self.messageIdHash {
-                status = MeshxFetchProtocol.statusOK
-                envelopeBytes = envelope
-                reason = nil
-                _preparedOkCount += 1
-            } else {
-                status = MeshxFetchProtocol.statusNotFound
-                envelopeBytes = nil
-                reason = "not_found"
-            }
-        } else {
-            // Malformed request bytes. Reply with INVALID_REQUEST and
-            // a synthetic request_id so the wire response is still
-            // valid MFR.
-            request = MeshxFetchProtocol.Request(
-                requestId: "invalid",
-                messageIdHash: Data(repeating: 0, count: 8),
-                requesterPeerId: nil
-            )
-            status = MeshxFetchProtocol.statusInvalidRequest
-            envelopeBytes = nil
-            reason = "invalid_request"
+        let prepared = prepareResponse(for: value)
+        if prepared.response.status == MeshxFetchProtocol.statusOK {
+            _preparedOkCount += 1
         }
-
-        let response = MeshxFetchProtocol.Response(
-            requestId: request.requestId,
-            messageIdHash: request.messageIdHash,
-            status: status,
-            envelope: envelopeBytes,
-            reason: reason
-        )
-
-        preparedResponseBytes = MeshxFetchProtocol.encodeResponse(response)
+        preparedResponseBytes = prepared.encoded
         peripheral.respond(to: attRequest, withResult: .success)
-        delegate?.meshxFetchResponderDidServeRequest(request: request, status: status)
+        delegate?.meshxFetchResponderDidServeRequest(
+            request: prepared.request,
+            status: prepared.response.status
+        )
     }
 }
 #endif

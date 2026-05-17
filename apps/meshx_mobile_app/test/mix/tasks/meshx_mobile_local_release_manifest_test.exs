@@ -49,10 +49,13 @@ defmodule Mix.Tasks.MeshxMobileLocalReleaseManifestTest do
     assert length(decoded["operator_capture_plan"]["capture_sections"]) == 5
 
     manifest_paths =
-      Enum.find(decoded["operator_capture_plan"]["capture_sections"], &(&1["id"] == "manifest_paths"))
+      Enum.find(
+        decoded["operator_capture_plan"]["capture_sections"],
+        &(&1["id"] == "manifest_paths")
+      )
 
     assert "completion_audit_plain_text_path" in manifest_paths["required_entries"]
-    assert decoded["artifact_bundle"]["artifact_count"] == 49
+    assert decoded["artifact_bundle"]["artifact_count"] == 54
     assert decoded["artifact_bundle"]["open_artifact_count"] == 19
 
     assert decoded["completion_audit"]["review_template_coverage"][
@@ -86,10 +89,32 @@ defmodule Mix.Tasks.MeshxMobileLocalReleaseManifestTest do
            |> Enum.any?(&(&1["id"] == "completion_audit_plain_text_review"))
 
     assert decoded["required_artifacts"] |> Enum.any?(&(&1["id"] == "completion_blocker_matrix"))
+
+    assert decoded["required_artifacts"]
+           |> Enum.any?(&(&1["id"] == "focused_remaining_items_audit"))
+
+    assert decoded["required_artifacts"]
+           |> Enum.any?(&(&1["id"] == "focused_remaining_items_plain_text_review"))
+
+    assert decoded["required_artifacts"]
+           |> Enum.any?(&(&1["id"] == "direct_full_mx_aux_validation_checklist"))
+
+    assert decoded["required_artifacts"]
+           |> Enum.any?(&(&1["id"] == "upstream_patch_maintainer_handoff"))
+
+    assert decoded["artifact_bundle"]["artifacts"]
+           |> Enum.any?(&(&1["id"] == "upstream_patch_migration_progress"))
+
     assert decoded["required_commands"] |> Enum.any?(&(&1 =~ "local_completion.audit"))
     assert "mix meshx.mobile.local_completion.audit --allow-open" in decoded["required_commands"]
     assert decoded["required_commands"] |> Enum.any?(&(&1 =~ "local-completion-audit.txt"))
     assert decoded["required_commands"] |> Enum.any?(&(&1 =~ "local_completion.blocker_matrix"))
+
+    assert "mix meshx.mobile.remaining_items.audit --json --out <path>" in decoded[
+             "required_commands"
+           ]
+
+    assert "mix meshx.mobile.remaining_items.audit | tee <path>" in decoded["required_commands"]
 
     assert decoded["required_artifacts"]
            |> Enum.any?(&(&1["id"] == "full_message_resolution_evidence_manifest"))

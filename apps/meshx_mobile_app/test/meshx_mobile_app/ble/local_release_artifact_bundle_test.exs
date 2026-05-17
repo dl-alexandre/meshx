@@ -11,13 +11,18 @@ defmodule MeshxMobileApp.BLE.LocalReleaseArtifactBundleTest do
     refute snapshot.release_candidate_complete?
     assert snapshot.release_scope.current_validated_mode == :advertisement_only_local_mesh
     assert "messages seen nearby" in snapshot.release_scope.allowed_release_wording
+
+    assert "full envelopes via validated MB beacon plus GATT fetch paths" in snapshot.release_scope.allowed_release_wording
+
+    assert "direct full-MX extended adverts only where capability-proven" in snapshot.release_scope.allowed_release_wording
+
     assert :whole_project_complete in snapshot.release_scope.blocked_release_wording
 
     assert :ready_target_device_ux_review in snapshot.release_scope.required_before_release_candidate_complete
 
-    assert snapshot.artifact_count == 49
+    assert snapshot.artifact_count == 54
     assert snapshot.open_artifact_count == 19
-    assert length(snapshot.required_commands) == 37
+    assert length(snapshot.required_commands) == 39
 
     ids = Enum.map(snapshot.artifacts, & &1.id)
 
@@ -26,6 +31,11 @@ defmodule MeshxMobileApp.BLE.LocalReleaseArtifactBundleTest do
     assert :completion_audit_manifest in ids
     assert :completion_audit_standalone in ids
     assert :completion_audit_plain_text_review in ids
+    assert :focused_remaining_items_audit in ids
+    assert :focused_remaining_items_plain_text_review in ids
+    assert :direct_full_mx_aux_validation_checklist in ids
+    assert :upstream_patch_maintainer_handoff in ids
+    assert :upstream_patch_migration_progress in ids
     assert :completion_blocker_matrix in ids
     assert :full_message_resolution_evidence_manifest in ids
     assert :full_resolution_transport_evidence_review in ids
@@ -64,6 +74,32 @@ defmodule MeshxMobileApp.BLE.LocalReleaseArtifactBundleTest do
     assert :operator_release_notes in ids
   end
 
+  test "upstream migration progress artifact keeps migration completion blocked" do
+    artifact =
+      LocalReleaseArtifactBundle.artifacts()
+      |> Enum.find(&(&1.id == :upstream_patch_migration_progress))
+
+    assert artifact.status == :generated
+
+    assert artifact.path ==
+             "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/upstream-pr-recheck-1358/upstream-migration-progress.json"
+
+    assert :completion_review in artifact.required_for
+    assert :release_planning in artifact.required_for
+    assert :whole_project_complete in artifact.blocked_claims
+    assert :upstream_patch_migration_complete in artifact.blocked_claims
+
+    assert Enum.any?(
+             artifact.acceptance_criteria,
+             &String.contains?(&1, "completion_claim_allowed is false")
+           )
+
+    assert Enum.any?(
+             artifact.acceptance_criteria,
+             &String.contains?(&1, "upstream PR merge")
+           )
+  end
+
   test "snapshot exposes release artifact source commands as required command gates" do
     snapshot = LocalReleaseArtifactBundle.snapshot()
 
@@ -72,6 +108,7 @@ defmodule MeshxMobileApp.BLE.LocalReleaseArtifactBundleTest do
       "local_completion.audit",
       "local-completion-audit.txt",
       "local_release.manifest",
+      "remaining_items.audit",
       "local_completion.blocker_matrix",
       "local_full_resolution.evidence",
       "local_full_resolution.transport_review --template",
@@ -114,6 +151,12 @@ defmodule MeshxMobileApp.BLE.LocalReleaseArtifactBundleTest do
     assert snapshot["release_scope"]["current_validated_mode"] == "advertisement_only_local_mesh"
 
     assert "passive BLE advertisement observations" in snapshot["release_scope"][
+             "allowed_release_wording"
+           ]
+
+    assert "full envelopes via validated MB beacon plus GATT fetch paths" in snapshot[
+             "release_scope"
+           ][
              "allowed_release_wording"
            ]
 
@@ -213,6 +256,61 @@ defmodule MeshxMobileApp.BLE.LocalReleaseArtifactBundleTest do
            )
   end
 
+  test "focused remaining-items audit preserves active four-row objective" do
+    artifact =
+      LocalReleaseArtifactBundle.artifacts()
+      |> Enum.find(&(&1.id == :focused_remaining_items_audit))
+
+    assert artifact.status == :generated
+
+    assert artifact.path ==
+             "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/focused-remaining-items-audit.json"
+
+    assert :completion_review in artifact.required_for
+    assert :release_planning in artifact.required_for
+    assert :whole_project_complete in artifact.blocked_claims
+    assert :direct_full_mx_aux_complete in artifact.blocked_claims
+    assert :upstream_patch_migration_complete in artifact.blocked_claims
+
+    assert Enum.any?(artifact.acceptance_criteria, &String.contains?(&1, "complete is false"))
+    assert Enum.any?(artifact.acceptance_criteria, &String.contains?(&1, "completed_rows"))
+    assert Enum.any?(artifact.acceptance_criteria, &String.contains?(&1, "incomplete_rows"))
+
+    assert Enum.any?(
+             artifact.acceptance_criteria,
+             &String.contains?(&1, "update_goal_allowed")
+           )
+  end
+
+  test "focused remaining-items plain-text review archives checklist output" do
+    artifact =
+      LocalReleaseArtifactBundle.artifacts()
+      |> Enum.find(&(&1.id == :focused_remaining_items_plain_text_review))
+
+    assert artifact.status == :generated
+
+    assert artifact.path ==
+             "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/focused-remaining-items-audit.txt"
+
+    assert artifact.source =~ "mix meshx.mobile.remaining_items.audit"
+    assert artifact.source =~ "tee"
+    assert :completion_review in artifact.required_for
+    assert :operator_release_review in artifact.required_for
+    assert :whole_project_complete in artifact.blocked_claims
+    assert :direct_full_mx_aux_complete in artifact.blocked_claims
+    assert :upstream_patch_migration_complete in artifact.blocked_claims
+
+    assert Enum.any?(
+             artifact.acceptance_criteria,
+             &String.contains?(&1, "CHECKLIST count=6")
+           )
+
+    assert Enum.any?(
+             artifact.acceptance_criteria,
+             &String.contains?(&1, "CHECKLIST_ITEM id=... status=...")
+           )
+  end
+
   test "hardware log bundle remains open and blocks unproven hardware claims" do
     artifact =
       LocalReleaseArtifactBundle.open_artifacts()
@@ -249,11 +347,47 @@ defmodule MeshxMobileApp.BLE.LocalReleaseArtifactBundleTest do
     assert :operator_release_review in artifact.required_for
     assert :whole_project_complete in artifact.blocked_claims
     assert :full_message_resolution in artifact.blocked_claims
+    assert :direct_full_mx_aux_complete in artifact.blocked_claims
+    assert :upstream_patch_migration_complete in artifact.blocked_claims
     assert String.contains?(artifact.source, "local_release.recent_evidence")
+    assert String.contains?(artifact.purpose, "closure artifact pointers")
 
     assert Enum.any?(
              artifact.acceptance_criteria,
              &String.contains?(&1, "objective-specific review")
+           )
+
+    assert Enum.any?(
+             artifact.acceptance_criteria,
+             &String.contains?(&1, "direct full-MX AUX validation checklist")
+           )
+
+    assert Enum.any?(
+             artifact.acceptance_criteria,
+             &String.contains?(&1, "upstream maintainer handoff")
+           )
+  end
+
+  test "iOS parity artifacts preserve partial evidence without broad parity claims" do
+    artifact =
+      LocalReleaseArtifactBundle.artifacts()
+      |> Enum.find(&(&1.id == :ios_parity_evidence_manifest))
+
+    assert artifact.status == :generated
+
+    assert Enum.any?(
+             artifact.acceptance_criteria,
+             &String.contains?(&1, "partial hardware scope")
+           )
+
+    assert Enum.any?(
+             artifact.acceptance_criteria,
+             &String.contains?(&1, "direct full-envelope advert")
+           )
+
+    refute Enum.any?(
+             artifact.acceptance_criteria,
+             &String.contains?(&1, "contract_only")
            )
   end
 
@@ -289,6 +423,7 @@ defmodule MeshxMobileApp.BLE.LocalReleaseArtifactBundleTest do
     assert :operator_release_review in artifact.required_for
     assert :guaranteed_delivery in artifact.blocked_claims
     assert :ios_parity in artifact.blocked_claims
+    assert :upstream_patch_migration_complete in artifact.blocked_claims
 
     assert Enum.any?(
              artifact.acceptance_criteria,
@@ -318,6 +453,11 @@ defmodule MeshxMobileApp.BLE.LocalReleaseArtifactBundleTest do
     assert Enum.any?(
              artifact.acceptance_criteria,
              &String.contains?(&1, "blocked-claim")
+           )
+
+    assert Enum.any?(
+             artifact.acceptance_criteria,
+             &String.contains?(&1, "GenericJam/mob_dev#6")
            )
   end
 
@@ -785,7 +925,7 @@ defmodule MeshxMobileApp.BLE.LocalReleaseArtifactBundleTest do
 
     assert Enum.any?(
              artifact.acceptance_criteria,
-             &String.contains?(&1, "current_ios_mode")
+             &String.contains?(&1, "partial hardware scope")
            )
 
     scenario_plan =
@@ -901,7 +1041,7 @@ defmodule MeshxMobileApp.BLE.LocalReleaseArtifactBundleTest do
     manifest = LocalReleaseManifest.snapshot()
 
     refute manifest.artifact_bundle.release_candidate_complete?
-    assert manifest.artifact_bundle.artifact_count == 49
+    assert manifest.artifact_bundle.artifact_count == 54
     assert manifest.artifact_bundle.open_artifact_count == 19
     assert Enum.any?(manifest.required_artifacts, &(&1.id == :artifact_bundle_checklist))
 
@@ -918,6 +1058,31 @@ defmodule MeshxMobileApp.BLE.LocalReleaseArtifactBundleTest do
     assert Enum.any?(
              manifest.artifact_bundle.artifacts,
              &(&1.id == :known_good_transport_evidence_review)
+           )
+
+    assert Enum.any?(
+             manifest.artifact_bundle.artifacts,
+             &(&1.id == :focused_remaining_items_audit)
+           )
+
+    assert Enum.any?(
+             manifest.artifact_bundle.artifacts,
+             &(&1.id == :focused_remaining_items_plain_text_review)
+           )
+
+    assert Enum.any?(
+             manifest.artifact_bundle.artifacts,
+             &(&1.id == :direct_full_mx_aux_validation_checklist)
+           )
+
+    assert Enum.any?(
+             manifest.artifact_bundle.artifacts,
+             &(&1.id == :upstream_patch_maintainer_handoff)
+           )
+
+    assert Enum.any?(
+             manifest.artifact_bundle.artifacts,
+             &(&1.id == :upstream_patch_migration_progress)
            )
 
     assert Enum.any?(manifest.artifact_bundle.artifacts, &(&1.id == :ux_evidence_manifest))
@@ -1037,13 +1202,42 @@ defmodule MeshxMobileApp.BLE.LocalReleaseArtifactBundleTest do
 
     assert snapshot["bundle_version"] == 1
     assert snapshot["release_candidate_complete?"] == false
-    assert snapshot["artifact_count"] == 49
+    assert snapshot["artifact_count"] == 54
     assert snapshot["open_artifact_count"] == 19
-    assert length(snapshot["required_commands"]) == 37
+    assert length(snapshot["required_commands"]) == 39
 
     assert Enum.any?(
              snapshot["artifacts"],
              &(&1["id"] == "hardware_log_bundle" and &1["status"] == "operator_supplied_open")
+           )
+
+    assert Enum.any?(
+             snapshot["artifacts"],
+             &(&1["id"] == "focused_remaining_items_audit" and &1["status"] == "generated")
+           )
+
+    assert Enum.any?(
+             snapshot["artifacts"],
+             &(&1["id"] == "focused_remaining_items_plain_text_review" and
+                 &1["status"] == "generated")
+           )
+
+    assert Enum.any?(
+             snapshot["artifacts"],
+             &(&1["id"] == "direct_full_mx_aux_validation_checklist" and
+                 &1["status"] == "generated")
+           )
+
+    assert Enum.any?(
+             snapshot["artifacts"],
+             &(&1["id"] == "upstream_patch_maintainer_handoff" and
+                 &1["status"] == "generated")
+           )
+
+    assert Enum.any?(
+             snapshot["artifacts"],
+             &(&1["id"] == "upstream_patch_migration_progress" and
+                 &1["status"] == "generated")
            )
   end
 end

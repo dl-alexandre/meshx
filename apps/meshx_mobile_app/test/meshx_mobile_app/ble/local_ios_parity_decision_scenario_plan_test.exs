@@ -88,7 +88,7 @@ defmodule MeshxMobileApp.BLE.LocalIOSParityDecisionScenarioPlanTest do
 
     assert Enum.any?(
              contract.required_operator_evidence,
-             &String.contains?(&1, "iOS contract-only wording")
+             &String.contains?(&1, "partial iOS evidence")
            )
 
     assert :ios_hardware_participation in contract.blocked_claims_called_out

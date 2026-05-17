@@ -99,7 +99,10 @@ defmodule MeshxMobileApp.BLE.LocalProjectCompletionBlockerMatrixTest do
     assert persistence.can_progress_without_new_hardware?
 
     assert release.primary_blocker == :release_evidence
+    assert :implementation in release.blocker_categories
     assert Enum.any?(release.required_evidence, &String.contains?(&1, "Release artifact bundle"))
+    assert Enum.any?(release.required_evidence, &String.contains?(&1, "GenericJam/mob_dev#6"))
+    assert String.contains?(release.next_unblock_action, "upstream PRs merge/release")
   end
 
   test "hardware-blocked recommendations preserve current blocker scope" do

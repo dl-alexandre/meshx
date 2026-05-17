@@ -8,7 +8,7 @@ defmodule MeshxScripts.TCPReceiver do
     id = System.get_env("MESHX_NODE_ID", "receiver")
     ready_file = System.fetch_env!("MESHX_READY_FILE")
     payload_file = System.fetch_env!("MESHX_PAYLOAD_FILE")
-    timeout_ms = System.get_env("MESHX_TIMEOUT_MS", "10000") |> String.to_integer()
+    timeout_ms = "MESHX_TIMEOUT_MS" |> System.get_env("10000") |> String.to_integer()
 
     start_runtime!()
     Router.subscribe(self())
@@ -38,7 +38,9 @@ defmodule MeshxScripts.TCPReceiver do
 
   defp start_runtime! do
     configure_store!()
+    {:ok, _apps} = Application.ensure_all_started(:meshx_store)
     {:ok, _apps} = Application.ensure_all_started(:meshx_runtime)
+    :ok = MeshxRuntime.ensure_dependency_workers_started()
   end
 
   defp configure_store! do

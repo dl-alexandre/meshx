@@ -3,6 +3,7 @@ package dev.meshx.mob.ble
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothManager
 import android.content.Context
+import dev.meshx.mob.BuildConfig
 
 /**
  * Facade composing scanner + advertiser behind a single start/stop surface.
@@ -39,20 +40,32 @@ interface BleBridge {
 
 class RealBleBridge(
     context: Context,
-    private val sink: BleEventSink
+    private val sink: BleEventSink,
+    fetchOnBeaconEnabled: Boolean = false
 ) : BleBridge {
 
     private val adapter = (context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager)
         ?.adapter
-
-    private val scanner = BleScanner(adapter, sink)
-    private val advertiser = BleAdvertiser(adapter, sink)
 
     // Intent state — survives across radio off/on cycles so we can auto-
     // restart on recovery without waiting for the BEAM to re-issue calls.
     @Volatile private var wantScan: Boolean = false
     @Volatile private var wantAdvertise: Boolean = false
     @Volatile private var lastLocalName: String = "meshx-mob"
+
+    private val fetchCoordinator =
+        if (fetchOnBeaconEnabled || BuildConfig.USE_FULL_MX_ENVELOPES) {
+            MeshxBeaconFetchCoordinator(
+                context = context.applicationContext,
+                adapter = adapter,
+                sink = sink,
+                requesterPeerId = lastLocalName
+            )
+        } else {
+            null
+        }
+    private val scanner = BleScanner(adapter, sink, fetchCoordinator)
+    private val advertiser = BleAdvertiser(adapter, sink)
 
     // Last STATE_* value we acted on, so a duplicate broadcast (the
     // platform fires several per cycle) doesn't redundantly start the

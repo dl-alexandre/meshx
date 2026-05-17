@@ -95,9 +95,9 @@ defmodule MeshxMobileApp.BLE.LocalIOSParityDecisionScenarioPlan do
         ios_full_envelope_advert_claim_allowed?: false,
         ios_background_ble_claim_allowed?: false,
         required_operator_evidence: [
-          "Operator/release note preserves iOS contract-only wording.",
+          "Operator/release note preserves partial iOS evidence and blocked broad-parity wording.",
           "Release artifact references LocalIOSParityEvidenceManifest.",
-          "iOS hardware participation, legacy beacon observe/gossip, full-envelope advert, hardware replay, background BLE, and parity claims remain blocked."
+          "iOS gossip, direct full-envelope advert, hardware replay, background BLE, and parity claims remain blocked."
         ],
         blocked_claims_called_out: review.required_blocked_claims(),
         review_section: :ios_attachments,

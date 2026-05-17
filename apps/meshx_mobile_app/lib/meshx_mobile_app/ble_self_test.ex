@@ -54,6 +54,7 @@ defmodule MeshxMobileApp.BleSelfTest do
       sent: 0,
       beacon_callbacks: 0,
       full_envelopes_received: 0,
+      send_enabled: selftest_send_enabled?(),
       seen_messages: MapSet.new(),
       first_seen_at: %{}
     }
@@ -72,11 +73,17 @@ defmodule MeshxMobileApp.BleSelfTest do
 
     Logger.info("BleSelfTest: start_scan=#{inspect(scan)} start_advertising=#{inspect(adv)}")
     Process.send_after(self(), :heartbeat, @heartbeat_ms)
-    Process.send_after(self(), :send_message, @send_interval_ms)
+    if state.send_enabled do
+      Process.send_after(self(), :send_message, @send_interval_ms)
+    end
     {:noreply, state}
   end
 
   @impl true
+  def handle_info(:send_message, %{send_enabled: false} = state) do
+    {:noreply, state}
+  end
+
   def handle_info(:send_message, state) do
     # Broadcast a real MeshX message on a steady cadence. recipient is
     # "broadcast" — any MeshX scanner in range ingests it. send_ping/3
@@ -102,6 +109,7 @@ defmodule MeshxMobileApp.BleSelfTest do
         "devices=#{MapSet.size(state.discovered)} " <>
         "meshx_peers=#{MapSet.size(state.meshx_peers)} " <>
         "sent=#{state.sent} " <>
+        "send_enabled=#{state.send_enabled} " <>
         "distinct_msgs=#{MapSet.size(state.seen_messages)} " <>
         "beacon_callbacks=#{state.beacon_callbacks} " <>
         "envelopes=#{state.full_envelopes_received}"
@@ -268,5 +276,9 @@ defmodule MeshxMobileApp.BleSelfTest do
   defp default_local_name do
     suffix = System.get_env("MOB_NODE_SUFFIX") || "dev"
     "meshx-#{suffix}"
+  end
+
+  defp selftest_send_enabled? do
+    System.get_env("MESHX_BLE_SELFTEST_SEND", "1") not in ["0", "false", "FALSE", "no", "NO", "off", "OFF"]
   end
 end

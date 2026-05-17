@@ -2,10 +2,12 @@ defmodule MeshxMobileApp.BLE.LocalIOSParityPolicy do
   @moduledoc """
   Claim policy for iOS participation in the advertisement-only local mesh.
 
-  Shared canonical contracts and a foreground legacy beacon observe path exist,
-  but iOS advert-only participation is not hardware validated. iOS beacon
-  emission/gossip is also not selected or implemented. This policy makes that
-  boundary explicit for product, release, and audit consumers.
+  Shared canonical contracts, foreground legacy-beacon observe hardware
+  evidence, and Android fetch from the iOS responder now exist, but broad iOS
+  advert-only parity remains blocked. iOS beacon emission/gossip is not
+  selected, direct full-MX extended advertising is PHY-blocked on tested
+  hardware, and background participation is not validated. This policy makes
+  that boundary explicit for product, release, and audit consumers.
 
   It does not touch native code, scan, advertise, fetch, route, persist,
   ACK, retry, encrypt, or run background work.
@@ -54,8 +56,8 @@ defmodule MeshxMobileApp.BLE.LocalIOSParityPolicy do
       status: :blocked,
       allowed_claims: [],
       blocked_claims: [
-        "iOS observed legacy beacon proof.",
-        "iOS received_message_beacon hardware validation."
+        "Broad iOS parity from legacy beacon observation alone.",
+        "iOS received_message_beacon hardware validation as delivery proof."
       ],
       required_before_allowed: [:ios_scanner_implementation, :ios_device_capture, :replay_fixture]
     },
@@ -128,9 +130,9 @@ defmodule MeshxMobileApp.BLE.LocalIOSParityPolicy do
       blocked_count: length(blocked()),
       ios_participation_claims_allowed?: false,
       notes: [
-        "Shared canonical ingress exists, but iOS advert-only hardware participation is not claimed.",
+        "Shared canonical ingress, iOS legacy-beacon observe hardware evidence, and Android fetch from iOS responder evidence exist, but broad iOS parity is not claimed.",
         "Android validation evidence cannot be reused as iOS parity evidence.",
-        "iOS parity requires implementation, hardware capture, and replay-normalized fixtures."
+        "iOS parity still requires iOS-origin cross-radio gossip proof, direct full-envelope capability policy, background policy if needed, and replay-normalized fixtures."
       ]
     }
   end

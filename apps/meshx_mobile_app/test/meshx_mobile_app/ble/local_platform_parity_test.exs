@@ -13,16 +13,17 @@ defmodule MeshxMobileApp.BLE.LocalPlatformParityTest do
     assert Enum.any?(gossip.evidence, &String.contains?(&1, "m59"))
   end
 
-  test "ios advert-only parity is explicit and not claimed as validated" do
+  test "ios advert-only parity separates validated observe from blocked emit and full MX" do
     assert {:ok, observe} = LocalPlatformParity.get(:ios, :legacy_beacon_observe)
-    assert observe.status == :implemented_unvalidated
+    assert observe.status == :hardware_validated
     assert Enum.any?(observe.evidence, &String.contains?(&1, "BLE.swift"))
+    assert Enum.any?(observe.evidence, &String.contains?(&1, "2026-05-15-iphone13-sm-t577u"))
 
     assert {:ok, gossip} = LocalPlatformParity.get(:ios, :legacy_beacon_gossip)
     assert gossip.status == :not_implemented
 
     assert {:ok, full} = LocalPlatformParity.get(:ios, :full_envelope_advert)
-    assert full.status == :contract_only
+    assert full.status == :blocked_current_hardware
   end
 
   test "blocked current hardware includes GATT fetch and background gaps" do

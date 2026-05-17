@@ -42,6 +42,11 @@ defmodule MeshxMobileApp.BLE.LocalReleaseArtifactBundle do
             | :completion_audit_plain_text_review
             | :completion_audit_standalone
             | :completion_blocker_matrix
+            | :focused_remaining_items_audit
+            | :focused_remaining_items_plain_text_review
+            | :direct_full_mx_aux_validation_checklist
+            | :upstream_patch_maintainer_handoff
+            | :upstream_patch_migration_progress
             | :full_message_resolution_evidence_manifest
             | :full_resolution_transport_evidence_review
             | :known_good_transport_evidence_review
@@ -173,6 +178,116 @@ defmodule MeshxMobileApp.BLE.LocalReleaseArtifactBundle do
           "The output keeps blocked and partial project areas visible without opening JSON."
         ],
         blocked_claims: [:whole_project_complete]
+      },
+      %Artifact{
+        id: :focused_remaining_items_audit,
+        status: :generated,
+        path:
+          "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/focused-remaining-items-audit.json",
+        source:
+          "mix meshx.mobile.remaining_items.audit --json --out artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/focused-remaining-items-audit.json",
+        purpose:
+          "Archive the exact responder, AUX, upstream patch, and startup-friction completion decision.",
+        required_for: [:completion_review, :release_planning],
+        acceptance_criteria: [
+          "complete is false while AUX/direct full-MX and upstream patch migration remain incomplete.",
+          "completed_rows contains only responder hardware validation and startup-friction rows.",
+          "incomplete_rows contains AUX/direct full-MX and upstream mob patch migration rows.",
+          "completion_decision.update_goal_allowed remains false until all four rows close."
+        ],
+        blocked_claims: [
+          :whole_project_complete,
+          :direct_full_mx_aux_complete,
+          :upstream_patch_migration_complete
+        ]
+      },
+      %Artifact{
+        id: :focused_remaining_items_plain_text_review,
+        status: :generated,
+        path:
+          "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/focused-remaining-items-audit.txt",
+        source:
+          "mix meshx.mobile.remaining_items.audit | tee artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/focused-remaining-items-audit.txt",
+        purpose:
+          "Archive the plain-text focused remaining-items checklist and blocked completion decision.",
+        required_for: [:completion_review, :operator_release_review],
+        acceptance_criteria: [
+          "REMAINING_ITEMS complete=false completed=2 incomplete=2 update_goal_allowed=false is printed.",
+          "CHECKLIST count=6 objective_success_criteria=4 is printed.",
+          "Each objective row is printed as ROW id=... priority=... status=... claim_allowed=....",
+          "Every prompt-to-artifact checklist item is printed as CHECKLIST_ITEM id=... status=... rows=....",
+          "The completion_decision checklist item remains blocked until all four rows close."
+        ],
+        blocked_claims: [
+          :whole_project_complete,
+          :direct_full_mx_aux_complete,
+          :upstream_patch_migration_complete
+        ]
+      },
+      %Artifact{
+        id: :direct_full_mx_aux_validation_checklist,
+        status: :generated,
+        path:
+          "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/android-aux-full-mx-ios-observe-rerun/aux-validation-checklist.md",
+        source:
+          "Archive artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/android-aux-full-mx-ios-observe-rerun/aux-validation-checklist.md",
+        purpose:
+          "Archive the concrete hardware/API evidence required before direct full-MX AUX scan-response interop can be claimed complete.",
+        required_for: [:completion_review, :release_planning, :ios_parity_review],
+        acceptance_criteria: [
+          "Lists sender and observer metadata required for a future AUX proof.",
+          "Requires platform callback proof for FF FF 4D 58 manufacturer data.",
+          "Requires canonical received_message / MX envelope parse proof.",
+          "Requires MB beacon fallback control evidence.",
+          "Keeps the row incomplete until callback and canonical parse evidence exist."
+        ],
+        blocked_claims: [
+          :whole_project_complete,
+          :direct_full_mx_aux_complete,
+          :ios_parity
+        ]
+      },
+      %Artifact{
+        id: :upstream_patch_maintainer_handoff,
+        status: :generated,
+        path:
+          "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/upstream-pr-recheck-1358/maintainer-handoff.md",
+        source:
+          "Archive artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/upstream-pr-recheck-1358/maintainer-handoff.md",
+        purpose:
+          "Archive the upstream maintainer actions and MeshX post-merge migration gates required before downstream patches can be removed.",
+        required_for: [:completion_review, :release_planning],
+        acceptance_criteria: [
+          "Names GenericJam/mob_dev#6 and GenericJam/mob_new#5 as required upstream merges.",
+          "Records that this checkout has READ permission only for upstream repos.",
+          "Requires released upstream dependency refs before MeshX migration.",
+          "Requires dependency update, downstream patch removal, and post-migration verification."
+        ],
+        blocked_claims: [
+          :whole_project_complete,
+          :upstream_patch_migration_complete
+        ]
+      },
+      %Artifact{
+        id: :upstream_patch_migration_progress,
+        status: :generated,
+        path:
+          "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/upstream-pr-recheck-1358/upstream-migration-progress.json",
+        source:
+          "Archive artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/upstream-pr-recheck-1358/upstream-migration-progress.json",
+        purpose:
+          "Archive the machine-readable upstream patch migration progress gate, including satisfied pre-merge criteria and missing merge/release/migration criteria.",
+        required_for: [:completion_review, :release_planning],
+        acceptance_criteria: [
+          "completion_claim_allowed is false.",
+          "Satisfied criteria include downstream patch verification, open replacement PRs, maintainer handoff, and READ-only permission evidence.",
+          "Missing criteria include upstream PR merge, upstream release, MeshX dependency migration, downstream patch removal, and post-migration verification.",
+          "The artifact keeps upstream_patch_migration_complete blocked until every missing criterion is satisfied."
+        ],
+        blocked_claims: [
+          :whole_project_complete,
+          :upstream_patch_migration_complete
+        ]
       },
       %Artifact{
         id: :completion_blocker_matrix,
@@ -645,11 +760,11 @@ defmodule MeshxMobileApp.BLE.LocalReleaseArtifactBundle do
         path: "tmp/local-ios-parity-evidence.json",
         source:
           "mix meshx.mobile.local_ios_parity.evidence --json --out tmp/local-ios-parity-evidence.json",
-        purpose: "Archive iOS contract-only state and blocked advert-only parity gates.",
+        purpose: "Archive partial iOS hardware evidence and blocked advert-only parity gates.",
         required_for: [:ios_parity_review],
         acceptance_criteria: [
-          "current_ios_mode remains contract_only.",
-          "iOS hardware participation, legacy beacon observe/gossip, full-envelope advert, replay fixture, and background BLE claims remain blocked.",
+          "iOS legacy-beacon observe and Android fetch from iOS responder evidence remain visible as partial hardware scope.",
+          "iOS broad parity, legacy beacon gossip, direct full-envelope advert, replay fixture, and background BLE claims remain blocked.",
           "LocalIOSParityHardwareValidationPlan open gates remain visible."
         ],
         blocked_claims: [
@@ -674,7 +789,7 @@ defmodule MeshxMobileApp.BLE.LocalReleaseArtifactBundle do
         acceptance_criteria: [
           "Decision scenarios cover keep_ios_contract_only and enable_ios_advert_only_participation.",
           "The iOS advert-only participation scenario lists every LocalIOSParityHardwareValidationPlan gate.",
-          "iOS hardware participation, legacy beacon observe/gossip, full-envelope advert, replay fixture, background BLE, and parity claims remain blocked."
+          "Partial iOS observe/responder-fetch evidence is preserved while iOS gossip, direct full-envelope advert, replay fixture, background BLE, and parity claims remain blocked."
         ],
         blocked_claims: [
           :ios_hardware_participation,
@@ -726,7 +841,7 @@ defmodule MeshxMobileApp.BLE.LocalReleaseArtifactBundle do
         acceptance_criteria: [
           "Capture sections cover every LocalIOSParityHardwareEvidenceReview gate.",
           "Every section lists artifact path, summary, test command, evidence type, and blocked claim callout requirements.",
-          "iOS observe, gossip, full-envelope advert, background BLE, hardware participation, and parity claims remain blocked."
+          "iOS observe/responder-fetch partial evidence, gossip, direct full-envelope advert, background BLE, hardware participation, and parity boundaries remain explicit."
         ],
         blocked_claims: [
           :ios_hardware_participation,
@@ -754,7 +869,7 @@ defmodule MeshxMobileApp.BLE.LocalReleaseArtifactBundle do
         acceptance_criteria: [
           "iOS target device, canonical ingress, beacon observe/gossip, full-envelope capability, hardware replay, background-boundary, and negative evidence metadata are present.",
           "Blocked iOS participation, beacon observe/gossip, full-envelope advert, replay fixture, background BLE, and parity claims are called out.",
-          "iOS remains contract-only until native implementation and hardware evidence are separately validated."
+          "iOS remains partial until gossip, direct full-envelope policy, replay fixture, background-boundary, and negative evidence are separately validated."
         ],
         blocked_claims: [
           :ios_hardware_participation,
@@ -982,12 +1097,13 @@ defmodule MeshxMobileApp.BLE.LocalReleaseArtifactBundle do
         source:
           "mix meshx.mobile.local_release.recent_evidence --json --out tmp/local-release-recent-evidence.json",
         purpose:
-          "Archive recent no-new-hardware evidence slices before release-candidate wording review.",
+          "Archive recent no-new-hardware evidence slices and closure artifact pointers before release-candidate wording review.",
         required_for: [:release_planning, :operator_release_review],
         acceptance_criteria: [
           "Every recent evidence slice names the objective-specific review still required.",
+          "The inventory includes the direct full-MX AUX validation checklist and upstream maintainer handoff paths.",
           "Recent evidence supports only advert-only release traceability, not completion.",
-          "Completion, delivery, trust, routing, background, iOS parity, and full-resolution claims remain blocked."
+          "Completion, delivery, trust, routing, background, iOS parity, direct full-MX AUX, upstream patch migration, and full-resolution claims remain blocked."
         ],
         blocked_claims: [
           :whole_project_complete,
@@ -996,6 +1112,8 @@ defmodule MeshxMobileApp.BLE.LocalReleaseArtifactBundle do
           :routed_delivery,
           :background_operation,
           :ios_parity,
+          :direct_full_mx_aux_complete,
+          :upstream_patch_migration_complete,
           :full_message_resolution
         ]
       },
@@ -1204,6 +1322,7 @@ defmodule MeshxMobileApp.BLE.LocalReleaseArtifactBundle do
         acceptance_criteria: [
           "Uses 'messages seen nearby' wording.",
           "Does not claim delivery, trust, routing, background behavior, or iOS parity.",
+          "Does not claim upstream patch migration complete while GenericJam/mob_dev#6 and GenericJam/mob_new#5 remain unmerged or MeshX has not migrated.",
           "References readiness, JSON completion audit, plain-text completion audit, blocker matrix, release manifest, and ready UX review paths.",
           "LocalReleaseCandidateEvidenceReview accepts JSON completion audit, plain-text completion audit, blocker matrix, ready UX review summary, blocked-claim, and open-gate callouts."
         ],
@@ -1212,7 +1331,8 @@ defmodule MeshxMobileApp.BLE.LocalReleaseArtifactBundle do
           :trusted_delivery,
           :routed_delivery,
           :background_operation,
-          :ios_parity
+          :ios_parity,
+          :upstream_patch_migration_complete
         ]
       }
     ]
@@ -1248,7 +1368,8 @@ defmodule MeshxMobileApp.BLE.LocalReleaseArtifactBundle do
       notes: [
         "Generated and embedded artifacts define the release boundary; they are not hardware proof by themselves.",
         "Operator-supplied hardware logs are required before any hardware claim beyond the passed one-hop beacon gate.",
-        "Release notes must preserve LocalReleaseManifest.release_wording blocked claims."
+        "Release notes must preserve LocalReleaseManifest.release_wording blocked claims.",
+        "Release notes must keep downstream patch migration blocked until upstream PRs merge/release and MeshX dependency migration verifies."
       ]
     }
   end
@@ -1260,7 +1381,8 @@ defmodule MeshxMobileApp.BLE.LocalReleaseArtifactBundle do
         "messages seen nearby",
         "passive BLE advertisement observations",
         "legacy beacon refs are unresolved pointers",
-        "full-envelope adverts only where capability-proven"
+        "full envelopes via validated MB beacon plus GATT fetch paths",
+        "direct full-MX extended adverts only where capability-proven"
       ],
       blocked_release_wording: [
         :whole_project_complete,

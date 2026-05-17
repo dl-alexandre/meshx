@@ -105,16 +105,36 @@ defmodule MeshxMobileApp.BLE.LocalHardwareValidationGates do
     },
     %{
       id: :ios_advert_only_participation,
-      status: :not_started,
-      evidence: ["apps/meshx_mobile_app/lib/meshx_mobile_app/native_bridge/ios.ex"],
+      status: :partial,
+      evidence: [
+        "apps/meshx_mobile_app/lib/meshx_mobile_app/native_bridge/ios.ex",
+        "artifacts/local-ble/2026-05-15-iphone13-sm-t577u/hardware/i26b-android-to-iphone-receive/summary.json",
+        "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/summary.json",
+        "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/android-fetch-ios-responder-rerun/summary.md",
+        "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/android-aux-full-mx-ios-observe/summary.md",
+        "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/android-aux-full-mx-ios-observe-rerun/summary.md",
+        "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/ipad-full-beacon-android-auto-fetch-hash-cue/",
+        "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/ipad-full-beacon-android-runtime-fetch-receive-only/",
+        "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/aux-alternate-ios-target-check/summary.md",
+        "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/external-blocker-recheck-1358/summary.md",
+        "docs/ble_transport_re_evaluation.md"
+      ],
       required_evidence: [
-        "iOS bridge must emit or observe canonical advert-only beacon/full-envelope events.",
-        "Hardware capture must show iOS participation in received_message_beacon or received_message.",
-        "Replay fixture must preserve the same canonical ingress shape."
+        "Android receipt of iOS-origin legacy beacon gossip if iOS beacon emission is part of the product claim.",
+        "Direct full-MX extended-advert receive remains blocked until a future iOS hardware/API path surfaces AUX manufacturer data.",
+        "iOS background BLE evidence if background participation is part of the product claim.",
+        "Replay fixture or validation ledger must preserve every claimed canonical ingress shape."
       ],
       notes: [
-        "iOS bridge shell exists.",
-        "iOS advert-only beacon/gossip participation is not implemented or hardware validated."
+        "iOS foreground legacy-beacon observe is hardware validated.",
+        "Android fetch from iOS MeshxFetchGattResponder is hardware validated on SM-T577U to iPad12,1.",
+        "Android receive-side hash-cued auto-fetch from the iPad MeshxFetchGattResponder is hardware validated for the explicit foreground opt-in path.",
+        "Android runtime receive-only hash-cued auto-fetch is hardware validated in a default debug build with self-test sends rejected at the native send entry point.",
+        "Android direct full-MX AUX emission is hardware probed and rerun on SM-T577U, but iPad12,1 did not surface the MX manufacturer data callback.",
+        "Alternate iOS receiver check found the iPhone 13 unavailable, so no second iOS AUX receiver target was available in this workspace.",
+        "External blocker recheck at 2026-05-17T13:58:54-0700 still found the iPhone 13 unavailable; upstream mob PR state is tracked separately in upstream-pr-recheck-1358.",
+        "iOS-origin beacon emission has on-device dispatch evidence, but Android did not record a matched iPad sender hash in the archived run.",
+        "Direct full-MX extended advertising remains blocked on tested iOS hardware; use MB beacon plus GATT fetch for full-envelope transfer."
       ]
     }
   ]

@@ -63,8 +63,9 @@ defmodule MeshxMobileApp.BLE.LocalIOSParityContract do
         "iOS must emit the compact legacy beacon/gossip payload behind the same adapter boundary.",
         "Another MeshX-capable observer must capture it as a canonical received_message_beacon."
       ],
-      current_gap: "No iOS legacy beacon gossip dispatcher exists.",
-      notes: ["No iOS radio behavior is added by this contract."]
+      current_gap:
+        "Foreground iOS MB beacon emit exists, but no iOS-origin cross-radio gossip proof is recorded.",
+      notes: ["No autonomous iOS gossip behavior is added by this contract."]
     },
     %{
       id: :full_envelope_advert,

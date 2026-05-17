@@ -17,7 +17,10 @@ mix meshx.mobile.local_readiness.audit --allow-open --out tmp/local-readiness.js
 mix meshx.mobile.local_completion.audit --allow-open | tee tmp/local-completion-audit.txt
 mix meshx.mobile.local_completion.audit --allow-open --json --out tmp/local-completion-audit.json
 mix meshx.mobile.local_completion.blocker_matrix --json --out tmp/local-completion-blocker-matrix.json
+mix meshx.mobile.remaining_items.audit --json --out artifacts/local-ble/<run-id>/manifests/focused-remaining-items-audit.json
+mix meshx.mobile.remaining_items.audit | tee artifacts/local-ble/<run-id>/manifests/focused-remaining-items-audit.txt
 mix meshx.mobile.local_release.manifest --json --out tmp/local-release.json
+mix meshx.mobile.local_release.recent_evidence --json --out tmp/local-release-recent-evidence.json
 mix meshx.mobile.advert_gossip.audit apps/meshx_mobile_app/test/fixtures/advert_gossip_scenarios > tmp/advert-gossip-audit.txt
 mix meshx.mobile.local_release.artifact_bundle --json --out tmp/local-release-artifact-bundle.json
 ```
@@ -148,7 +151,12 @@ Minimum review input shape:
   readiness_manifest_path: "tmp/local-readiness.json",
   completion_audit_path: "tmp/local-completion-audit.json",
   completion_audit_plain_text_path: "tmp/local-completion-audit.txt",
+  focused_remaining_items_audit_path: "artifacts/local-ble/<run-id>/manifests/focused-remaining-items-audit.json",
+  focused_remaining_items_plain_text_path: "artifacts/local-ble/<run-id>/manifests/focused-remaining-items-audit.txt",
+  direct_full_mx_aux_validation_checklist_path: "artifacts/local-ble/<run-id>/hardware/android-aux-full-mx-ios-observe-rerun/aux-validation-checklist.md",
+  upstream_patch_maintainer_handoff_path: "artifacts/local-ble/<run-id>/hardware/upstream-pr-recheck-<hhmm>/maintainer-handoff.md",
   release_manifest_path: "tmp/local-release.json",
+  recent_evidence_inventory_path: "tmp/local-release-recent-evidence.json",
   completion_blocker_matrix_path: "tmp/local-completion-blocker-matrix.json",
   advert_gossip_audit_path: "tmp/advert-gossip-audit.txt",
   persistence_lifecycle_plan_path: "tmp/local-persistence-lifecycle-plan.json",
@@ -304,7 +312,9 @@ Minimum review input shape:
       :multi_hop_hardware_delivery,
       :full_message_resolution_from_beacon_refs,
       :background_mobile_operation,
-      :ios_advert_only_participation
+      :ios_advert_only_participation,
+      :direct_full_mx_aux_complete,
+      :upstream_patch_migration_complete
     ],
     open_hardware_gate_ids_called_out: [
       :android_full_envelope_advert_pair,
@@ -315,8 +325,13 @@ Minimum review input shape:
     readiness_manifest_path: "tmp/local-readiness.json",
     completion_audit_path: "tmp/local-completion-audit.json",
     completion_audit_plain_text_path: "tmp/local-completion-audit.txt",
+    focused_remaining_items_audit_path: "artifacts/local-ble/<run-id>/manifests/focused-remaining-items-audit.json",
+    focused_remaining_items_plain_text_path: "artifacts/local-ble/<run-id>/manifests/focused-remaining-items-audit.txt",
+    direct_full_mx_aux_validation_checklist_path: "artifacts/local-ble/<run-id>/hardware/android-aux-full-mx-ios-observe-rerun/aux-validation-checklist.md",
+    upstream_patch_maintainer_handoff_path: "artifacts/local-ble/<run-id>/hardware/upstream-pr-recheck-<hhmm>/maintainer-handoff.md",
     completion_blocker_matrix_path: "tmp/local-completion-blocker-matrix.json",
     release_manifest_path: "tmp/local-release.json",
+    recent_evidence_inventory_path: "tmp/local-release-recent-evidence.json",
     persistence_lifecycle_plan_path: "tmp/local-persistence-lifecycle-plan.json",
     lifecycle_review_path: "tmp/local-lifecycle-hardware-review.json",
     ios_parity_review_path: "tmp/local-ios-parity-hardware-review.json",
@@ -335,9 +350,11 @@ advert-only local release candidate. A ready review still does not close
 whole-project completion or any open hardware gate.
 Operator-note artifact paths must exactly match the corresponding top-level
 release-candidate paths, so notes cannot cite stale readiness, completion,
-blocker-matrix, release-manifest, persistence-lifecycle, lifecycle-review,
-ios-parity-review, full-resolution-review, known-good-transport-review,
-multi-hop-review, routing-review, security-review, or UX review artifacts.
+focused remaining-items, AUX validation checklist, upstream maintainer handoff,
+blocker-matrix, release-manifest, recent-evidence, persistence-lifecycle,
+lifecycle-review, ios-parity-review, full-resolution-review,
+known-good-transport-review, multi-hop-review, routing-review, security-review,
+or UX review artifacts.
 
 ## Allowed Wording
 
@@ -358,7 +375,9 @@ Do not claim:
 - routed or multi-hop hardware delivery;
 - full message resolution from beacon refs;
 - background mobile operation;
-- iOS advert-only participation.
+- iOS advert-only participation;
+- direct full-MX AUX completion;
+- upstream patch migration completion.
 
 The machine-readable source of truth is:
 

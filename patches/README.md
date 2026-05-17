@@ -63,11 +63,20 @@ patch path and the `git apply` error output. Recovery:
 
 A project-local fork is more work to maintain than a small patch set
 and would couple us to an unmerged branch. The patches are intended
-to be **temporary** — the long-term fix is upstream PRs to `mob_dev`
-and `mob` that add proper extension points (extra Swift sources,
-extra static NIFs registrable via config). When those PRs land,
-delete the patches directory and the `meshx.patch_deps` task.
+to be **temporary** — the long-term fix is upstream support in
+`mob_dev` plus dependency upgrades that remove the need for local build
+edits.
+Current upstream `mob_dev` already has generated static NIF support;
+the remaining extension gap is project Swift source inclusion. Do not
+delete the patches directory or the `meshx.patch_deps` task merely
+because upstream PRs are open. Remove them only after the required
+upstream changes (`GenericJam/mob_dev#6` and `GenericJam/mob_new#5`)
+are merged, released, MeshX has migrated to released dependency
+versions, and the post-merge verification in
+`docs/upstream_mob_patches.md` passes.
 
 See `apps/meshx_mobile_app/CONTRIBUTING.md` for the developer
 workflow and `docs/BLE_BRIDGE.md` § "Build system note" for the BLE
-context that makes these patches necessary.
+context that makes these patches necessary. See
+`docs/upstream_mob_patches.md` for the current upstreaming shape and
+MeshX mapping.

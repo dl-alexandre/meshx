@@ -280,6 +280,21 @@ defmodule MeshxMobileApp.BLE.LocalProjectReadinessTest do
              item.remaining_work,
              &String.contains?(&1, "release-candidate evidence")
            )
+
+    assert Enum.any?(
+             item.current_evidence,
+             &String.contains?(&1, "focused remaining-items audit")
+           )
+
+    assert Enum.any?(
+             item.current_evidence,
+             &String.contains?(&1, "recent-evidence inventory")
+           )
+
+    assert Enum.any?(
+             item.current_evidence,
+             &String.contains?(&1, "direct_full_mx_aux_complete")
+           )
   end
 
   test "local inbox snapshot exposes project readiness" do
@@ -614,6 +629,11 @@ defmodule MeshxMobileApp.BLE.LocalProjectReadinessTest do
 
     assert Enum.any?(
              item.current_evidence,
+             &String.contains?(&1, "AUX scan-response probe")
+           )
+
+    assert Enum.any?(
+             item.current_evidence,
              &String.contains?(&1, "LocalIOSParityOperatorCapturePlan")
            )
 
@@ -628,8 +648,18 @@ defmodule MeshxMobileApp.BLE.LocalProjectReadinessTest do
            )
 
     assert Enum.any?(
+             item.current_evidence,
+             &String.contains?(&1, "android-aux-full-mx-ios-observe")
+           )
+
+    assert Enum.any?(
+             item.current_evidence,
+             &String.contains?(&1, "android-aux-full-mx-ios-observe-rerun")
+           )
+
+    assert Enum.any?(
              item.remaining_work,
-             &String.contains?(&1, "LocalIOSParityAcceptance legacy beacon observe")
+             &String.contains?(&1, "LocalIOSParityAcceptance legacy beacon gossip")
            )
 
     assert Enum.any?(
@@ -639,12 +669,17 @@ defmodule MeshxMobileApp.BLE.LocalProjectReadinessTest do
 
     assert Enum.any?(
              item.remaining_work,
-             &String.contains?(&1, "iOS beacon gossip carrier")
+             &String.contains?(&1, "Android receipt of iOS-origin MB beacons")
            )
 
     assert Enum.any?(
              item.remaining_work,
              &String.contains?(&1, "implementation-backed iOS fixtures")
+           )
+
+    assert Enum.any?(
+             item.notes,
+             &String.contains?(&1, "both direct full-MX AUX probes remain negative")
            )
   end
 
@@ -665,6 +700,16 @@ defmodule MeshxMobileApp.BLE.LocalProjectReadinessTest do
 
     assert Enum.any?(
              item.current_evidence,
+             &String.contains?(&1, "direct full-MX AUX validation checklist")
+           )
+
+    assert Enum.any?(
+             item.current_evidence,
+             &String.contains?(&1, "upstream patch maintainer handoff")
+           )
+
+    assert Enum.any?(
+             item.current_evidence,
              &String.contains?(&1, "candidate review task")
            )
 
@@ -680,12 +725,77 @@ defmodule MeshxMobileApp.BLE.LocalProjectReadinessTest do
 
     assert Enum.any?(
              item.current_evidence,
+             &String.contains?(&1, "upstream_patch_migration_complete")
+           )
+
+    assert Enum.any?(
+             item.current_evidence,
+             &String.contains?(&1, "LocalFocusedRemainingItemsAudit")
+           )
+
+    assert Enum.any?(
+             item.current_evidence,
+             &String.contains?(&1, "LocalReleaseRecentEvidenceInventory")
+           )
+
+    assert Enum.any?(
+             item.current_evidence,
              &String.contains?(&1, "artifacts/local-ble/2026-05-12-sm-t577u-sm-t390")
+           )
+
+    assert Enum.any?(
+             item.current_evidence,
+             &String.contains?(&1, "GenericJam/mob_dev#6")
+           )
+
+    assert Enum.any?(
+             item.current_evidence,
+             &String.contains?(&1, "mix meshx.patch_deps --check")
+           )
+
+    assert Enum.any?(
+             item.current_evidence,
+             &String.contains?(&1, "upstream-pr-recheck-1358")
+           )
+
+    assert Enum.any?(
+             item.current_evidence,
+             &String.contains?(&1, "raw gh JSON")
+           )
+
+    assert Enum.any?(
+             item.current_evidence,
+             &String.contains?(&1, "READ-only")
            )
 
     assert Enum.any?(
              item.remaining_work,
              &String.contains?(&1, "candidate review task")
+           )
+
+    assert Enum.any?(
+             item.remaining_work,
+             &String.contains?(&1, "GenericJam/mob_new#5")
+           )
+
+    assert Enum.any?(
+             item.remaining_work,
+             &String.contains?(&1, "post-merge verification gates")
+           )
+
+    assert Enum.any?(
+             item.remaining_work,
+             &String.contains?(&1, "canonical FF FF 4D 58 parse proof")
+           )
+
+    assert Enum.any?(
+             item.notes,
+             &String.contains?(&1, "direct full-MX AUX completion is blocked")
+           )
+
+    assert Enum.any?(
+             item.notes,
+             &String.contains?(&1, "upstream patch migration is not complete")
            )
   end
 end

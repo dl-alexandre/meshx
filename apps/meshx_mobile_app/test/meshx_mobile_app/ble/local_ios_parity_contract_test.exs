@@ -11,7 +11,7 @@ defmodule MeshxMobileApp.BLE.LocalIOSParityContractTest do
     assert requirement.current_gap =~ "hardware fixtures are absent"
   end
 
-  test "legacy beacon gossip remains unimplemented on iOS" do
+  test "legacy beacon gossip remains unproven on iOS" do
     assert {:ok, requirement} = LocalIOSParityContract.get(:legacy_beacon_gossip)
 
     assert requirement.status == :not_implemented
@@ -21,7 +21,7 @@ defmodule MeshxMobileApp.BLE.LocalIOSParityContractTest do
              &String.contains?(&1, "compact legacy beacon")
            )
 
-    assert requirement.current_gap =~ "No iOS legacy beacon gossip dispatcher"
+    assert requirement.current_gap =~ "no iOS-origin cross-radio gossip proof"
   end
 
   test "snapshot lists all open iOS parity requirements" do

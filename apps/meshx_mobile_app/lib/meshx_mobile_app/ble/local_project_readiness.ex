@@ -231,49 +231,55 @@ defmodule MeshxMobileApp.BLE.LocalProjectReadiness do
       current_evidence: [
         "iOS bridge shell and shared canonical ingress contract exist.",
         "iOS foreground scanner decode path now maps MeshX legacy beacon manufacturer advertisements into canonical received_message_beacon wire maps.",
-        "LocalIOSAdvertCarrierDecision records foreground observe as implemented_unvalidated while keeping iOS beacon gossip emission unselected.",
-        "LocalIOSParityPolicy blocks iOS advert-only participation claims until implementation and hardware proof exist.",
+        "LocalIOSAdvertCarrierDecision records foreground legacy-beacon observe as hardware_validated and foreground iOS MB beacon emit as implemented_unvalidated, while keeping iOS beacon gossip and direct full-MX extended advertising blocked.",
+        "LocalHardwareValidationGates records iOS advert-only participation as partial, with Android fetch from iOS MeshxFetchGattResponder hardware evidence archived under artifacts/local-ble/2026-05-17-sm-t577u-ipad9/.",
+        "LocalIOSParityPolicy preserves partial iOS hardware evidence while blocking broad parity, gossip, direct full-MX extended advertising, and background claims.",
         "LocalIOSParityAcceptance ties shared canonical contracts, iOS proof gates, and blocked iOS participation claims into one acceptance boundary.",
         "LocalIOSParityContract records the missing iOS advert-only implementation and validation requirements.",
         "LocalIOSParityProofPlan maps iOS parity requirements to implementation gates and replay-normalized hardware evidence.",
-        "LocalIOSParityHardwareValidationPlan records iOS device matrix, beacon observe/gossip, full-envelope capability, replay fixture, background boundary, and negative claim review evidence gates.",
+        "LocalIOSParityHardwareValidationPlan records iOS device matrix, beacon observe/gossip, full-envelope capability, replay fixture, background boundary, and negative claim review evidence gates; it treats the SM-T577U -> iPad12,1 AUX scan-response probe and 11:19 rerun as blocked negative capability evidence.",
         "LocalIOSParityNegativeValidation records current cases that must not be promoted to iOS hardware participation or parity claims.",
         "LocalIOSParityOperatorCapturePlan maps iOS parity hardware gates to operator artifact slots without enabling iOS participation claims.",
         "LocalIOSParityDecisionScenarioPlan records keep_ios_contract_only and enable_ios_advert_only_participation scenarios without enabling iOS parity claims.",
-        "LocalIOSParityEvidenceManifest packages current contract-only iOS evidence, open hardware gates, and blocked parity claims.",
+        "LocalIOSParityEvidenceManifest packages partial iOS hardware evidence, including the negative android-aux-full-mx-ios-observe probe and android-aux-full-mx-ios-observe-rerun, open hardware gates, and blocked parity claims.",
         "LocalIOSParityHardwareEvidenceReview validates operator-supplied iOS hardware metadata without enabling iOS participation claims."
       ],
       remaining_work: [
-        "Satisfy the LocalIOSParityAcceptance legacy beacon observe, legacy beacon gossip, full-envelope advert, hardware replay fixture, and iOS background BLE gates if iOS participation is required.",
+        "Satisfy the LocalIOSParityAcceptance legacy beacon gossip, full-envelope advert, hardware replay fixture, and iOS background BLE gates if broader iOS participation is required.",
         "Satisfy LocalIOSParityHardwareValidationPlan gates with iOS-specific device logs, replay fixtures, and implementation-backed negative fixtures if iOS participation is required, then run LocalIOSParityHardwareEvidenceReview against the supplied metadata.",
-        "Select, implement, and hardware-validate an iOS beacon gossip carrier before any iOS legacy beacon emission claim.",
-        "Implement iOS full-envelope advert participation if iOS participation is required and hardware capability is proven.",
+        "Capture Android receipt of iOS-origin MB beacons, replay-normalize the evidence, and bound it with negative fixtures before any iOS legacy beacon gossip claim.",
+        "Keep direct full-MX extended advertising disabled on iOS unless a future hardware/API path proves AUX manufacturer-data delivery.",
         "Capture iOS hardware evidence that normalizes through the same replay path.",
         "Add iOS advert-only replay fixtures or validation ledgers.",
         "Replace the current negative validation matrix with implementation-backed iOS fixtures for device model/version, legacy beacon observe/gossip, full-envelope capability, and canonical replay before any iOS parity claim."
       ],
       notes: [
-        "Android has the validated legacy beacon gossip path; iOS has foreground observe code but no validated observe hardware proof and no selected emit carrier."
+        "Android has the validated legacy beacon gossip path; iOS has validated foreground legacy-beacon observe, foreground MB beacon emit code, and Android fetch from iOS responder, but no iOS-origin cross-radio gossip proof and both direct full-MX AUX probes remain negative."
       ]
     },
     %{
       id: :release_hardening,
       status: :partial,
       current_evidence: [
-        "Advert gossip scenario audit gate, local readiness audit task with JSON output/artifact support, capability profiles, platform parity, hardware validation gates, hardware evidence manifest, advert-only release criteria, local release manifest output, whole-project completion audit, and release artifact bundle checklist exist.",
-        "Local release artifact bundle task emits the operator checklist as its own archiveable JSON artifact.",
-        "Local release candidate review task validates supplied hardware attachment metadata and operator wording as archiveable JSON.",
+        "Advert gossip scenario audit gate, local readiness audit task with JSON output/artifact support, capability profiles, platform parity, hardware validation gates, hardware evidence manifest, advert-only release criteria, local release manifest output, whole-project completion audit, focused remaining-items audit, recent-evidence inventory, and release artifact bundle checklist exist.",
+        "Local release artifact bundle task emits the operator checklist, direct full-MX AUX validation checklist, upstream patch maintainer handoff, focused remaining-items audit, and recent-evidence inventory as archiveable artifacts.",
+        "Local release candidate review task validates supplied hardware attachment metadata, operator wording, required blocked claims, and closure artifact paths as archiveable JSON.",
         "LocalReleaseOperatorCapturePlan maps release-candidate manifest, review, hardware, note, and final review inputs to operator artifact slots without enabling release completion claims.",
-        "LocalReleaseCandidateEvidenceReview defines the operator-supplied hardware attachment and release-note review contract for each advert-only release candidate.",
+        "LocalReleaseCandidateEvidenceReview defines the operator-supplied hardware attachment and release-note review contract for each advert-only release candidate while requiring direct_full_mx_aux_complete and upstream_patch_migration_complete to remain blocked claims.",
+        "LocalFocusedRemainingItemsAudit and LocalReleaseRecentEvidenceInventory keep direct full-MX AUX interop and upstream patch migration incomplete while archiving closure pointers.",
         "Current Android advert-only hardware logs, readiness/release manifests, advert gossip audit output, and operator wording notes are archived under artifacts/local-ble/2026-05-12-sm-t577u-sm-t390/.",
-        "Fresh May 13, 2026 standalone GATT blocker logs are archived under artifacts/local-ble/2026-05-13-sm-t577u-sm-t390/hardware/m40-gatt-interop-rerun/."
+        "Fresh May 13, 2026 standalone GATT blocker logs are archived under artifacts/local-ble/2026-05-13-sm-t577u-sm-t390/hardware/m40-gatt-interop-rerun/.",
+        "docs/upstream_mob_patches.md records GenericJam/mob_dev#6 and GenericJam/mob_new#5 as open upstream replacement PRs; the downstream patch path remains verified by mix meshx.patch_deps --check.",
+        "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/upstream-pr-recheck-1358/ archives raw gh JSON showing both upstream PRs still open and this token still READ-only."
       ],
       remaining_work: [
         "Attach fresh concrete hardware logs and operator-authored release notes to the artifact bundle for each future release candidate.",
-        "Run the release-candidate evidence through LocalReleaseCandidateEvidenceReview or the local release candidate review task before any operator release note is accepted."
+        "Run the release-candidate evidence through LocalReleaseCandidateEvidenceReview or the local release candidate review task before any operator release note is accepted.",
+        "Close the direct full-MX AUX validation checklist only after iOS callback proof, canonical FF FF 4D 58 parse proof, MB fallback control, and negative-boundary notes are archived.",
+        "Keep patches/, mix meshx.patch_deps, and the locked downstream patch path until GenericJam/mob_dev#6 and GenericJam/mob_new#5 are merged, released, MeshX migrates to those dependency versions, and the post-merge verification gates pass."
       ],
       notes: [
-        "Release criteria, CI manifest generation, and the archived Android evidence bundle define the constrained advert-only local mode; release hardening remains partial because each release candidate still needs fresh operator-reviewed attachments."
+        "Release criteria, CI manifest generation, the archived hardware evidence, focused audit, recent-evidence inventory, AUX checklist, and upstream patch handoff define the constrained local mode; release hardening remains partial because each release candidate still needs fresh operator-reviewed attachments, direct full-MX AUX completion is blocked, and upstream patch migration is not complete."
       ]
     }
   ]

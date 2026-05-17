@@ -41,12 +41,21 @@ mix mob.deploy --native
 > applied by `mix meshx.patch_deps`, wired into the `deps.*` aliases.
 > See [CONTRIBUTING.md](CONTRIBUTING.md) for when you'll run into them
 > and how to handle upstream drift.
+> The upstream replacement path is tracked in
+> [docs/upstream_mob_patches.md](../../docs/upstream_mob_patches.md);
+> keep the patches until `GenericJam/mob_dev#6` and
+> `GenericJam/mob_new#5` are merged, released, and this app has
+> migrated to the released extension points.
 >
 > For Android dev opt-in (route `sendToPeer` through the full MX
-> envelope + GATT fetch responder instead of the default MB-only
-> path), see [CONTRIBUTING.md](CONTRIBUTING.md) § "Android dev
-> opt-in: sending full MX envelopes". Release builds are hard-gated
-> against the flag so it cannot accidentally ship.
+> envelope + GATT fetch responder and enable Android scanner-side
+> MB-cue -> GATT-fetch resolution instead of the default MB-only path),
+> see [CONTRIBUTING.md](CONTRIBUTING.md) § "Android dev opt-in: full MX
+> envelopes". Release builds are hard-gated against the flag so it
+> cannot accidentally ship.
+> To enable only receive-side fetch resolution at runtime, launch Android
+> with `--ez meshx_ble_fetch_on_beacon true`; combine it with
+> `--ez meshx_ble_selftest_send false` for receive-only selftest captures.
 
 For a physical iPhone or iPad, provision once first:
 

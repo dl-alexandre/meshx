@@ -55,8 +55,17 @@ defmodule MeshxMobileApp.BLE.LocalReleaseOperatorCapturePlanTest do
 
     assert :completion_audit_path in manifests.required_entries
     assert :completion_audit_plain_text_path in manifests.required_entries
+    assert :focused_remaining_items_audit_path in manifests.required_entries
+    assert :focused_remaining_items_plain_text_path in manifests.required_entries
+    assert :direct_full_mx_aux_validation_checklist_path in manifests.required_entries
+    assert :upstream_patch_maintainer_handoff_path in manifests.required_entries
+    assert :recent_evidence_inventory_path in manifests.required_entries
     assert Enum.any?(manifests.notes, &String.contains?(&1, "JSON completion audit"))
     assert Enum.any?(manifests.notes, &String.contains?(&1, "plain-text completion audit"))
+    assert Enum.any?(manifests.notes, &String.contains?(&1, "focused remaining-items audit"))
+    assert Enum.any?(manifests.notes, &String.contains?(&1, "AUX validation checklist"))
+    assert Enum.any?(manifests.notes, &String.contains?(&1, "upstream maintainer handoff"))
+    assert Enum.any?(manifests.notes, &String.contains?(&1, "recent-evidence inventory"))
     assert :evidence_types_by_gate in hardware.required_entries
     assert :allowed_wording in notes.required_entries
     assert plan.allowed_wording == LocalReleaseCandidateEvidenceReview.allowed_wording()
@@ -84,5 +93,13 @@ defmodule MeshxMobileApp.BLE.LocalReleaseOperatorCapturePlanTest do
     assert length(plan["capture_sections"]) == 5
     assert plan["release_candidate_complete?"] == false
     assert plan["whole_project_complete?"] == false
+
+    manifests =
+      Enum.find(plan["capture_sections"], &(&1["id"] == "manifest_paths"))
+
+    assert "focused_remaining_items_audit_path" in manifests["required_entries"]
+    assert "direct_full_mx_aux_validation_checklist_path" in manifests["required_entries"]
+    assert "upstream_patch_maintainer_handoff_path" in manifests["required_entries"]
+    assert "recent_evidence_inventory_path" in manifests["required_entries"]
   end
 end

@@ -7,12 +7,24 @@ cross-compiles the BEAM, links our Swift package + statically-linked
 NIFs (`meshx_ble_nif`), signs, and pushes to a connected iPhone or iPad
 via `xcrun devicectl`.
 
-The mob tooling does not currently expose parameterizable hooks for
-adding project-specific Swift sources or static NIFs, so we carry the
-required additions as unified-diff patches in `patches/` at the repo
-root. The patches are applied automatically by `mix meshx.patch_deps`,
-which is wired into the `deps.get` / `deps.update` / `deps.compile`
-aliases in `mix.exs`. You should not normally need to think about it.
+The locked `mob_dev` / `mob` dependency versions do not expose the
+extension points MeshX needs for project-specific Swift sources and
+static NIF registration, so we carry the required additions as
+unified-diff patches in `patches/` at the repo root. The patches are
+applied automatically by `mix meshx.patch_deps`, which is wired into
+the `deps.get` / `deps.update` / `deps.compile` aliases in `mix.exs`.
+You should not normally need to think about it.
+
+Upstream PRs now exist for the Swift-source extension point:
+
+- `GenericJam/mob_dev#6`
+- `GenericJam/mob_new#5`
+
+Until those PRs are merged, released, and MeshX migrates to released
+dependency versions with the new `mob.exs :ios_swift_sources` support,
+the downstream patch system remains the known-good build path. See
+`docs/upstream_mob_patches.md` for the current PR state, maintainer
+handoff, and post-merge migration checklist.
 
 ## When you run into the patches
 
@@ -57,7 +69,7 @@ need to update the existing patches (or add a new one). Specifically:
 For each, regenerate the affected `.patch` file (see above) so the
 diff stays clean.
 
-## Android dev opt-in: sending full MX envelopes
+## Android dev opt-in: full MX envelopes
 
 By default, `MeshxBleNative.sendToPeer/2` dispatches a 22-byte MB
 legacy beacon — fleet-safe across all hardware including API 28
@@ -68,8 +80,11 @@ is empirically unreliable on current iOS).
 
 For development & cross-platform integration testing, you can flip
 the build to route `sendToPeer` through the full-MX path (envelope +
-connectable `MeshxFetchGatt` responder). The flag has two equivalent
-inputs:
+connectable `MeshxFetchGatt` responder). The same flag also enables
+Android's scanner-side fetch coordinator: when Android observes an MB
+beacon cue and then a connectable `MeshxFetchGatt` service advert, it
+requests the matching envelope and emits the fetched payload as the
+canonical `received_message` event. The flag has two equivalent inputs:
 
 **Option A: `android/local.properties`** (persistent per-engineer):
 
@@ -84,9 +99,9 @@ MESHX_MX_SEND=true ./gradlew :app:assembleDebug
 ```
 
 Either flips a `BuildConfig.USE_FULL_MX_ENVELOPES` compile-time
-constant; the dispatcher reads it in `sendToPeer`. The branch is a
-compile-time constant so R8 strips the unused path from release
-builds.
+constant; the dispatcher reads it in `sendToPeer`, and `RealBleBridge`
+uses it to install the scanner-side fetch coordinator. The branch is a
+compile-time constant so R8 strips the unused path from release builds.
 
 ### Release-build safety
 
@@ -100,6 +115,32 @@ accidentally ship the dev MX path:
 
 To build a release, remove the line from `local.properties` (or
 unset `MESHX_MX_SEND`) first.
+
+## Android runtime opt-in: receive-side GATT fetch
+
+Receive-side fetch resolution can also be enabled at runtime without
+turning on full-MX sending. Launch the Android app with:
+
+```bash
+adb shell am start \
+  -n dev.meshx.mob/.MainActivity \
+  --ez meshx_ble_fetch_on_beacon true
+```
+
+For clean hardware captures, combine it with the BLE selftest and disable
+the selftest sender:
+
+```bash
+adb shell am start \
+  -n dev.meshx.mob/.MainActivity \
+  --ez meshx_ble_selftest true \
+  --ez meshx_ble_selftest_send false \
+  --ez meshx_ble_fetch_on_beacon true
+```
+
+This installs only the scanner-side MB-cue / service-hash-cue ->
+`MeshxFetchGatt` coordinator. It leaves the default `sendToPeer` path on
+MB-only unless `MESHX_MX_SEND=true` or `meshx.mx.send=true` is also used.
 
 ### Hardware caveat (API 28)
 
@@ -138,9 +179,11 @@ unapplied or doesn't apply at all. Wire it into CI to catch:
 
 ## Long-term
 
-The patches are technical debt. The long-term fix is upstream PRs to
-`mob_dev` and `mob` that add proper extension points (project-supplied
-extra Swift sources, project-registered static NIFs). When those land,
-delete `patches/`, delete `lib/mix/tasks/meshx.patch_deps.ex`, and
-remove the `aliases/0` block in `mix.exs`. The project memory entry
-[[mob-dev-ios-build-vendored-patches]] tracks the status of that work.
+The patches are technical debt. The long-term fix is upstream support
+for project-supplied Swift sources and project-registered static NIFs.
+Do not delete `patches/`, `lib/mix/tasks/meshx.patch_deps.ex`, or the
+`meshx.patch_deps` aliases merely because the PRs are open. Remove
+them only after the upstream changes are merged, released, the MeshX
+dependencies are upgraded, and the iOS harness device build plus
+Android-to-iOS responder smoke still pass. The current migration plan
+lives in `docs/upstream_mob_patches.md`.

@@ -72,13 +72,17 @@ jobs:
           mix meshx.mobile.local_completion.audit --allow-open | tee tmp/ci-local-completion-audit.txt
           mix meshx.mobile.local_completion.audit --allow-open --json --out tmp/ci-local-completion-audit.json
           mix meshx.mobile.local_completion.blocker_matrix --json --out tmp/ci-local-completion-blocker-matrix.json
+          mix meshx.mobile.remaining_items.audit --json --out tmp/ci-focused-remaining-items-audit.json
           mix meshx.mobile.local_release.artifact_bundle --json --out tmp/ci-local-release-artifact-bundle.json
+          mix meshx.mobile.local_release.recent_evidence --json --out tmp/ci-local-release-recent-evidence.json
           mix meshx.mobile.local_release.manifest --json --out tmp/ci-local-release.json
           mix run -e '
           readiness = "tmp/ci-local-readiness.json" |> File.read!() |> JSON.decode!()
           completion_audit = "tmp/ci-local-completion-audit.json" |> File.read!() |> JSON.decode!()
           blocker_matrix = "tmp/ci-local-completion-blocker-matrix.json" |> File.read!() |> JSON.decode!()
+          focused_remaining_items = "tmp/ci-focused-remaining-items-audit.json" |> File.read!() |> JSON.decode!()
           artifact_bundle = "tmp/ci-local-release-artifact-bundle.json" |> File.read!() |> JSON.decode!()
+          recent_evidence = "tmp/ci-local-release-recent-evidence.json" |> File.read!() |> JSON.decode!()
           release = "tmp/ci-local-release.json" |> File.read!() |> JSON.decode!()
           plain_completion_audit = File.read!("tmp/ci-local-completion-audit.txt")
 
@@ -106,8 +110,34 @@ jobs:
             raise "local blocker matrix must not allow whole-project completion"
           end
 
+          unless focused_remaining_items["complete"] == false do
+            raise "focused remaining-items audit must remain incomplete while AUX and upstream rows are blocked"
+          end
+
+          unless focused_remaining_items["completion_decision"]["update_goal_allowed"] == false do
+            raise "focused remaining-items audit must not allow update_goal"
+          end
+
+          unless "extended_advertising_interop_aux_scan_response" in focused_remaining_items["incomplete_rows"] do
+            raise "focused remaining-items audit must keep AUX scan-response row incomplete"
+          end
+
+          unless "upstreaming_mob_dev_mob_patches" in focused_remaining_items["incomplete_rows"] do
+            raise "focused remaining-items audit must keep upstream patch row incomplete"
+          end
+
           unless artifact_bundle["release_candidate_complete?"] == false do
             raise "local release artifact bundle must keep release candidate completion open"
+          end
+
+          recent_artifact = Enum.find(artifact_bundle["artifacts"], &(&1["id"] == "recent_evidence_inventory"))
+
+          unless "direct_full_mx_aux_complete" in recent_artifact["blocked_claims"] do
+            raise "recent evidence artifact must block direct full-MX AUX completion"
+          end
+
+          unless "upstream_patch_migration_complete" in recent_artifact["blocked_claims"] do
+            raise "recent evidence artifact must block upstream patch migration completion"
           end
 
           unless Enum.any?(artifact_bundle["required_commands"], &String.contains?(&1, "local_release.manifest")) do
@@ -116,6 +146,24 @@ jobs:
 
           unless Enum.any?(artifact_bundle["required_commands"], &String.contains?(&1, "local-completion-audit.txt")) do
             raise "local release artifact bundle must expose plain completion audit archive command"
+          end
+
+          unless recent_evidence["item_count"] == 9 do
+            raise "local recent evidence inventory must include closure artifact pointers"
+          end
+
+          recent_ids = Enum.map(recent_evidence["items"], & &1["id"])
+
+          unless "direct_full_mx_aux_validation_checklist" in recent_ids do
+            raise "local recent evidence inventory must include AUX validation checklist"
+          end
+
+          unless "upstream_patch_maintainer_handoff" in recent_ids do
+            raise "local recent evidence inventory must include upstream maintainer handoff"
+          end
+
+          unless "upstream_patch_migration_progress" in recent_ids do
+            raise "local recent evidence inventory must include upstream migration progress"
           end
 
           unless release["whole_project_complete?"] == false do

@@ -131,6 +131,10 @@ defmodule MeshxMobileApp.BLE.LocalReleaseCandidateEvidenceReviewTest do
     assert "Missing readiness_manifest_path." in review.missing
     assert "Missing completion_audit_path." in review.missing
     assert "Missing completion_audit_plain_text_path." in review.missing
+    assert "Missing focused_remaining_items_audit_path." in review.missing
+    assert "Missing focused_remaining_items_plain_text_path." in review.missing
+    assert "Missing direct_full_mx_aux_validation_checklist_path." in review.missing
+    assert "Missing upstream_patch_maintainer_handoff_path." in review.missing
     assert "Missing release_manifest_path." in review.missing
     assert "Missing completion_blocker_matrix_path." in review.missing
     assert "Missing recent_evidence_inventory_path." in review.missing
@@ -167,6 +171,12 @@ defmodule MeshxMobileApp.BLE.LocalReleaseCandidateEvidenceReviewTest do
     assert "Operator notes missing notes_path." in review.missing
     assert "Operator notes missing completion_audit_path." in review.missing
     assert "Operator notes missing completion_audit_plain_text_path." in review.missing
+    assert "Operator notes missing focused_remaining_items_audit_path." in review.missing
+    assert "Operator notes missing focused_remaining_items_plain_text_path." in review.missing
+
+    assert "Operator notes missing direct_full_mx_aux_validation_checklist_path." in review.missing
+
+    assert "Operator notes missing upstream_patch_maintainer_handoff_path." in review.missing
     assert "Operator notes missing completion_blocker_matrix_path." in review.missing
     assert "Operator notes missing recent_evidence_inventory_path." in review.missing
     assert "Operator notes missing persistence_lifecycle_plan_path." in review.missing
@@ -330,6 +340,7 @@ defmodule MeshxMobileApp.BLE.LocalReleaseCandidateEvidenceReviewTest do
     assert "readiness_manifest_path must be a string." in review.missing
 
     assert "completion_audit_path must not have leading or trailing whitespace." in review.missing
+
     assert "completion_audit_plain_text_path must not have leading or trailing whitespace." in review.missing
 
     assert "Hardware attachment 1 summary_path must be a string." in review.missing
@@ -344,6 +355,11 @@ defmodule MeshxMobileApp.BLE.LocalReleaseCandidateEvidenceReviewTest do
   end
 
   test "operator notes must use approved wording and call out every blocked claim and open gate" do
+    required = LocalReleaseCandidateEvidenceReview.required_blocked_claims()
+
+    assert :direct_full_mx_aux_complete in required
+    assert :upstream_patch_migration_complete in required
+
     input =
       complete_input()
       |> put_in([:operator_notes, :allowed_wording], "MeshX delivers nearby messages.")
@@ -1097,8 +1113,7 @@ defmodule MeshxMobileApp.BLE.LocalReleaseCandidateEvidenceReviewTest do
     assert "UX review missing interaction coverage." in review.missing
     assert "UX review missing selected detail coverage." in review.missing
 
-    assert "UX review missing selected detail limitation_copy, next_action_copy, and blocked_claim_copy coverage." in
-             review.missing
+    assert "UX review missing selected detail limitation_copy, next_action_copy, and blocked_claim_copy coverage." in review.missing
 
     assert "UX review missing copy review coverage." in review.missing
     assert "UX review missing density review coverage." in review.missing
@@ -1252,9 +1267,15 @@ defmodule MeshxMobileApp.BLE.LocalReleaseCandidateEvidenceReviewTest do
     template = LocalReleaseCandidateEvidenceReview.template_input()
 
     assert template["allowed_wording"] == nil
+    assert "direct_full_mx_aux_complete" in template["required_blocked_claims"]
+    assert "upstream_patch_migration_complete" in template["required_blocked_claims"]
     assert template["readiness_manifest_path"] == ""
     assert template["completion_audit_path"] == ""
     assert template["completion_audit_plain_text_path"] == ""
+    assert template["focused_remaining_items_audit_path"] == ""
+    assert template["focused_remaining_items_plain_text_path"] == ""
+    assert template["direct_full_mx_aux_validation_checklist_path"] == ""
+    assert template["upstream_patch_maintainer_handoff_path"] == ""
     assert template["completion_blocker_matrix_path"] == ""
     assert template["release_manifest_path"] == ""
     assert template["recent_evidence_inventory_path"] == ""
@@ -1415,6 +1436,10 @@ defmodule MeshxMobileApp.BLE.LocalReleaseCandidateEvidenceReviewTest do
     assert template["operator_notes"]["blocked_claims_called_out"] == []
     assert template["operator_notes"]["open_hardware_gate_ids_called_out"] == []
     assert template["operator_notes"]["completion_audit_plain_text_path"] == ""
+    assert template["operator_notes"]["focused_remaining_items_audit_path"] == ""
+    assert template["operator_notes"]["focused_remaining_items_plain_text_path"] == ""
+    assert template["operator_notes"]["direct_full_mx_aux_validation_checklist_path"] == ""
+    assert template["operator_notes"]["upstream_patch_maintainer_handoff_path"] == ""
     assert template["operator_notes"]["persistence_lifecycle_plan_path"] == ""
     assert template["operator_notes"]["lifecycle_review_path"] == ""
     assert template["operator_notes"]["ios_parity_review_path"] == ""
@@ -1458,6 +1483,10 @@ defmodule MeshxMobileApp.BLE.LocalReleaseCandidateEvidenceReviewTest do
       recent_evidence_inventory_path: "tmp/local-release-recent-evidence.json",
       completion_audit_path: "tmp/local-completion-audit.json",
       completion_audit_plain_text_path: "tmp/local-completion-audit.txt",
+      focused_remaining_items_audit_path: "tmp/focused-remaining-items-audit.json",
+      focused_remaining_items_plain_text_path: "tmp/focused-remaining-items-audit.txt",
+      direct_full_mx_aux_validation_checklist_path: "tmp/aux-validation-checklist.md",
+      upstream_patch_maintainer_handoff_path: "tmp/upstream-maintainer-handoff.md",
       completion_blocker_matrix_path: "tmp/local-completion-blocker-matrix.json",
       advert_gossip_audit_path: "tmp/advert-gossip-audit.txt",
       persistence_lifecycle_plan_path: "tmp/local-persistence-lifecycle-plan.json",
@@ -1615,6 +1644,10 @@ defmodule MeshxMobileApp.BLE.LocalReleaseCandidateEvidenceReviewTest do
         readiness_manifest_path: "tmp/local-readiness.json",
         completion_audit_path: "tmp/local-completion-audit.json",
         completion_audit_plain_text_path: "tmp/local-completion-audit.txt",
+        focused_remaining_items_audit_path: "tmp/focused-remaining-items-audit.json",
+        focused_remaining_items_plain_text_path: "tmp/focused-remaining-items-audit.txt",
+        direct_full_mx_aux_validation_checklist_path: "tmp/aux-validation-checklist.md",
+        upstream_patch_maintainer_handoff_path: "tmp/upstream-maintainer-handoff.md",
         completion_blocker_matrix_path: "tmp/local-completion-blocker-matrix.json",
         release_manifest_path: "tmp/local-release.json",
         recent_evidence_inventory_path: "tmp/local-release-recent-evidence.json",

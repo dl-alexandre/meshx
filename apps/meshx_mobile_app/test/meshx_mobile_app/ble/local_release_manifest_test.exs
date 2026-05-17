@@ -87,10 +87,43 @@ defmodule MeshxMobileApp.BLE.LocalReleaseManifestTest do
       Enum.find(manifest.operator_capture_plan.capture_sections, &(&1.id == :manifest_paths))
 
     assert :completion_audit_plain_text_path in manifest_paths.required_entries
+    assert :focused_remaining_items_audit_path in manifest_paths.required_entries
+    assert :focused_remaining_items_plain_text_path in manifest_paths.required_entries
+    assert :direct_full_mx_aux_validation_checklist_path in manifest_paths.required_entries
+    assert :upstream_patch_maintainer_handoff_path in manifest_paths.required_entries
+    assert :recent_evidence_inventory_path in manifest_paths.required_entries
     refute manifest.operator_capture_plan.release_candidate_complete?
-    assert manifest.artifact_bundle.artifact_count == 49
+    assert manifest.artifact_bundle.artifact_count == 54
     assert manifest.artifact_bundle.open_artifact_count == 19
     refute manifest.artifact_bundle.release_candidate_complete?
+
+    recent_evidence =
+      Enum.find(manifest.artifact_bundle.artifacts, &(&1.id == :recent_evidence_inventory))
+
+    assert String.contains?(recent_evidence.purpose, "closure artifact pointers")
+    assert :direct_full_mx_aux_complete in recent_evidence.blocked_claims
+    assert :upstream_patch_migration_complete in recent_evidence.blocked_claims
+
+    upstream_progress =
+      Enum.find(
+        manifest.artifact_bundle.artifacts,
+        &(&1.id == :upstream_patch_migration_progress)
+      )
+
+    assert upstream_progress.path ==
+             "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/upstream-pr-recheck-1358/upstream-migration-progress.json"
+
+    assert :upstream_patch_migration_complete in upstream_progress.blocked_claims
+
+    assert Enum.any?(
+             recent_evidence.acceptance_criteria,
+             &String.contains?(&1, "direct full-MX AUX validation checklist")
+           )
+
+    assert Enum.any?(
+             recent_evidence.acceptance_criteria,
+             &String.contains?(&1, "upstream maintainer handoff")
+           )
   end
 
   test "manifest records policy gates that block overclaiming" do
@@ -145,11 +178,30 @@ defmodule MeshxMobileApp.BLE.LocalReleaseManifestTest do
              &String.contains?(&1, "local_completion.blocker_matrix")
            )
 
+    assert "mix meshx.mobile.remaining_items.audit --json --out <path>" in manifest.required_commands
+    assert "mix meshx.mobile.remaining_items.audit | tee <path>" in manifest.required_commands
+
     assert Enum.any?(manifest.required_artifacts, &(&1.id == :readiness_manifest))
     assert Enum.any?(manifest.required_artifacts, &(&1.id == :completion_audit_manifest))
     assert Enum.any?(manifest.required_artifacts, &(&1.id == :completion_audit_standalone))
     assert Enum.any?(manifest.required_artifacts, &(&1.id == :completion_audit_plain_text_review))
     assert Enum.any?(manifest.required_artifacts, &(&1.id == :completion_blocker_matrix))
+    assert Enum.any?(manifest.required_artifacts, &(&1.id == :focused_remaining_items_audit))
+
+    assert Enum.any?(
+             manifest.required_artifacts,
+             &(&1.id == :focused_remaining_items_plain_text_review)
+           )
+
+    assert Enum.any?(
+             manifest.required_artifacts,
+             &(&1.id == :direct_full_mx_aux_validation_checklist)
+           )
+
+    assert Enum.any?(
+             manifest.required_artifacts,
+             &(&1.id == :upstream_patch_maintainer_handoff)
+           )
 
     assert Enum.any?(
              manifest.required_commands,
@@ -484,11 +536,40 @@ defmodule MeshxMobileApp.BLE.LocalReleaseManifestTest do
     assert length(manifest["operator_capture_plan"]["capture_sections"]) == 5
 
     manifest_paths =
-      Enum.find(manifest["operator_capture_plan"]["capture_sections"], &(&1["id"] == "manifest_paths"))
+      Enum.find(
+        manifest["operator_capture_plan"]["capture_sections"],
+        &(&1["id"] == "manifest_paths")
+      )
 
     assert "completion_audit_plain_text_path" in manifest_paths["required_entries"]
-    assert manifest["artifact_bundle"]["artifact_count"] == 49
+    assert "focused_remaining_items_audit_path" in manifest_paths["required_entries"]
+    assert "focused_remaining_items_plain_text_path" in manifest_paths["required_entries"]
+    assert "direct_full_mx_aux_validation_checklist_path" in manifest_paths["required_entries"]
+    assert "upstream_patch_maintainer_handoff_path" in manifest_paths["required_entries"]
+    assert "recent_evidence_inventory_path" in manifest_paths["required_entries"]
+    assert manifest["artifact_bundle"]["artifact_count"] == 54
     assert manifest["artifact_bundle"]["open_artifact_count"] == 19
+
+    recent_evidence =
+      Enum.find(
+        manifest["artifact_bundle"]["artifacts"],
+        &(&1["id"] == "recent_evidence_inventory")
+      )
+
+    assert String.contains?(recent_evidence["purpose"], "closure artifact pointers")
+    assert "direct_full_mx_aux_complete" in recent_evidence["blocked_claims"]
+    assert "upstream_patch_migration_complete" in recent_evidence["blocked_claims"]
+
+    upstream_progress =
+      Enum.find(
+        manifest["artifact_bundle"]["artifacts"],
+        &(&1["id"] == "upstream_patch_migration_progress")
+      )
+
+    assert upstream_progress["path"] ==
+             "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/upstream-pr-recheck-1358/upstream-migration-progress.json"
+
+    assert "upstream_patch_migration_complete" in upstream_progress["blocked_claims"]
     assert manifest["policy_gates"]["routing"]["routing_claims_allowed?"] == false
   end
 end

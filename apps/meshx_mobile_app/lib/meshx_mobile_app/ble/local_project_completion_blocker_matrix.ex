@@ -168,24 +168,26 @@ defmodule MeshxMobileApp.BLE.LocalProjectCompletionBlockerMatrix do
       blocker_categories: [:hardware_evidence, :implementation, :transport_selection],
       can_progress_without_new_hardware?: false,
       next_unblock_action:
-        "Hardware-validate iOS beacon observation, then select and validate an iOS beacon gossip carrier if iOS participation is required.",
+        "Use the validated iOS observe/responder-fetch evidence and implemented foreground MB beacon emit as partial scope, then capture iOS-origin cross-radio gossip evidence and preserve the direct full-envelope policy if broader iOS participation is required.",
       required_evidence: [
-        "iOS device capture for received_message_beacon.",
-        "Selected iOS emit carrier evidence if gossip is required.",
+        "Android or second MeshX observer capture for iOS-origin MB beacon gossip.",
+        "Evidence preserving direct full-MX extended-advert limitation or proving a future replacement path.",
+        "Replay-normalized evidence for the implemented iOS MB beacon emit carrier if gossip is required.",
         "iOS parity hardware review output."
       ]
     },
     %{
       objective_id: :release_hardening,
       primary_blocker: :release_evidence,
-      blocker_categories: [:release_evidence],
+      blocker_categories: [:release_evidence, :implementation],
       can_progress_without_new_hardware?: true,
       next_unblock_action:
-        "Attach fresh release-candidate evidence and run operator wording review for the candidate.",
+        "Attach fresh release-candidate evidence, keep downstream patches until upstream PRs merge/release, and run operator wording review for the candidate.",
       required_evidence: [
         "Release artifact bundle.",
         "Operator-authored release notes.",
-        "Release candidate evidence review output."
+        "Release candidate evidence review output.",
+        "Merged and released GenericJam/mob_dev#6 and GenericJam/mob_new#5 plus MeshX post-merge dependency migration before downstream patch removal."
       ]
     }
   ]

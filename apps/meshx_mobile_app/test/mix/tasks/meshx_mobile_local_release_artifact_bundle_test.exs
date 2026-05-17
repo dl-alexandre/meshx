@@ -19,7 +19,7 @@ defmodule Mix.Tasks.MeshxMobileLocalReleaseArtifactBundleTest do
 
     assert output =~ "LOCAL_RELEASE_ARTIFACT_BUNDLE advert_only_local_release_candidate_bundle"
     assert output =~ "complete=false"
-    assert output =~ "ARTIFACTS total 49 open 19"
+    assert output =~ "ARTIFACTS total 54 open 19"
   end
 
   test "prints machine-readable JSON" do
@@ -32,7 +32,7 @@ defmodule Mix.Tasks.MeshxMobileLocalReleaseArtifactBundleTest do
     assert decoded["bundle_version"] == 1
     assert decoded["boundary"] == "advert_only_local_release_candidate_bundle"
     assert decoded["release_candidate_complete?"] == false
-    assert decoded["artifact_count"] == 49
+    assert decoded["artifact_count"] == 54
     assert decoded["open_artifact_count"] == 19
   end
 
@@ -66,6 +66,12 @@ defmodule Mix.Tasks.MeshxMobileLocalReleaseArtifactBundleTest do
 
     assert decoded_file["artifacts"]
            |> Enum.any?(&(&1["id"] == "completion_audit_standalone"))
+
+    assert decoded_file["artifacts"]
+           |> Enum.any?(&(&1["id"] == "focused_remaining_items_audit"))
+
+    assert decoded_file["artifacts"]
+           |> Enum.any?(&(&1["id"] == "focused_remaining_items_plain_text_review"))
 
     assert decoded_file["artifacts"]
            |> Enum.any?(&(&1["id"] == "release_operator_capture_plan"))

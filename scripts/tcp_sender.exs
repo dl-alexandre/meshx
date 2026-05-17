@@ -9,9 +9,9 @@ defmodule MeshxScripts.TCPSender do
     id = System.get_env("MESHX_NODE_ID", "sender")
     receiver_id = System.fetch_env!("MESHX_RECEIVER_ID")
     receiver_host = System.get_env("MESHX_RECEIVER_HOST", "127.0.0.1")
-    receiver_port = System.fetch_env!("MESHX_RECEIVER_PORT") |> String.to_integer()
+    receiver_port = "MESHX_RECEIVER_PORT" |> System.fetch_env!() |> String.to_integer()
     payload = System.get_env("MESHX_PAYLOAD", "hello")
-    timeout_ms = System.get_env("MESHX_TIMEOUT_MS", "10000") |> String.to_integer()
+    timeout_ms = "MESHX_TIMEOUT_MS" |> System.get_env("10000") |> String.to_integer()
 
     start_runtime!()
     Router.subscribe(self())
@@ -22,7 +22,7 @@ defmodule MeshxScripts.TCPSender do
 
     wait_for_peer!(receiver_id, timeout_ms)
 
-    packet = Packet.new(:data, System.unique_integer([:positive]) |> rem(4_000_000_000), payload)
+    packet = Packet.new(:data, [:positive] |> System.unique_integer() |> rem(4_000_000_000), payload)
     :ok = Router.send_packet(receiver_id, packet)
   end
 
@@ -38,7 +38,9 @@ defmodule MeshxScripts.TCPSender do
 
   defp start_runtime! do
     configure_store!()
+    {:ok, _apps} = Application.ensure_all_started(:meshx_store)
     {:ok, _apps} = Application.ensure_all_started(:meshx_runtime)
+    :ok = MeshxRuntime.ensure_dependency_workers_started()
   end
 
   defp configure_store! do

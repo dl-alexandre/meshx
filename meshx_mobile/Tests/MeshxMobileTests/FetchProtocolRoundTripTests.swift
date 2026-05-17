@@ -14,6 +14,32 @@ import XCTest
 /// protocol drift between the two Swift types (client + responder)
 /// before it surfaces on real radio.
 final class FetchProtocolRoundTripTests: XCTestCase {
+    func testMessageEnvelopeBuildV1RoundTripsThroughParser() throws {
+        let messageId = Data(hex: "000102030405060708090a0b0c0d0e0f")!
+        let envelope = try MessageEnvelope.buildV1(
+            messageId: messageId,
+            senderPeerId: "ios-responder",
+            recipientPeerId: nil,
+            createdAt: 1_771_234_567_000,
+            ttl: 1,
+            payloadType: "TX",
+            payload: Data("hello-full-envelope".utf8)
+        )
+
+        guard case .success(let parsed) = MessageEnvelope.parse(envelope) else {
+            XCTFail("expected built envelope to parse")
+            return
+        }
+
+        XCTAssertEqual(parsed.messageId, messageId)
+        XCTAssertEqual(parsed.senderPeerId, "ios-responder")
+        XCTAssertNil(parsed.recipientPeerId)
+        XCTAssertEqual(parsed.createdAt, 1_771_234_567_000)
+        XCTAssertEqual(parsed.ttl, 1)
+        XCTAssertEqual(parsed.payloadType, "TX")
+        XCTAssertEqual(parsed.payload, Data("hello-full-envelope".utf8))
+    }
+
     func testRequestEncodeDecodeRoundTrip() {
         let original = MeshxFetchProtocol.Request(
             requestId: "abc-123",
@@ -102,5 +128,64 @@ final class FetchProtocolRoundTripTests: XCTestCase {
                 return
             }
         }
+    }
+
+    func testResponderPreparesOkResponseForMatchingRequest() throws {
+        let messageId = Data(hex: "101112131415161718191a1b1c1d1e1f")!
+        let envelope = try MessageEnvelope.buildV1(
+            messageId: messageId,
+            senderPeerId: "ios-responder",
+            createdAt: 42,
+            payload: Data("served-over-gatt".utf8)
+        )
+        let beacon = MeshxLegacyBeaconAdvertisement.build(
+            messageId: messageId,
+            senderPeerId: "ios-responder"
+        )
+        let responder = try MeshxFetchGattResponder(
+            envelope: envelope,
+            responderPeerId: "ios-responder"
+        )
+        let request = MeshxFetchProtocol.Request(
+            requestId: "req-ok",
+            messageIdHash: beacon.messageIdHash,
+            requesterPeerId: "android-client"
+        )
+
+        let prepared = responder.prepareResponse(for: try XCTUnwrap(MeshxFetchProtocol.encodeRequest(request)))
+        let decoded = MeshxFetchProtocol.decodeResponse(prepared.encoded)
+
+        XCTAssertEqual(prepared.request, request)
+        XCTAssertEqual(prepared.response.status, MeshxFetchProtocol.statusOK)
+        XCTAssertEqual(decoded?.status, MeshxFetchProtocol.statusOK)
+        XCTAssertEqual(decoded?.envelope, envelope)
+    }
+
+    func testResponderPreparesNotFoundAndInvalidRequestResponses() throws {
+        let messageId = Data(hex: "202122232425262728292a2b2c2d2e2f")!
+        let envelope = try MessageEnvelope.buildV1(
+            messageId: messageId,
+            senderPeerId: "ios-responder",
+            createdAt: 42,
+            payload: Data("served-over-gatt".utf8)
+        )
+        let responder = try MeshxFetchGattResponder(
+            envelope: envelope,
+            responderPeerId: "ios-responder"
+        )
+        let missing = MeshxFetchProtocol.Request(
+            requestId: "req-missing",
+            messageIdHash: Data(repeating: 0xAA, count: 8),
+            requesterPeerId: nil
+        )
+
+        let notFound = responder.prepareResponse(for: try XCTUnwrap(MeshxFetchProtocol.encodeRequest(missing)))
+        XCTAssertEqual(notFound.response.status, MeshxFetchProtocol.statusNotFound)
+        XCTAssertEqual(MeshxFetchProtocol.decodeResponse(notFound.encoded)?.reason, "not_found")
+
+        let invalid = responder.prepareResponse(for: Data([0x00, 0x01]))
+        XCTAssertEqual(invalid.response.status, MeshxFetchProtocol.statusInvalidRequest)
+        XCTAssertEqual(invalid.response.requestId, "invalid")
+        XCTAssertEqual(MeshxFetchProtocol.decodeResponse(invalid.encoded)?.reason, "invalid_request")
     }
 }

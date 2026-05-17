@@ -3,9 +3,10 @@ defmodule MeshxMobileApp.BLE.LocalIOSNativeSourceInventory do
   Source inventory for the current iOS BLE bridge parity boundary.
 
   This records whether expected native source files and foreground
-  legacy-beacon observe markers are present in the repository. It is source
-  evidence only: it does not build iOS, touch hardware, scan, advertise, fetch,
-  route, persist, ACK, retry, encrypt, authenticate, or run background work.
+  legacy-beacon observe and foreground emit markers are present in the
+  repository. It is source evidence only: it does not build iOS, touch hardware,
+  scan, advertise, fetch, route, persist, ACK, retry, encrypt, authenticate, or
+  run background work.
   """
 
   @expected_files [
@@ -14,7 +15,17 @@ defmodule MeshxMobileApp.BLE.LocalIOSNativeSourceInventory do
       path: "apps/meshx_mobile_app/ios/MeshxBLEBridge.swift",
       markers: [
         "MeshxLegacyBeaconAdvertisement",
-        "meshx_ble_emit_received_message_beacon"
+        "meshx_ble_emit_received_message_beacon",
+        "dispatchFullEnvelopeBeacon"
+      ]
+    },
+    %{
+      id: :swift_peripheral,
+      path: "meshx_mobile/Sources/MeshxMobile/BLE.swift",
+      markers: [
+        "startBeaconAdvertising",
+        "advertiseLegacyBeacon",
+        "CBAdvertisementDataManufacturerDataKey"
       ]
     },
     %{
@@ -57,13 +68,14 @@ defmodule MeshxMobileApp.BLE.LocalIOSNativeSourceInventory do
       ios_hardware_claim_allowed?: false,
       ios_parity_claim_allowed?: false,
       foreground_observe_source_present?: foreground_observe_source_present?(files),
+      foreground_emit_source_present?: foreground_emit_source_present?(files),
       files: files,
       missing_files: files |> Enum.reject(& &1.present?) |> Enum.map(& &1.path),
       blocked_claims: @blocked_claims,
       notes: [
         "Source markers are implementation evidence, not iOS hardware proof.",
         "iOS hardware captures must still normalize through received_message_beacon replay before participation claims change.",
-        "iOS beacon gossip emission remains unselected and unvalidated."
+        "Foreground iOS MB beacon emit source is present, but iOS-origin cross-radio gossip proof remains missing and parity claims stay blocked."
       ]
     }
   end
@@ -110,7 +122,11 @@ defmodule MeshxMobileApp.BLE.LocalIOSNativeSourceInventory do
   defp resolve_path(root, path) do
     app_relative = String.replace_prefix(path, "apps/meshx_mobile_app/", "")
 
-    [Path.join(root, path), Path.join(root, app_relative)]
+    [
+      Path.join(root, path),
+      Path.join(root, app_relative),
+      Path.expand(Path.join(["..", "..", path]), root)
+    ]
     |> Enum.find(&File.exists?/1)
   end
 
@@ -125,5 +141,11 @@ defmodule MeshxMobileApp.BLE.LocalIOSNativeSourceInventory do
         &(&1.id == :nif_bridge and &1.present? and
             "received_message_beacon" in &1.markers and &1.missing_markers == [])
       )
+  end
+
+  defp foreground_emit_source_present?(files) do
+    Enum.any?(files, fn file ->
+      file.id == :swift_peripheral and file.present? and file.missing_markers == []
+    end)
   end
 end

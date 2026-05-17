@@ -53,6 +53,7 @@ defmodule MeshxMobileApp.BLE.LocalIOSParityEvidenceManifest do
       boundary: :local_ios_parity_evidence_manifest,
       current_ios_mode: :contract_only,
       native_foreground_legacy_beacon_observe_present?: true,
+      ios_legacy_beacon_observe_hardware_validated?: true,
       ios_participation_claim_allowed?: false,
       ios_hardware_claim_allowed?: false,
       ios_parity_claim_allowed?: false,
@@ -80,9 +81,11 @@ defmodule MeshxMobileApp.BLE.LocalIOSParityEvidenceManifest do
       open_hardware_gate_count: hardware_plan.blocked_gate_count,
       missing_ios_evidence: missing_ios_evidence(hardware_plan),
       notes: [
-        "iOS has a foreground scanner decode path for legacy beacon manufacturer advertisements, but no iOS hardware proof is recorded.",
-        "iOS observe and iOS emit remain separate claims; no iOS beacon gossip carrier is selected.",
-        "iOS remains claim-blocked until native behavior is captured on hardware and replay-normalized.",
+        "iOS has foreground scanner decode and hardware proof for Android-to-iPhone legacy beacon observation.",
+        "SM-T577U -> iPad12,1 direct full-MX AUX scan-response probing is archived as negative evidence; it does not enable the full-envelope advert claim.",
+        "iOS observe, foreground MB beacon emit, and autonomous beacon gossip remain separate claims; iOS-origin cross-radio gossip proof is still missing.",
+        "Direct full-MX extended advertising remains blocked on tested iOS hardware; use MB legacy beacon plus GATT fetch for full-envelope delivery.",
+        "iOS parity remains claim-blocked until emission, full-envelope, background, and replay-normalized gates are satisfied as required.",
         "Android legacy beacon proof cannot satisfy iOS parity claims.",
         "iOS hardware captures must normalize through the same replay path before iOS participation is claimed."
       ]
@@ -102,7 +105,7 @@ defmodule MeshxMobileApp.BLE.LocalIOSParityEvidenceManifest do
         id: :ios_parity_evidence_manifest,
         command: "mix meshx.mobile.local_ios_parity.evidence --json --out <path>",
         purpose:
-          "Archive iOS contract-only state, open hardware gates, and blocked iOS parity claims."
+          "Archive partial iOS hardware evidence, open hardware gates, and blocked iOS parity claims."
       },
       %{
         id: :ios_parity_decision_scenario_plan,
@@ -157,10 +160,13 @@ defmodule MeshxMobileApp.BLE.LocalIOSParityEvidenceManifest do
   defp contract_only_scope do
     %{
       current_mode: :contract_only,
+      hardware_validated_behavior: [
+        :foreground_legacy_beacon_manufacturer_data_observe
+      ],
       implemented_unvalidated_behavior: [
-        :foreground_legacy_beacon_manufacturer_data_decode,
         :canonical_received_message_beacon_wire_map,
-        :swift_parser_fixture
+        :swift_parser_fixture,
+        :foreground_legacy_beacon_manufacturer_data_emit
       ],
       not_selected_behavior: [
         :ios_legacy_beacon_gossip_emit,
@@ -169,16 +175,17 @@ defmodule MeshxMobileApp.BLE.LocalIOSParityEvidenceManifest do
         :ios_background_ble_advertise
       ],
       not_evidence_of: [
-        :ios_hardware_participation,
-        :ios_legacy_beacon_observed_on_device,
         :ios_legacy_beacon_gossip,
+        :ios_full_mx_direct_advert_receive,
         :ios_full_envelope_advert,
         :ios_parity_claim
       ],
       notes: [
-        "iOS source code and parser fixtures are implementation evidence, not hardware evidence.",
+        "iOS source code, parser fixtures, and the 2026-05-15 iPhone 13 capture prove foreground legacy-beacon observation.",
+        "Foreground iOS MB beacon emission code exists, but the 2026-05-17 iPad run records zero matched Android receive lines.",
+        "The 2026-05-17 SM-T577U -> iPad12,1 AUX probe and 11:19 rerun are negative capability evidence only.",
         "iOS observe and iOS emit remain separate claims.",
-        "Android one-hop legacy beacon proof cannot satisfy any iOS hardware gate."
+        "The iOS observe proof does not satisfy iOS beacon gossip, direct full-MX advertising, background BLE, or parity gates."
       ]
     }
   end
@@ -187,16 +194,55 @@ defmodule MeshxMobileApp.BLE.LocalIOSParityEvidenceManifest do
     [
       %{
         id: :ios_foreground_legacy_beacon_scan_decode,
-        status: :implemented_unvalidated,
+        status: :hardware_validated,
         files: [
           "meshx_mobile/Sources/MeshxMobile/BLE.swift",
           "apps/meshx_mobile_app/ios/MeshxBLEBridge.swift",
           "apps/meshx_mobile_app/ios/meshx_ble_nif.m"
         ],
+        hardware_evidence: [
+          "artifacts/local-ble/2026-05-15-iphone13-sm-t577u/hardware/i26b-android-to-iphone-receive/summary.json"
+        ],
         notes: [
           "CoreBluetooth scan results inspect manufacturer data for MeshX 22-byte legacy beacon payloads.",
           "Observed beacons are emitted to Elixir as canonical received_message_beacon v1 wire maps.",
-          "This is foreground implementation evidence only; iOS hardware parity remains blocked until capture logs exist."
+          "Hardware evidence proves Android-to-iPhone legacy-beacon observation only; iOS parity remains blocked."
+        ]
+      },
+      %{
+        id: :ios_foreground_legacy_beacon_emit,
+        status: :implemented_unvalidated,
+        files: [
+          "meshx_mobile/Sources/MeshxMobile/BLE.swift",
+          "apps/meshx_mobile_app/ios/MeshxBLEBridge.swift",
+          "meshx_mobile/Examples/MeshxMobileHarness/MeshxMobileHarness/BLEHarnessModel.swift"
+        ],
+        hardware_evidence: [
+          "artifacts/local-ble/2026-05-15-iphone13-sm-t577u/hardware/i26-iphone-dispatch/summary.json",
+          "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/summary.json"
+        ],
+        notes: [
+          "Foreground iOS code can advertise an MB beacon cue through CBAdvertisementDataManufacturerDataKey.",
+          "The current iPad evidence records local dispatch but zero matched Android receive lines.",
+          "This does not satisfy iOS legacy beacon gossip, one-hop hardware proof, or parity claims."
+        ]
+      },
+      %{
+        id: :ios_direct_full_mx_aux_scan_response_probe,
+        status: :negative_hardware_evidence,
+        files: [
+          "apps/meshx_mobile_app/android/app/src/androidTest/java/dev/meshx/mob/ble/IOSAuxFullMxAdvertSmokeTest.kt",
+          "meshx_mobile/Sources/MeshxMobile/MessageAdvertisementObserver.swift",
+          "docs/BLE_BRIDGE.md"
+        ],
+        hardware_evidence: [
+          "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/android-aux-full-mx-ios-observe/summary.md",
+          "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/android-aux-full-mx-ios-observe-rerun/summary.md"
+        ],
+        notes: [
+          "Android emitted 80-byte full-MX scan-response extended adverts from SM-T577U in the original probe and rerun.",
+          "iPad12,1 observed MB legacy beacons during the scan sessions, but no direct full-MX received_message, decode-error, candidate discovery callback, or FF FF 4D 58 MX callback evidence.",
+          "This keeps ios_full_envelope_advert_claim_allowed? false."
         ]
       }
     ]

@@ -251,7 +251,8 @@ defmodule MeshxMobileApp.BLE.LocalProjectCompletionAudit do
         "Parity fixtures or validation ledgers.",
         "LocalIOSParityAcceptance gates for shared canonical contracts, future iOS parity contract, negative validation, canonical ingress, legacy beacon observe/gossip, full-envelope advert, hardware replay fixture, and iOS background BLE.",
         "LocalIOSParityHardwareValidationPlan gate checklist for iOS device matrix, canonical ingress fixture, legacy beacon observe/gossip hardware, full-envelope capability, hardware replay fixture, background boundary, and negative claim review.",
-        "LocalIOSAdvertCarrierDecision ledger separating implemented-unvalidated observe from unselected iOS beacon gossip emit carriers.",
+        "LocalIOSAdvertCarrierDecision ledger separating hardware-validated legacy-beacon observe, implemented-unvalidated foreground iOS MB beacon emit, blocked iOS beacon gossip, and PHY-blocked full-MX extended-advert observe.",
+        "LocalHardwareValidationGates partial iOS participation entry with Android fetch from iOS MeshxFetchGattResponder evidence under artifacts/local-ble/2026-05-17-sm-t577u-ipad9/.",
         "LocalIOSParityOperatorCapturePlan operator capture checklist for target devices, canonical ingress, legacy beacon observe/gossip, full-envelope capability, replay fixture, background boundary, and negative evidence.",
         "LocalIOSParityDecisionScenarioPlan decision scenario matrix for keep_ios_contract_only and enable_ios_advert_only_participation outcomes.",
         "LocalIOSParityEvidenceManifest archiveable contract-only iOS evidence and blocked parity gates.",
@@ -259,14 +260,14 @@ defmodule MeshxMobileApp.BLE.LocalProjectCompletionAudit do
         "Current iOS parity negative validation matrix plus future implementation-backed iOS fixtures."
       ],
       missing_evidence: [
-        "iOS beacon gossip emit carrier selection and implementation.",
-        "Satisfied LocalIOSParityAcceptance legacy beacon observe, legacy beacon gossip, full-envelope advert, hardware replay fixture, and iOS background BLE gates.",
+        "Android observer capture and replay-normalized evidence for iOS-origin MB beacon emission before any iOS beacon gossip claim.",
+        "Satisfied LocalIOSParityAcceptance legacy beacon gossip, full-envelope advert, hardware replay fixture, and iOS background BLE gates.",
         "Evidence satisfying LocalIOSParityHardwareValidationPlan target device, canonical ingress, legacy beacon observe/gossip, full-envelope capability, hardware replay, background boundary, and negative claim review gates.",
-        "iOS device capture proving beacon observe/gossip and any full-envelope capability.",
+        "iOS device capture proving beacon gossip and any full-envelope direct-advert capability.",
         "Implementation-backed negative fixtures proving bridge shell, Android evidence, missing dispatcher, unproven capability, and missing replay fixtures cannot satisfy iOS parity."
       ],
       notes: [
-        "Foreground iOS observe code is implementation evidence, not hardware parity; iOS beacon gossip emission remains unselected."
+        "Foreground iOS legacy-beacon observe and Android fetch from iOS responder have hardware evidence; foreground iOS MB beacon emit code exists, but iOS-origin cross-radio gossip proof is still missing and direct full-MX extended advertising remains blocked on tested iOS hardware."
       ]
     },
     %{
@@ -285,15 +286,17 @@ defmodule MeshxMobileApp.BLE.LocalProjectCompletionAudit do
         "Local release candidate review task output.",
         "LocalReleaseOperatorCapturePlan release-candidate capture checklist for manifests, objective reviews, hardware attachments, operator notes, and final review.",
         "LocalReleaseCandidateEvidenceReview for operator hardware attachments and release-note wording.",
+        "Upstream patch migration handoff evidence from docs/upstream_mob_patches.md.",
         "Operator docs and release notes that preserve open blockers."
       ],
       missing_evidence: [
         "Concrete release-candidate artifact bundle with attached hardware logs, summaries, and operator-authored release notes.",
         "Ready LocalReleaseCandidateEvidenceReview or local release candidate review task output for the release candidate.",
+        "Merged and released GenericJam/mob_dev#6 and GenericJam/mob_new#5, followed by MeshX dependency migration and post-merge verification before removing downstream patches.",
         "Final release wording review against the completion audit."
       ],
       notes: [
-        "The advert-only local mode may be releasable with limitations; the whole project is still open."
+        "The advert-only local mode may be releasable with limitations; the whole project is still open, and upstream patch migration remains incomplete until maintainer merge/release and MeshX dependency migration finish."
       ]
     }
   ]

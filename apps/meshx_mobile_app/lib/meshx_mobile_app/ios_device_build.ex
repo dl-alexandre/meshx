@@ -9,6 +9,12 @@ defmodule MeshxMobileApp.IOSDeviceBuild do
       "$MESHX_SWIFT_DIR/Noise.swift" \\
       "$MESHX_SWIFT_DIR/SecureSession.swift" \\
       "$MESHX_SWIFT_DIR/BLE.swift" \\
+      "$MESHX_SWIFT_DIR/MessageEnvelope.swift" \\
+      "$MESHX_SWIFT_DIR/MessageAdvertisement.swift" \\
+      "$MESHX_SWIFT_DIR/MessageAdvertisementObserver.swift" \\
+      "$MESHX_SWIFT_DIR/MeshxFetchProtocol.swift" \\
+      "$MESHX_SWIFT_DIR/MeshxFetchGatt.swift" \\
+      "$MESHX_SWIFT_DIR/MeshxFetchGattResponder.swift" \\
       "ios/MeshxBLEBridge.swift" \\
   """
 

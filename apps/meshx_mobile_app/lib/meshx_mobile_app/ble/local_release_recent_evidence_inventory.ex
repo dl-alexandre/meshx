@@ -75,13 +75,72 @@ defmodule MeshxMobileApp.BLE.LocalReleaseRecentEvidenceInventory do
       id: :ios_native_source_inventory,
       status: :implemented_source_inventory,
       source: "LocalIOSNativeSourceInventory",
-      supports: [:ios_foreground_observe_source_inventory],
+      supports: [
+        :ios_foreground_observe_source_inventory,
+        :ios_foreground_mb_beacon_emit_source_inventory
+      ],
       does_not_support: [
+        :ios_origin_cross_radio_gossip_proof,
         :ios_hardware_participation,
         :ios_legacy_beacon_gossip,
         :ios_parity_claim
       ],
       required_review: :ios_parity_hardware_review
+    },
+    %{
+      id: :direct_full_mx_aux_validation_checklist,
+      status: :operator_closure_checklist_evidence,
+      source:
+        "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/android-aux-full-mx-ios-observe-rerun/aux-validation-checklist.md",
+      supports: [
+        :direct_full_mx_aux_closure_criteria,
+        :android_direct_full_mx_aux_emission_evidence_requirements,
+        :ios_observer_negative_boundary_evidence_requirements
+      ],
+      does_not_support: [
+        :ios_aux_callback_proof,
+        :ios_canonical_full_mx_aux_parse,
+        :direct_full_mx_aux_interop_complete
+      ],
+      required_review: :direct_full_mx_aux_hardware_review
+    },
+    %{
+      id: :upstream_patch_maintainer_handoff,
+      status: :operator_handoff_evidence,
+      source:
+        "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/upstream-pr-recheck-1358/maintainer-handoff.md",
+      supports: [
+        :upstream_pr_state_rechecked,
+        :maintainer_handoff_comments_posted,
+        :downstream_patch_retention_decision
+      ],
+      does_not_support: [
+        :upstream_prs_merged,
+        :downstream_patch_removal,
+        :post_merge_dependency_migration
+      ],
+      required_review: :upstream_patch_merge_review
+    },
+    %{
+      id: :upstream_patch_migration_progress,
+      status: :operator_progress_gate_evidence,
+      source:
+        "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/upstream-pr-recheck-1358/upstream-migration-progress.json",
+      supports: [
+        :downstream_patch_path_verified,
+        :replacement_prs_open,
+        :maintainer_handoff_present,
+        :viewer_permission_recorded
+      ],
+      does_not_support: [
+        :upstream_prs_merged,
+        :upstream_changes_released,
+        :meshx_dependency_migration,
+        :downstream_patch_removal,
+        :post_migration_verification,
+        :upstream_patch_migration_complete
+      ],
+      required_review: :upstream_patch_merge_review
     }
   ]
 

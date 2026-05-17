@@ -17,7 +17,7 @@ defmodule Mix.Tasks.MeshxMobileLocalReleaseRecentEvidenceTest do
         RecentEvidence.run([])
       end)
 
-    assert output =~ "LOCAL_RELEASE_RECENT_EVIDENCE complete=false items=6"
+    assert output =~ "LOCAL_RELEASE_RECENT_EVIDENCE complete=false items=9"
   end
 
   test "prints and writes json output" do

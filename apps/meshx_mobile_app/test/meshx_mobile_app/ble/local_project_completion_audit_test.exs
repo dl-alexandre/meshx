@@ -591,7 +591,7 @@ defmodule MeshxMobileApp.BLE.LocalProjectCompletionAuditTest do
 
     assert Enum.any?(
              ios.missing_evidence,
-             &String.contains?(&1, "LocalIOSParityAcceptance legacy beacon observe")
+             &String.contains?(&1, "LocalIOSParityAcceptance legacy beacon gossip")
            )
 
     assert Enum.any?(
@@ -601,7 +601,7 @@ defmodule MeshxMobileApp.BLE.LocalProjectCompletionAuditTest do
 
     assert Enum.any?(
              ios.missing_evidence,
-             &String.contains?(&1, "iOS beacon gossip emit carrier")
+             &String.contains?(&1, "Android observer capture")
            )
 
     assert Enum.any?(
@@ -639,13 +639,28 @@ defmodule MeshxMobileApp.BLE.LocalProjectCompletionAuditTest do
            )
 
     assert Enum.any?(
+             release.required_artifacts,
+             &String.contains?(&1, "upstream_mob_patches")
+           )
+
+    assert Enum.any?(
              release.missing_evidence,
              &String.contains?(&1, "Ready LocalReleaseCandidateEvidenceReview")
            )
 
     assert Enum.any?(
              release.missing_evidence,
+             &String.contains?(&1, "GenericJam/mob_dev#6")
+           )
+
+    assert Enum.any?(
+             release.missing_evidence,
              &String.contains?(&1, "local release candidate review task")
+           )
+
+    assert Enum.any?(
+             release.notes,
+             &String.contains?(&1, "upstream patch migration remains incomplete")
            )
   end
 
@@ -959,7 +974,12 @@ defmodule MeshxMobileApp.BLE.LocalProjectCompletionAuditTest do
     assert persistence.status == :partial
     assert String.contains?(persistence.prompt_requirement, "memory-only by default")
     assert String.contains?(persistence.prompt_requirement, "opt-in durable snapshots")
-    assert String.contains?(persistence.prompt_requirement, "production-default message/ref persistence")
+
+    assert String.contains?(
+             persistence.prompt_requirement,
+             "production-default message/ref persistence"
+           )
+
     assert "LocalPersistenceProductionLifecyclePlan" in persistence.required_artifacts
 
     assert Enum.any?(
@@ -988,7 +1008,12 @@ defmodule MeshxMobileApp.BLE.LocalProjectCompletionAuditTest do
     assert security.status == :partial
     assert String.contains?(security.prompt_requirement, "Pure authorship")
     assert String.contains?(security.prompt_requirement, "peer-binding")
-    assert String.contains?(security.prompt_requirement, "current BLE refs remain unsigned hash references")
+
+    assert String.contains?(
+             security.prompt_requirement,
+             "current BLE refs remain unsigned hash references"
+           )
+
     assert String.contains?(security.prompt_requirement, "beacon authentication")
     assert String.contains?(security.prompt_requirement, "trust lifecycle evidence")
     assert "LocalSecurityDecisionScenarioPlan" in security.required_artifacts

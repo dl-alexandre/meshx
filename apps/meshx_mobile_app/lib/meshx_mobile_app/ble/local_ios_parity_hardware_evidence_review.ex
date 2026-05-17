@@ -141,7 +141,7 @@ defmodule MeshxMobileApp.BLE.LocalIOSParityHardwareEvidenceReview do
       notes: [
         "Ready evidence means the supplied metadata covers iOS advert-only hardware validation gates.",
         "This review does not enable iOS scanner, advertiser, background BLE, full-envelope advert, gossip, or parity claims.",
-        "Android hardware evidence cannot satisfy iOS parity; iOS remains contract-only until implementation-backed device evidence passes."
+        "Partial iOS hardware evidence does not satisfy broad parity; gossip, direct full-envelope policy, replay, and background gates remain separate."
       ]
     }
   end

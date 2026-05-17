@@ -22,10 +22,35 @@ defmodule MeshxMobileApp.BLE.LocalReleaseCriteriaTest do
            )
 
     assert "LocalReleaseCandidateEvidenceReview" in criterion.evidence
+    assert "LocalFocusedRemainingItemsAudit" in criterion.evidence
+    assert "LocalReleaseRecentEvidenceInventory" in criterion.evidence
+
+    assert Enum.any?(
+             criterion.evidence,
+             &String.contains?(&1, "meshx.mobile.remaining_items.audit")
+           )
+
+    assert Enum.any?(
+             criterion.evidence,
+             &String.contains?(&1, "meshx.mobile.local_release.recent_evidence")
+           )
 
     assert Enum.any?(
              criterion.limitations,
              &String.contains?(&1, "does not convert partial work into completion")
+           )
+
+    assert Enum.any?(
+             criterion.limitations,
+             &String.contains?(
+               &1,
+               "direct full-MX AUX and upstream patch migration rows incomplete"
+             )
+           )
+
+    assert Enum.any?(
+             criterion.limitations,
+             &String.contains?(&1, "AUX checklist and upstream handoff pointers")
            )
   end
 

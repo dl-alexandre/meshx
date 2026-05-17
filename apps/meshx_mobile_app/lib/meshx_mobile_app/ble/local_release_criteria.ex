@@ -124,15 +124,22 @@ defmodule MeshxMobileApp.BLE.LocalReleaseCriteria do
         "mix meshx.mobile.advert_gossip.audit",
         "mix meshx.mobile.local_readiness.audit --allow-open --json",
         "mix meshx.mobile.local_readiness.audit --allow-open --out <path>",
+        "mix meshx.mobile.remaining_items.audit --json --out <path>",
+        "mix meshx.mobile.remaining_items.audit | tee <path>",
         "mix meshx.mobile.local_lifecycle.validation_plan --json --out <path>",
         "mix meshx.mobile.local_lifecycle.evidence --json --out <path>",
         "mix meshx.mobile.local_routing.validation_plan --json --out <path>",
         "mix meshx.mobile.local_security.validation_plan --json --out <path>",
         "mix meshx.mobile.local_release.manifest --json --out <path>",
+        "mix meshx.mobile.local_release.recent_evidence --json --out <path>",
+        "LocalFocusedRemainingItemsAudit",
+        "LocalReleaseRecentEvidenceInventory",
         "LocalReleaseCandidateEvidenceReview"
       ],
       limitations: [
-        "Readiness audit reports open blockers; it does not convert partial work into completion."
+        "Readiness audit reports open blockers; it does not convert partial work into completion.",
+        "Focused remaining-items audit keeps direct full-MX AUX and upstream patch migration rows incomplete until their closure evidence exists.",
+        "Recent-evidence inventory preserves AUX checklist and upstream handoff pointers without allowing completion claims."
       ],
       notes: ["Release/status outputs are machine-readable and archiveable."]
     },

@@ -4,6 +4,10 @@ M66 records the next transport decision gate after advertisement-only
 local mesh, opportunistic beacon gossip, and the local inbox consumer
 surface.
 
+For the focused four-row follow-up audit covering the iOS responder proof,
+extended-advertising boundary, upstream patch PRs, and `--no-start` startup
+fix, see `docs/remaining_items_audit.md`.
+
 ## Current Hardware State
 
 The attached Android pair remains:
@@ -24,6 +28,30 @@ This pair is not validated for:
 - GATT fetch;
 - standalone GATT read/write interop;
 - full-envelope extended advertisement reception by SM-T390.
+
+The separate iOS responder hardware path is now validated:
+
+| Role | Device | OS/API | identifier |
+| --- | --- | --- | --- |
+| Requester | Samsung SM-T577U | Android 13 / API 33 | `R52W90AW7EN` |
+| Responder | Coding iPad | iPadOS 26.5 | `00008030-000209510ED0C02E` |
+
+Evidence:
+
+- iOS harness served one MX envelope through `MeshxFetchGattResponder`.
+- Android instrumented test `IOSResponderFetchSmokeTest` scanned the
+  iOS fetch-service cue, connected, wrote MFQ, read MFR, parsed the
+  returned MX envelope, and passed on hardware.
+- Final Android log showed `fetch_service_discovery_result`
+  `gatt_status=0`, `fetch_response_received` `status="ok"`,
+  `envelope_parse="ok"`, and terminal `complete`.
+- Fresh rerun artifacts are archived under
+  `artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/android-fetch-ios-responder-rerun/`.
+  The rerun first exposed a stale Android `BluetoothDevice.name`
+  fallback that could request an old `mx<message_hash>` and receive
+  `not_found`; `IOSResponderFetchSmokeTest` now uses only the current
+  `ScanRecord.deviceName` for the iOS responder hash cue. The second
+  rerun passed with `OK (1 test)`.
 
 ## Decision
 

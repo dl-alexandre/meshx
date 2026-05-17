@@ -43,6 +43,8 @@ object MeshxBleNative {
     @Volatile private var bridge: RealBleBridge? = null
     @Volatile private var dispatcher: BleDispatcher? = null
     @Volatile private var fetchResponder: MeshxFetchGatt? = null
+    @Volatile private var fetchOnBeaconEnabled: Boolean = false
+    @Volatile private var selftestSendEnabled: Boolean = true
     private val random = SecureRandom()
 
     /** Kotlin → NIF. Implemented in c_src/meshx_ble_nif.c. */
@@ -53,6 +55,19 @@ object MeshxBleNative {
     fun init(context: Context) {
         appContext = context.applicationContext
         Log.i(TAG, "init: application context set")
+    }
+
+    @JvmStatic
+    fun setFetchOnBeaconEnabled(enabled: Boolean) {
+        fetchOnBeaconEnabled = enabled
+        bridge = null
+        Log.i(TAG, "setFetchOnBeaconEnabled=$enabled")
+    }
+
+    @JvmStatic
+    fun setSelftestSendEnabled(enabled: Boolean) {
+        selftestSendEnabled = enabled
+        Log.i(TAG, "setSelftestSendEnabled=$enabled")
     }
 
     // Every BleEvent the scanner/advertiser/dispatcher emits is forwarded
@@ -93,7 +108,7 @@ object MeshxBleNative {
         bridge?.let { return it }
         val ctx = contextOrNull() ?: return null
         return try {
-            RealBleBridge(ctx, sink).also { bridge = it }
+            RealBleBridge(ctx, sink, fetchOnBeaconEnabled).also { bridge = it }
         } catch (t: Throwable) {
             emitBridgeError(
                 BleEvent.Companion.ErrorKind.UNKNOWN,
@@ -374,7 +389,9 @@ object MeshxBleNative {
      *     `meshx.mx.send=true` or `MESHX_MX_SEND=true` env var):
      *     dispatch the full MX envelope via [sendFullMxEnvelope], which
      *     pairs the MB beacon cue with a connectable GATT fetch
-     *     responder serving the envelope.
+     *     responder serving the envelope. The same BuildConfig flag also
+     *     installs Android's scanner-side MB-cue -> GATT-fetch
+     *     coordinator in RealBleBridge.
      *
      * The branch is on a compile-time `BuildConfig` constant so R8
      * strips the unused path from release builds. See
@@ -383,6 +400,11 @@ object MeshxBleNative {
      */
     @JvmStatic
     fun sendToPeer(peerId: String, payload: ByteArray): Boolean {
+        if (!selftestSendEnabled) {
+            Log.i(TAG, "sendToPeer rejected: self-test send disabled by runtime flag")
+            return false
+        }
+
         return if (BuildConfig.USE_FULL_MX_ENVELOPES) {
             sendFullMxEnvelope(peerId, payload)
         } else {

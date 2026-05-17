@@ -208,7 +208,7 @@ surface they expose is asymmetric today.
 | Receive `%DeviceDiscovered{}` | ✅ | ❌ | iOS emits legacy `{:connected, peer_id}` / `{:disconnected, peer_id}` tuples (GATT path) — there's no equivalent "I saw an ambient BLE device" event. Adding it means surfacing `CBCentralManager` discovery results into a `meshx_ble_emit_device_discovered` NIF entry. |
 | Receive `%AdvertisementReceived{}` | ✅ | ❌ | Same reasoning as `DeviceDiscovered`. |
 | Receive `%ReceivedMessageBeacon{}` (22-byte `MB` legacy beacon) | ✅ | ✅ | App bridge: `MeshxBLEClient.meshxDidObserveLegacyBeacon` → `meshx_ble_emit_received_message_beacon` → v1 atom-keyed map. Harness (post `fb5afa8`): `MessageAdvertisementObserver` falls through to `MeshxLegacyBeaconAdvertisement.parse` after MX decode declines, surfacing `meshxMessageObserverDidObserveLegacyBeacon`. Validated cross-platform on hardware (Android SM-T577U → iPhone 13, see `artifacts/local-ble/2026-05-15-iphone13-sm-t577u/`). |
-| Receive `%ReceivedMessage{}` (full `MX` envelope, extended advertising) | ✅ | iOS bridge present; PHY-blocked | Bridge integration done end-to-end: `MeshxNativeBLEBridge` instantiates `MessageAdvertisementObserver`, `meshxDidObserveReceivedMessage` calls `meshx_ble_emit_received_message`, NIF emits the v1 `received_message` map, `BridgeProtocol.decode/1` parses the envelope. `dev.meshx.mob-central-…` confirmed registered with `bluetoothd` on hardware. **However:** iPhone 13 / iOS 26.4 does not deliver any non-Apple extended-advertising (AUX_ADV_IND) packets to `CBCentralManager.didDiscover`, regardless of `withServices` filter, `AllowDuplicates`, or whether Android puts the data in scan-response or primary AUX. Hardware-validated on 2026-05-15: bluetoothd log shows only `FF FF 4D 42` (MB legacy beacons) during the test window; zero `FF FF 4D 58` (MX magic) instances captured. This is an iOS CoreBluetooth API limitation, not a bridge defect. Full MX envelopes on iOS arrive via the existing MB legacy-beacon + GATT-fetch path. |
+| Receive `%ReceivedMessage{}` (full `MX` envelope, extended advertising) | ✅ | iOS bridge present; PHY-blocked | Bridge integration done end-to-end: `MeshxNativeBLEBridge` instantiates `MessageAdvertisementObserver`, `meshxDidObserveReceivedMessage` calls `meshx_ble_emit_received_message`, NIF emits the v1 `received_message` map, `BridgeProtocol.decode/1` parses the envelope. `dev.meshx.mob-central-…` confirmed registered with `bluetoothd` on hardware. **However:** iPhone 13 / iOS 26.4 and iPad12,1 / iPadOS 26.5 do not deliver non-Apple extended-advertising (AUX_ADV_IND) packets to `CBCentralManager.didDiscover`, regardless of `withServices` filter, `AllowDuplicates`, or whether Android puts the data in scan-response or primary AUX. Hardware evidence includes the 2026-05-15 iPhone 13 run and the 2026-05-17 SM-T577U -> iPad12,1 probe in `artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/android-aux-full-mx-ios-observe/`: Android emitted an 80-byte `MX` scan-response advert, while iOS logged MB beacons but zero direct `received_message` / `FF FF 4D 58` callback evidence. This is an iOS CoreBluetooth API limitation, not a bridge defect. Full MX envelopes on iOS arrive via the existing MB legacy-beacon + GATT-fetch path. |
 | Dispatch send via legacy-beacon advertise | ✅ | ✅ | Android: `BleDispatcher.dispatch(payload, forceLegacyBeacon: true)` builds a `MeshxMessageEnvelope`, derives the beacon, advertises via manufacturer data. iOS: `MeshxBLEPeripheral.advertiseLegacyBeacon(messageId:senderPeerId:payloadKind:)` puts the 22-byte beacon on air via `CBAdvertisementDataManufacturerDataKey` with company id `0xFFFF`; bridge exposes this through `MeshxNativeBLEBridge.sendPing` fallback when no GATT peer is paired (commit `022b6f4`). Harness exercises the same path under `--meshx-auto-beacon`. Hardware-validated on iPhone 13 (commit `fb5afa8` evidence bundle). |
 | Canonical `%BLE.Events.Error{kind, detail}` surface | ✅ | partial | Android emits typed `BleEvent.Error(kind = SCAN_FAILED/UNAUTHORIZED/BLUETOOTH_OFF/...)`. iOS emits legacy `{:error, string}` tuples — the kind taxonomy isn't enforced on the iOS path. |
 | Adapter-state recovery (auto-replay intent) | ✅ | n/a | Android uses `BluetoothAdapter.ACTION_STATE_CHANGED` + intent replay. iOS BLE state restoration is a separate CoreBluetooth mechanism (`CBCentralManagerOptionRestoreIdentifierKey`); the equivalent is opt-in via `MeshxBLEClient`'s manager init options. |
@@ -227,8 +227,8 @@ migration for the legacy event tuples.
    GATT peer is paired, mirroring Android's
    `MeshxBleNative.sendToPeer(forceLegacyBeacon: true)`. Validated on
    iPhone 13 hardware in commit `fb5afa8`'s evidence bundle.
-2. ~~**Full-envelope (`MX` magic) advert decode on the central side.**~~
-   **Closed (compile gate; hardware pending).** `MeshxNativeBLEBridge`
+2. **Full-envelope (`MX` magic) advert decode on the central side.**
+   **Wired, PHY-blocked on tested iOS hardware.** `MeshxNativeBLEBridge`
    now owns a `MessageAdvertisementObserver` alongside `MeshxBLEClient`,
    started/stopped on the same lifecycle. Its
    `meshxDidObserveReceivedMessage` callback forwards the
@@ -236,7 +236,10 @@ migration for the legacy event tuples.
    `meshx_ble_emit_received_message` NIF entry, which builds the v1
    `received_message` map (envelope as raw `MX` bytes; BEAM-side
    `MessageEnvelope.parse/1` does the structural decode via
-   `BridgeProtocol.decode_envelope/1`). No BEAM-side changes required.
+   `BridgeProtocol.decode_envelope/1`). Hardware runs on iPhone 13 and
+   iPad12,1 did not deliver non-Apple AUX_ADV_IND manufacturer data to
+   CoreBluetooth, so full envelopes on iOS use the MB legacy-beacon + GATT
+   fetch path instead.
 3. **v1 wire migration for the legacy tuples.** Still open. The iOS
    NIF still emits `{:status, _}`, `{:connected, _}`,
    `{:disconnected, _}`, `{:received, _, _}` legacy tuples.
@@ -308,7 +311,7 @@ the task, the patches, and the aliases can be removed.
 
 ### Extended-advertising AUX delivery limitation
 
-Empirically determined this session across three Android advertising configurations and two iOS scan-options configurations, on iPhone 13 / iOS 26.4 and iPad (9th generation) / iPadOS 26.4:
+Empirically determined across three Android advertising configurations and two iOS scan-options configurations, on iPhone 13 / iOS 26.4 and iPad (9th generation) / iPadOS 26.4:
 
 | Android advertising mode | iOS scan filter | Result |
 |---|---|---|
@@ -318,7 +321,31 @@ Empirically determined this session across three Android advertising configurati
 
 In all three cases the iPhone's BLE controller continued to deliver `FF FF 4D 42` (MB legacy beacons, primary advertising channels) reliably — proving radio link and scan engine are working. No `CBCentralManagerScanOption*` or `AdvertisingSetParameters` tuning surfaced AUX_ADV_IND data to `didDiscover`. This is an iOS CoreBluetooth API limitation, not a defect in the bridge.
 
+A fresh 2026-05-17 probe repeated the most relevant scan-response case with
+SM-T577U Android 13/API 33 as sender and iPad12,1 iPadOS 26.5 as observer.
+`IOSAuxFullMxAdvertSmokeTest` emitted an 80-byte full-MX envelope through a
+scannable, non-connectable extended advertising set with
+`data_carrier="scan_response"`. Android instrumentation passed and logcat
+recorded `advertising_set_started`, but the iOS harness log recorded zero
+direct full-MX `received_message`, zero decode-error, and zero
+candidate/discovery callback lines for the AUX payload while still recording
+276 MB legacy-beacon receives. Artifact:
+`artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/android-aux-full-mx-ios-observe/summary.md`.
+
 The MB beacon → GATT fetch path is the production-supported way to deliver >31-byte envelopes from Android to iOS.
+
+Do not promote the direct full-MX AUX path on iOS without a new hardware
+capture that proves all of the following:
+
+* `FF FF 4D 58` MX manufacturer data is delivered to the platform scanner
+  callback, not only emitted by the sender.
+* The capture records sender and observer device model, OS version,
+  controller/API capability, scan filter, duplicate setting, advertising mode,
+  payload placement, and payload length.
+* The observer parses the delivered bytes into the canonical
+  `received_message` / MX envelope path.
+* The same run confirms the MB legacy beacon path still works as the
+  fleet-safe fallback.
 
 ### Hardware proof of the advert-only path
 
