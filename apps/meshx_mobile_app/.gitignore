@@ -1,6 +1,7 @@
 /_build/
 /deps/
 /doc/
+/tmp/
 /.fetch
 *.ez
 *.beam

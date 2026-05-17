@@ -36,6 +36,10 @@ erl_crash.dump
 # Ad-hoc BLE capture sessions; checked-in fixtures live under apps/*/test/fixtures/captures/.
 apps/*/priv/captures/
 
+# Generated local-BLE run outputs (manifests, logs).
+/artifacts/local-ble/
+apps/*/tmp/
+
 # Android Gradle build artifacts
 apps/*/android/build/
 apps/*/android/.gradle/
