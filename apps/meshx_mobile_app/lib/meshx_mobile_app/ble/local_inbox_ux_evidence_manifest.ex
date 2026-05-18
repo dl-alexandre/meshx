@@ -167,8 +167,11 @@ defmodule MeshxMobileApp.BLE.LocalInboxUxEvidenceManifest do
     %{
       review_version: 1,
       boundary: :nearby_messages_affordance_review,
-      filter_controls_present?: surface.state_filters != [],
-      sort_controls_present?: surface.sort_options != [],
+      # state_filters/sort_options are typed `[map(), ...]` (non-empty list)
+      # — the surface always exposes them. Boolean preserved for downstream
+      # consumers that key off the contract.
+      filter_controls_present?: match?([_ | _], surface.state_filters),
+      sort_controls_present?: match?([_ | _], surface.sort_options),
       selected_detail_states: detail_states,
       selected_detail_state_count: length(detail_states),
       selected_detail_all_states_covered?:
