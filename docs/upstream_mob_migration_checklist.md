@@ -37,6 +37,20 @@ This file supersedes / expands the high-level "Post-Merge MeshX Migration Checkl
 - The first post-merge Hex release must actually export the keys under `config :mob_dev` with the documented normalisation. If the schema differs, fall back to the rollback paragraph in the PR template.
 - Rollback is cheap: restore the two patch files + task + aliases from git; the old path is still known-good.
 
+## Remaining Work Snapshot (current)
+
+| Item | Owner | Risk | Status | Suggested order |
+| --- | --- | --- | --- | --- |
+| Upstream migration execution (GenericJam/mob_dev#6 + mob_new#5 + releases) | Upstream + you | High — cannot safely remove patches until both releases are verified. | Blocked (not started) | 1 |
+| CI/dialyzer infra cleanups for release gate | You | Medium — known baseline red checks can block completion artifacts | Optional/parallel preflight | 2 |
+| Positive MB+GATT evidence on SM-T390 | You | Medium — Android 9 permission edge case and beacon correlation fragility | In progress: T390 helper run blocked by `Failed to grant permissions`; no clean positive packet seen in this session | 3 |
+| Main-app production scanner confidence (HEARTBEAT + callbacks) on both devices | You | Medium — no HEARTBEAT seen in filtered capture despite app launch args | In progress; captured sendToPeer fallback lines only, no HEARTBEAT in `recapture-5-positive` | 4 |
+| Reverse-direction smoke (Android emit → iOS observe) | You | Low — optional confidence pass | Pending | 5 |
+
+Carrier decision: the iOS→Android direct-MX hybrid path was rejected and should remain rejected in this branch. All remaining hardware work should focus on the supported production path (legacy MB cue + GATT fetch path already coded in `dev.meshx.mob` main app).
+
+When upstream migration lands, the order is: finish upstream dependency updates (steps 1–3 of this checklist), run verification + artifact regen, then close audit rows and remove temporary patch references.
+
 ## 1. Dep Version Bumps (`mix.exs` + lockfiles)
 
 Edit **only** the requirement in the mobile app (root mix.exs has no direct deps for these):
@@ -464,6 +478,29 @@ mix meshx.mobile.remaining_items.audit | grep -A2 upstreaming_mob_dev_mob_patche
 ```
 
 When the real migration happens, simply follow the numbered sections in order.
+
+## Remaining Work — closure-evidence punch list
+
+The upstream migration is one of several remaining items gating the
+2026-05 release. Tracked here so the migration owner can see what's
+ahead and behind in the same place. Mirrors the queue in
+`docs/remaining_items_audit.md` so updates land in one document.
+
+Suggested execution order: **1 → 2 → 3 (optional) → 4 (this checklist)**.
+
+| # | Item | Owner | Priority | Risk | Action |
+|---|---|---|---|---|---|
+| 1 | Main-app Android scanner confidence on both Android devices | Mobile app + Android maintainers | **Highest** | Stale build / loop regression could reintroduce callback drops (the `683950a` main-looper fix). | Rebuild + install the latest main app on R52W90AW7EN and 5200f354f4fb277f, run `meshx_ble_selftest` while iPhone 13 emits MB beacons, archive one run per device showing `devices > 0` + `beacon_callbacks > 0`. |
+| 2 | Clean positive MB + GATT evidence run for the release bundle | Mobile app engineer (paired operator path) | High | Stale scan cache or stale iOS responder process can produce false failures. | Synchronized MB beacon → GATT fetch on SM-T390 observer + iPhone 13 emitter via the structured `capture-hybrid-run.sh` flow; archive matching messageId + `fetch_response_received` + envelope parse. |
+| 3 | Reverse direction verification (Android emit → iOS observer) | Mobile app + BLE validation | Optional | May not be reproducible on this hardware; don't broaden scope before the positive lane in #2 is archived. | One controlled iOS-hybrid emit pass + Android raw observer pass; archive artifacts only if clean. |
+| 4 | **Upstream migration (this checklist)** — execute when both PRs are merged + released | GenericJam maintainers for merge/release; MeshX maintainer for migration steps | External-blocked | Token has `READ`-only access on the upstream repos; nothing here is executable until merge happens upstream. Migration itself is reversible per the Rollback section above. | When merged: run the numbered sections of this file in order; flip `upstreaming_mob_dev_mob_patches` to `complete` in the audit; verify `completion_decision.update_goal_allowed` follows the AUX row state. |
+
+### 2026-05-18 execution status (snapshot)
+
+- #1 — main-app scanner sanity on both Androids + iPhone MB emit: **done** (683950a + on-device verification).
+- #2 — clean MB+GATT evidence: **done on R52W90AW7EN**; SM-T390 (Android 9) blocked by `GrantPermissionRule` API-28 incompatibility — use the main-app selftest path for fleet coverage on that device.
+- #3 — reverse-direction spot check: **done** (recapture-4-reverse).
+- #4 — upstream migration: **blocked external** on GenericJam PR merge + release.
 
 ---
 
