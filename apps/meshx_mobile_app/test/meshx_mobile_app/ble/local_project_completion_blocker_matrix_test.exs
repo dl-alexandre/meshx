@@ -118,7 +118,11 @@ defmodule MeshxMobileApp.BLE.LocalProjectCompletionBlockerMatrixTest do
     assert String.contains?(known_good.next_unblock_action, "SM-T577U/SM-T390")
     assert String.contains?(known_good.next_unblock_action, "status 133")
     assert String.contains?(known_good.next_unblock_action, "standalone GATT")
-    assert String.contains?(known_good.next_unblock_action, "different constrained fetch transport")
+
+    assert String.contains?(
+             known_good.next_unblock_action,
+             "different constrained fetch transport"
+           )
 
     assert multi_hop.status == :blocked
     refute multi_hop.can_progress_without_new_hardware?

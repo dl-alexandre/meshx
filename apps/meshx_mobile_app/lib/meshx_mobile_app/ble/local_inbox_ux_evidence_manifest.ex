@@ -167,8 +167,8 @@ defmodule MeshxMobileApp.BLE.LocalInboxUxEvidenceManifest do
     %{
       review_version: 1,
       boundary: :nearby_messages_affordance_review,
-      filter_controls_present?: length(surface.state_filters) > 0,
-      sort_controls_present?: length(surface.sort_options) > 0,
+      filter_controls_present?: surface.state_filters != [],
+      sort_controls_present?: surface.sort_options != [],
       selected_detail_states: detail_states,
       selected_detail_state_count: length(detail_states),
       selected_detail_all_states_covered?:

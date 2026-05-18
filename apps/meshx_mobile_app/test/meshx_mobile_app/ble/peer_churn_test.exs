@@ -272,9 +272,9 @@ defmodule MeshxMobileApp.BLE.PeerChurnTest do
       becamestale = PeerChurn.diff(early, mid, detected_at: 785_000)
       expired = PeerChurn.diff(mid, late, detected_at: 900_000)
 
-      assert length(becamestale) > 0
+      assert becamestale != []
       assert Enum.all?(becamestale, &(&1.kind == :became_stale))
-      assert length(expired) > 0
+      assert expired != []
       assert Enum.all?(expired, &(&1.kind == :expired))
     end
 

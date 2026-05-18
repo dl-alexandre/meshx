@@ -92,7 +92,10 @@ defmodule MeshxMobileApp.BLE.LocalInboxUxEvidenceReviewTest do
     assert review["coverage_summary"]["target_device_count"] == 1
     assert review["coverage_summary"]["all_target_devices_have_state_coverage?"] == true
     assert review["coverage_summary"]["all_target_devices_have_selected_detail_coverage?"] == true
-    assert review["coverage_summary"]["all_target_devices_have_selected_detail_copy_anchors?"] == true
+
+    assert review["coverage_summary"]["all_target_devices_have_selected_detail_copy_anchors?"] ==
+             true
+
     assert review["coverage_summary"]["all_target_devices_copy_reviewed?"] == true
   end
 

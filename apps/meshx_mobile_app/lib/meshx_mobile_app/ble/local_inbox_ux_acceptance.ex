@@ -293,7 +293,7 @@ defmodule MeshxMobileApp.BLE.LocalInboxUxAcceptance do
         blocked_claims: blocked_claims,
         detail_lines: detail_lines
       }
-      when is_list(blocked_claims) and length(blocked_claims) > 0 and is_list(detail_lines),
+      when is_list(blocked_claims) and blocked_claims != [] and is_list(detail_lines),
       selected.detail
     ) and
       Enum.any?(selected.detail.detail_lines, &String.starts_with?(&1, "Blocked claims:"))

@@ -104,7 +104,9 @@ defmodule MeshxMobileApp.App do
   end
 
   defp start_meshx_runtime do
-    if data_dir = System.get_env("MESHX_STORE_DATA_DIR") || mobile_data_dir() do
+    data_dir = System.get_env("MESHX_STORE_DATA_DIR") || mobile_data_dir()
+
+    if data_dir do
       Application.put_env(:meshx_store, :data_dir, data_dir)
     end
 

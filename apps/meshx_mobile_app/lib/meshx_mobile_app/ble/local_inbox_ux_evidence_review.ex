@@ -930,6 +930,7 @@ defmodule MeshxMobileApp.BLE.LocalInboxUxEvidenceReview do
     state_coverage = evidence_coverage(state_evidence, :state)
     interaction_coverage = evidence_coverage(interaction_evidence, :interaction)
     selected_detail_coverage = evidence_coverage(selected_detail_evidence, :state)
+
     selected_detail_copy_anchor_coverage =
       selected_detail_evidence
       |> Enum.filter(&selected_detail_copy_anchors_present?/1)
@@ -1419,22 +1420,18 @@ defmodule MeshxMobileApp.BLE.LocalInboxUxEvidenceReview do
   end
 
   defp malformed_string_field(missing, value, label, field) do
-    cond do
-      is_nil(value) or is_binary(value) ->
-        missing
-
-      true ->
-        ["#{label} #{field} must be a string." | missing]
+    if is_nil(value) or is_binary(value) do
+      missing
+    else
+      ["#{label} #{field} must be a string." | missing]
     end
   end
 
   defp malformed_enum_field(missing, value, label, field) do
-    cond do
-      is_nil(value) or is_atom(value) or is_binary(value) ->
-        missing
-
-      true ->
-        ["#{label} #{field} must be a string or atom." | missing]
+    if is_nil(value) or is_atom(value) or is_binary(value) do
+      missing
+    else
+      ["#{label} #{field} must be a string or atom." | missing]
     end
   end
 

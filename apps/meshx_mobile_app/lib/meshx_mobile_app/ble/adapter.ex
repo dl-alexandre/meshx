@@ -41,22 +41,20 @@ defmodule MeshxMobileApp.BLE.Adapter do
   @spec event_message(Event.t() | term()) ::
           {__MODULE__, :event, Event.t()}
   def event_message(event) do
-    cond do
-      Event.event?(event) ->
-        {__MODULE__, :event, event}
+    if Event.event?(event) do
+      {__MODULE__, :event, event}
+    else
+      case BridgeProtocol.decode(event) do
+        {:ok, normalized} ->
+          {__MODULE__, :event, normalized}
 
-      true ->
-        case BridgeProtocol.decode(event) do
-          {:ok, normalized} ->
-            {__MODULE__, :event, normalized}
-
-          {:error, reason} ->
-            {__MODULE__, :event,
-             %MeshxMobileApp.BLE.Events.Error{
-               kind: :unknown,
-               detail: "bridge protocol decode failed: " <> inspect(reason)
-             }}
-        end
+        {:error, reason} ->
+          {__MODULE__, :event,
+           %MeshxMobileApp.BLE.Events.Error{
+             kind: :unknown,
+             detail: "bridge protocol decode failed: " <> inspect(reason)
+           }}
+      end
     end
   end
 

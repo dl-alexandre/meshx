@@ -35,6 +35,7 @@ defmodule MeshxMobileApp.BLE.LocalIOSParityEvidenceManifestTest do
     assert manifest.policy.ios_participation_claims_allowed? == false
     assert manifest.acceptance.boundary == :current_ios_contract_only_mode
     assert manifest.advert_carrier_decision.boundary == :ios_advert_only_carrier_decision
+
     assert manifest.advert_carrier_decision.current_ios_emit_carrier ==
              :manufacturer_data_legacy_beacon_emit
 
@@ -50,6 +51,7 @@ defmodule MeshxMobileApp.BLE.LocalIOSParityEvidenceManifestTest do
     assert manifest.native_source_inventory.boundary == :ios_native_source_inventory
     assert manifest.native_source_inventory.foreground_observe_source_present?
     refute manifest.native_source_inventory.ios_parity_claim_allowed?
+
     assert Enum.any?(
              manifest.implementation_evidence,
              &(&1.id == :ios_foreground_legacy_beacon_scan_decode)
@@ -190,6 +192,7 @@ defmodule MeshxMobileApp.BLE.LocalIOSParityEvidenceManifestTest do
            ]
 
     assert "ios_parity_claim" in manifest["contract_only_scope"]["not_evidence_of"]
+
     assert manifest["advert_carrier_decision"]["current_ios_emit_carrier"] ==
              "manufacturer_data_legacy_beacon_emit"
 

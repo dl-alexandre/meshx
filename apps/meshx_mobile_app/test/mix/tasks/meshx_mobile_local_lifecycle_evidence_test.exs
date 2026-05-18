@@ -37,6 +37,7 @@ defmodule Mix.Tasks.MeshxMobileLocalLifecycleEvidenceTest do
     assert decoded["background_ble_claim_allowed?"] == false
     assert decoded["hardware_blocked_gate_count"] == 8
     assert decoded["operator_capture_plan"]["boundary"] == "local_lifecycle_operator_capture_plan"
+
     assert decoded["lifecycle_decision_scenario_plan"]["boundary"] ==
              "local_lifecycle_decision_scenario_plan"
 

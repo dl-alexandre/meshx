@@ -73,9 +73,11 @@ defmodule MeshxMobileApp.BleSelfTest do
 
     Logger.info("BleSelfTest: start_scan=#{inspect(scan)} start_advertising=#{inspect(adv)}")
     Process.send_after(self(), :heartbeat, @heartbeat_ms)
+
     if state.send_enabled do
       Process.send_after(self(), :send_message, @send_interval_ms)
     end
+
     {:noreply, state}
   end
 
@@ -279,6 +281,14 @@ defmodule MeshxMobileApp.BleSelfTest do
   end
 
   defp selftest_send_enabled? do
-    System.get_env("MESHX_BLE_SELFTEST_SEND", "1") not in ["0", "false", "FALSE", "no", "NO", "off", "OFF"]
+    System.get_env("MESHX_BLE_SELFTEST_SEND", "1") not in [
+      "0",
+      "false",
+      "FALSE",
+      "no",
+      "NO",
+      "off",
+      "OFF"
+    ]
   end
 end

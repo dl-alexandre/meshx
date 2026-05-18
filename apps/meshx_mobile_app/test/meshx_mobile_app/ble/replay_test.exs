@@ -85,7 +85,7 @@ defmodule MeshxMobileApp.BLE.ReplayTest do
                e.title == "Device discovered" and e.detail =~ "4F:9C:5A:DC:6E:6D"
              end)
 
-      assert Enum.count(snapshot.events, &(&1.title == "Advertisement")) >= 1
+      assert Enum.any?(snapshot.events, &(&1.title == "Advertisement"))
     end
 
     test "bluetooth_off capture produces canonical Bridge error entries" do
