@@ -234,10 +234,4 @@ jobs:
         # doesn't recognize the new warning kind. The default `dialyzer`
         # format passes through unchanged. Switch back when dialyxir
         # ships a release that knows :exact_compare.
-        #
-        # continue-on-error: the formatter switch surfaced ~80 pre-existing
-        # warnings that were previously hidden by the crash. Triage and
-        # add to .dialyzer_ignore.exs (or fix), then flip this back to
-        # blocking.
-        continue-on-error: true
         run: mix dialyzer --format dialyzer
