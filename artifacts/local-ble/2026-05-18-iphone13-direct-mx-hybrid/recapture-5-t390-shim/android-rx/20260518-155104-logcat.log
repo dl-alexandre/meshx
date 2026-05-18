@@ -1,0 +1,171 @@
+--------- beginning of main
+--------- beginning of system
+05-18 15:51:16.298 22068 22094 I TestRunner: run started: 1 tests
+05-18 15:51:16.304 22068 22094 I TestRunner: started: receivesHybridDirectMxFromIOS(dev.meshx.mob.ble.IOSHybridDirectMxReceiveTest)
+05-18 15:51:16.456 22068 22068 I MeshxBleScanRaw: device_id=76:A3:79:1A:99:D4 rssi=-81 advertisement_b64=AgEaF/9MAAkIExvAqAEZG1gWCACGZp0FfS42AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:16.462 22068 22068 I MeshxBleScanRaw: device_id=64:14:49:49:70:48 rssi=-83 advertisement_b64=Hv8GAAEJIAKnLjB3g3Zp9znZU7qSwzvzdLpKvcEUHAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[6] service_uuids=[]
+05-18 15:51:16.464 22068 22068 I MeshxBleScanRaw: device_id=BC:7E:8B:DB:C3:3B rssi=-89 advertisement_b64=G/91AEIEAYBmvH6L28M7vn6L28M6AQwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[117] service_uuids=[]
+05-18 15:51:16.465 22068 22068 I MeshxBleScanRaw: device_id=72:1D:0F:0C:93:97 rssi=-77 advertisement_b64=AgEaDf9MABYIAI6SJg/lHAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:16.467 22068 22068 I MeshxBleScanRaw: device_id=76:0A:6A:E5:2C:0E rssi=-45 advertisement_b64=AgEaAgoMC/9MABAGBxkN3qQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:16.469 22068 22068 I MeshxBleScanRaw: device_id=51:0A:42:3E:8A:F7 rssi=-69 advertisement_b64=AgEaDf9MABYIABYSQ3fbb8UAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:16.470 22068 22068 I MeshxBleScanRaw: device_id=12:2E:E3:91:53:9F rssi=-67 advertisement_b64=Hv8GAAEPICKKGHYVSFRuo6kN1+z1xU59hnvH/3SSCwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[6] service_uuids=[]
+05-18 15:51:16.472 22068 22068 I MeshxBleScanRaw: device_id=64:16:E9:B5:C9:E6 rssi=-74 advertisement_b64=Hv8GAAEJIALFYmsU9O9nkAxzXBgxzgLzYzZBG+DVvQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[6] service_uuids=[]
+05-18 15:51:16.473 22068 22068 I MeshxBleScanRaw: device_id=84:E0:F4:E0:26:52 rssi=-72 advertisement_b64=AgEGDP9LBkIGIBLGBQBAAQ4IUG9pbnQtMS0yNjo1Mgf/SwaTQ70NAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[1611] service_uuids=[]
+05-18 15:51:16.499 22068 22068 I MeshxBleScanRaw: device_id=34:4A:0D:60:E1:2E rssi=-75 advertisement_b64=Hv8GAAEJICI4OQDWTeCdh04vHFN4Jd9/wJ+S9qjb0QAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[6] service_uuids=[]
+05-18 15:51:16.502 22068 22068 I MeshxBleScanRaw: device_id=44:D9:DB:AB:28:6F rssi=-78 advertisement_b64=AgEaDf9MABYIADqIKytXyxoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:16.531 22068 22068 I MeshxBleScanRaw: device_id=38:5D:B0:08:00:C8 rssi=-87 advertisement_b64=Hv8GAAEPICIReNsm1jHO8g29WZ3yYeWrah/HlKp4JwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[6] service_uuids=[]
+05-18 15:51:16.534 22068 22068 I MeshxBleScanRaw: device_id=5B:A6:4A:77:0E:98 rssi=-89 advertisement_b64=AgEaAgoMC/9MABAGAhnQBeJYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:16.538 22068 22068 I MeshxBleScanRaw: device_id=79:0C:D9:3B:FD:5A rssi=-44 advertisement_b64=AgEaF/9MAAkIEwvAqAEYG1gWCACNDJqw/CrhAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:16.553 22068 22068 I MeshxBleScanRaw: device_id=4D:64:84:30:A9:F5 rssi=-87 advertisement_b64=AgEaF/9MAAkIExPAqAEKG1gWCABFdb0K/KPtAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:16.594 22068 22068 I MeshxBleScanRaw: device_id=61:8C:EF:40:D7:4A rssi=-42 advertisement_b64=AgEaAgoMCv9MABAFCRweikkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:16.629 22068 22068 I MeshxBleScanRaw: device_id=42:F6:F1:7F:22:4F rssi=-95 advertisement_b64=AgEaG/9MAAwOCNTsrq2pPsXpgiVKMHMQBgwZyDL+WAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:16.665 22068 22068 I MeshxBleScanRaw: device_id=D2:66:4B:F9:DB:69 rssi=-81 advertisement_b64=B/9MABICAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:16.676 22068 22068 I MeshxBleScanRaw: device_id=32:F3:C8:6D:11:A9 rssi=-99 advertisement_b64=AgEEGv9MAAIVrD7yPHDYR3OXrbmlZqD7QMuIJC+1AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:16.691 22068 22068 I MeshxBleScanRaw: device_id=BC:45:5B:53:44:1A rssi=-75 advertisement_b64=G/91AEIEAYBuvEVbU0QavkVbU0QZAbz+VW15AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[117] service_uuids=[]
+05-18 15:51:16.696 22068 22068 I MeshxBleScanRaw: device_id=3D:E9:F1:E0:37:00 rssi=-92 advertisement_b64=Hv8GAAEJICKcBLIQhfBWjhFyZsqvbpc+KKCdvziRKgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[6] service_uuids=[]
+05-18 15:51:16.789 22068 22068 I MeshxBleScanRaw: device_id=6E:34:BE:36:57:32 rssi=-77 advertisement_b64=AgEaF/9MAAkIEynAqAGhG1gWCADnemGD0LdGAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:16.816 22068 22068 I MeshxBleScanRaw: device_id=35:3A:94:63:5A:21 rssi=-90 advertisement_b64=Hv8GAAEJICJUn+WNHtYQl2Gk9S4SFCaBpSu7fWr3xQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[6] service_uuids=[]
+05-18 15:51:16.843 22068 22068 I MeshxBleScanRaw: device_id=2D:D2:93:4E:55:B3 rssi=-53 advertisement_b64=Hv8GAAEPICJU2uYpvnE9mTq3fimdmOQCH2lox6C+LgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[6] service_uuids=[]
+05-18 15:51:16.856 22068 22068 I MeshxBleScanRaw: device_id=04:19:04:D6:77:06 rssi=-90 advertisement_b64=Hv8GAAEJICLWWtSC52JNhm712s4w1e4qgaOwESSIsgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[6] service_uuids=[]
+05-18 15:51:16.870 22068 22068 I MeshxBleScanRaw: device_id=D4:80:0C:25:49:90 rssi=-77 advertisement_b64=B/9MABICAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:16.945 22068 22068 I MeshxBleScanRaw: device_id=D5:FB:83:08:C4:CB rssi=-83 advertisement_b64=B/9MABICAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:16.960 22068 22068 I MeshxBleScanRaw: device_id=4A:DD:FE:87:02:C6 rssi=-82 advertisement_b64=AgEaF/9MAAkIEwTAqAF2G1gWCADgB5mZi6AxAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:17.180 22068 22068 I MeshxBleScanRaw: device_id=35:6D:D4:19:A9:97 rssi=-92 advertisement_b64=AgECGBbx/ARHcQHEs0zAwAup0iISedJ6xUix7QAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[] service_uuids=[]
+05-18 15:51:17.241 22068 22068 I MeshxBleScanRaw: device_id=1C:01:F5:EF:99:B5 rssi=-79 advertisement_b64=Hv8GAAEJICKMEqAX/P9T1FDi4yYgDqV6ci7sLLGDsQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[6] service_uuids=[]
+05-18 15:51:17.378 22068 22068 I MeshxBleScanRaw: device_id=08:1C:B3:57:9A:B8 rssi=-91 advertisement_b64=Hv8GAAEJICL1U544U3gtcXtZP72W8vJKS3CsfQEBkQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[6] service_uuids=[]
+05-18 15:51:17.907 22068 22068 I MeshxBleScanRaw: device_id=08:B0:CF:06:8C:7A rssi=-79 advertisement_b64=Hhbz/koXIzdDOFURMuzUkfcX5Pd6TQHtbM3FwkzVGgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[] service_uuids=[]
+05-18 15:51:17.915 22068 22068 I MeshxBleScanRaw: device_id=71:4D:30:7E:58:F2 rssi=-87 advertisement_b64=AgEaAgoJCv9MABAFDBhCQ90AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:17.972 22068 22068 I MeshxBleScanRaw: device_id=72:4B:7F:6D:75:71 rssi=-73 advertisement_b64=AgEaAgoMC/9MABAGSB2s8cBIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:17.982 22068 22068 I MeshxBleScanRaw: device_id=50:10:9A:D2:FC:3C rssi=-48 advertisement_b64=AgEaAgoMCv9MABAFBRxy3ekTCW14YTFiZWU0Y2Y1NjZhODA1YQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:17.991 22068 22068 I MeshxBleScanRaw: device_id=D5:4D:9D:D6:AD:71 rssi=-86 advertisement_b64=B/9MABICAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:18.005 22068 22068 I MeshxBleScanRaw: device_id=5D:1E:DB:F3:EC:89 rssi=-78 advertisement_b64=AgEaAgoMC/9MABAGRB0cBiA4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:18.010 22068 22068 I MeshxBleScanRaw: device_id=60:66:FD:68:9F:B0 rssi=-88 advertisement_b64=AgEaAgoMDP9MABAHOh++uyIjeAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:18.018 22068 22068 I MeshxBleScanRaw: device_id=65:F8:CA:13:27:88 rssi=-90 advertisement_b64=AgEaAgoMC/9MABAGEBroD3u8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:18.036 22068 22068 I MeshxBleScanRaw: device_id=76:5C:FE:AB:35:B9 rssi=-78 advertisement_b64=AgEaAgoMC/9MABAGRB0cBiA4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:18.071 22068 22068 I MeshxBleScanRaw: device_id=DD:0D:30:7B:BE:72 rssi=-61 advertisement_b64=AgECDf8tCgIAu6pyvnswDdwDAvD/DQlERDBEMzA3QkJFNzIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[2605] service_uuids=[0000fff0-0000-1000-8000-00805f9b34fb]
+05-18 15:51:18.100 22068 22068 I MeshxBleScanRaw: device_id=D9:7D:10:BF:49:E0 rssi=-90 advertisement_b64=B/9MABICAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:18.102 22068 22068 I MeshxBleScanRaw: device_id=94:94:4A:05:9C:99 rssi=-87 advertisement_b64=AgEGEQeeytwkDuWp4JPzo7UBAEBuCAl1RzItYzk4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[] service_uuids=[6e400001-b5a3-f393-e0a9-e50e24dcca9e]
+05-18 15:51:18.156 22068 22068 I MeshxBleScanRaw: device_id=58:3B:AA:E3:18:2C rssi=-85 advertisement_b64=AgEaAgoMC/9MABAGAhnQBeJYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:18.170 22068 22068 I MeshxBleScanRaw: device_id=CA:3C:56:DB:33:6C rssi=-97 advertisement_b64=AgEGAwJi/QgWChg/BCAhAQoJSW5zcGlyZSAzAgoDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[] service_uuids=[0000fd62-0000-1000-8000-00805f9b34fb]
+05-18 15:51:18.175 22068 22068 I MeshxBleScanRaw: device_id=E1:46:D4:F8:A0:9F rssi=-86 advertisement_b64=AgEGAgoAEQaeytwkDuWp4JPzo7UBAEBuEglBZGFmcnVpdCBCbHVlZnJ1aQAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[] service_uuids=[6e400001-b5a3-f393-e0a9-e50e24dcca9e]
+05-18 15:51:18.186 22068 22068 I MeshxBleScanRaw: device_id=63:7F:18:73:A8:38 rssi=-57 advertisement_b64=AgEaAgoMC/9MABAGdh4BuBsvFP9MAAEAAAAAAAAAAEAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:18.510 22068 22068 I MeshxBleScanRaw: device_id=90:DA:07:22:32:2D rssi=-69 advertisement_b64=Hv/WBRACEQAikNoHj65JATwAAIIBEAAAAAAAAAAA5wIBBhgJSkxhYiBKQnVkcyBMdXggQU5DLUJMRQAAAAA= manufacturer_ids=[1494] service_uuids=[]
+05-18 15:51:18.528 22068 22068 I MeshxBleScanRaw: device_id=63:6A:F0:9F:3D:E2 rssi=-48 advertisement_b64=AgEaAgoMC/9MABAGBxkN3qQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:18.700 22068 22068 I MeshxBleScanRaw: device_id=CD:BA:CE:CF:B5:99 rssi=-90 advertisement_b64=B/9MABICAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:18.758 22068 22068 I MeshxBleScanRaw: device_id=66:0D:5A:B4:F8:8C rssi=-54 advertisement_b64=AgEaDf9MABYIAONdqk2ioRUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:18.812 22068 22068 I MeshxBleScanRaw: device_id=53:AE:17:3F:2F:25 rssi=-74 advertisement_b64=AgECCQkxOTViOTc5YREHAADNxMbq7rbIRa2tM7PWORf/9wMNAAAAAABtaWxjIGdyb3VwIHNsbwAAAAAAAAA= manufacturer_ids=[1015] service_uuids=[39d6b333-adad-45c8-b6ee-eac6c4cd0000]
+05-18 15:51:19.026 22068 22068 I MeshxBleScanRaw: device_id=22:66:FA:90:EF:CC rssi=-97 advertisement_b64=Hv8GAAEJICK0cJsplZOq+GbOb5H9G5/qEDVEP3cpEwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[6] service_uuids=[]
+05-18 15:51:19.129 22068 22068 I MeshxBleScanRaw: device_id=5E:E6:E2:B3:6B:6E rssi=-82 advertisement_b64=AgEaAgoMCv9MABAFChh/6JgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:19.262 22068 22068 I MeshxBleScanRaw: device_id=1B:E4:D8:51:A9:1C rssi=-83 advertisement_b64=AgECGRbx/ARSYG4FR5OBTZ+uiwdWaGmX5OkMy8YAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[] service_uuids=[]
+05-18 15:51:19.280 22068 22068 I MeshxBleScanRaw: device_id=00:BB:43:5B:58:CB rssi=-70 advertisement_b64=AgEYCv9CBjcAu0NbWMsLCTFNT1JFIEhRMzEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[1602] service_uuids=[]
+05-18 15:51:19.411 22068 22068 I MeshxBleScanRaw: device_id=5C:06:AA:7A:6B:18 rssi=-71 advertisement_b64=AgEaAgoMC/9MABAGSB2s8cBIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:19.503 22068 22068 I MeshxBleScanRaw: device_id=94:94:4A:05:9D:5D rssi=-89 advertisement_b64=AgEGEQeeytwkDuWp4JPzo7UBAEBuCAl1RzItZDVjAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[] service_uuids=[6e400001-b5a3-f393-e0a9-e50e24dcca9e]
+05-18 15:51:19.519 22068 22068 I MeshxBleScanRaw: device_id=CE:52:04:3F:E9:A8 rssi=-91 advertisement_b64=B/9MABICAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:19.523 22068 22068 I MeshxBleScanRaw: device_id=E7:62:18:0E:BC:32 rssi=-71 advertisement_b64=B/9MABICAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:19.557 22068 22068 I MeshxBleScanRaw: device_id=F5:9E:18:24:80:26 rssi=-59 advertisement_b64=B/9MABICAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:19.574 22068 22068 I MeshxBleScanRaw: device_id=F8:12:C9:8E:DD:CE rssi=-92 advertisement_b64=AgEGAgoAEQaeytwkDuWp4JPzo7UBAEBuEglBZGFmcnVpdCBCbHVlZnJ1aQAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[] service_uuids=[6e400001-b5a3-f393-e0a9-e50e24dcca9e]
+05-18 15:51:19.687 22068 22068 I MeshxBleScanRaw: device_id=F1:51:D2:7E:C0:A9 rssi=-73 advertisement_b64=B/9MABICAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:20.431 22068 22068 I MeshxBleScanRaw: device_id=65:0B:3E:65:B0:40 rssi=-94 advertisement_b64=AgEYAwK+/gz/ngAAIwZW6f1kb4ccCUxFLUJvc2UgUUMgVWx0cmEgSGVhZHBob25lcwAAAAAAAAAAAAAAAAA= manufacturer_ids=[158] service_uuids=[0000febe-0000-1000-8000-00805f9b34fb]
+05-18 15:51:20.613 22068 22068 I MeshxBleScanRaw: device_id=5D:F2:FF:AC:B7:FC rssi=-81 advertisement_b64=AgEaDP9MABAHMx8QRebOeAIKAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:20.670 22068 22068 I MeshxBleScanRaw: device_id=74:10:14:35:9E:BF rssi=-91 advertisement_b64=AgEaAgoMDP9MABAHPB9xWCJwSAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:20.730 22068 22068 I MeshxBleScanRaw: device_id=42:66:CE:D3:3D:99 rssi=-91 advertisement_b64=AgEaAgoMDP9MABAHPhuiJ2UnOBT/TAABAAAAAAAAAABAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:21.033 22068 22068 I MeshxBleScanRaw: device_id=45:35:09:86:19:FF rssi=-91 advertisement_b64=AgEaAgoMC/9MABAGBh11b/hYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:21.094 22068 22068 I MeshxBleScanRaw: device_id=E0:90:F9:65:B8:F2 rssi=-94 advertisement_b64=B/9MABICAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:21.131 22068 22068 I MeshxBleScanRaw: device_id=1A:78:7F:A2:E2:0E rssi=-84 advertisement_b64=Hhbz/koXIzdDOFURMuzUkfcX5Pd6TQHtbM3FwkzMXwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[] service_uuids=[]
+05-18 15:51:21.171 22068 22068 I MeshxBleScanRaw: device_id=77:1C:C4:BD:50:D0 rssi=-77 advertisement_b64=AgEaAgoMCv9MABAFChh/6JgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:21.310 22068 22068 I MeshxBleScanRaw: device_id=4F:D4:86:B3:3F:CB rssi=-83 advertisement_b64=CRbz/hEBU9NXCQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[] service_uuids=[]
+05-18 15:51:21.318 22068 22068 I MeshxBleScanRaw: device_id=4D:FB:E1:2A:71:4D rssi=-94 advertisement_b64=AgEaAgoLDP9MABAHNh/fbLWYGAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:21.790 22068 22068 I MeshxBleScanRaw: device_id=0D:07:AC:FC:1D:6F rssi=-99 advertisement_b64=AgEEGv9MAAIVrD7yPHDYR3OXrbmlZqD7QDJXJ7O1AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:22.103 22068 22068 I MeshxBleScanRaw: device_id=64:C3:AC:CB:5E:4F rssi=-77 advertisement_b64=AgEEAwJa/RcWWv0VGyUDYQty3HNbOhOmAAAARTwLsgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[] service_uuids=[0000fd5a-0000-1000-8000-00805f9b34fb]
+05-18 15:51:22.492 22068 22068 I MeshxBleScanRaw: device_id=50:45:8C:90:D4:9D rssi=-95 advertisement_b64=Hv8GAAEJIAb0UtO6VGPgiSfG6hBXtZOfU8OopAKRNQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[6] service_uuids=[]
+05-18 15:51:22.897 22068 22068 I MeshxBleScanRaw: device_id=79:0C:D9:3B:FD:5A rssi=-49 advertisement_b64=AgEaFP9MAAkIEwvAqAEYG1gVBQEmct3pAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:22.954 22068 22068 I MeshxBleScanRaw: device_id=D3:AE:17:FF:34:4C rssi=-95 advertisement_b64=B/9MABICAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:22.973 22068 22068 I MeshxBleScanRaw: device_id=41:D0:EC:28:2D:93 rssi=-77 advertisement_b64=AgEaAgoMCv9MABAFPhxEaOIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:23.038 22068 22068 I MeshxBleScanRaw: device_id=6B:B2:B8:28:18:7C rssi=-95 advertisement_b64=AgEaAgoMDP9MABAHPx9Ibo6OKAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:23.242 22068 22068 I MeshxBleScanRaw: device_id=50:10:9A:D2:FC:3C rssi=-59 advertisement_b64=AgEaAgoMCv9MABAFQRxy3ekTCW14YTFiZWU0Y2Y1NjZhODA1YQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:23.295 22068 22068 I MeshxBleScanRaw: device_id=68:84:AD:BD:28:B7 rssi=-59 advertisement_b64=AgEaCv9MABUFASYN3qQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:23.645 22068 22068 I MeshxBleScanRaw: device_id=D0:E2:37:CF:AF:62 rssi=-76 advertisement_b64=B/9MABICAAMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:24.173 22068 22068 I MeshxBleScanRaw: device_id=C1:98:40:13:32:C0 rssi=-89 advertisement_b64=AgEGAgoAEQaeytwkDuWp4JPzo7UBAEBuEglBZGFmcnVpdCBCbHVlZnJ1aQAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[] service_uuids=[6e400001-b5a3-f393-e0a9-e50e24dcca9e]
+05-18 15:51:24.396 22068 22068 I MeshxBleScanRaw: device_id=84:E0:F4:E0:26:52 rssi=-72 advertisement_b64=AgEGDP9LBkIGIBLIBQBAAQ4IUG9pbnQtMS0yNjo1Mgf/SwaTQ70NAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[1611] service_uuids=[]
+05-18 15:51:24.770 22068 22068 I MeshxBleScanRaw: device_id=CB:85:C5:FC:C3:0C rssi=-55 advertisement_b64=B/9MABICAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:24.909 22068 22068 I MeshxBleScanRaw: device_id=F9:1E:83:A8:52:92 rssi=-43 advertisement_b64=B/9MABICAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:25.445 22068 22068 I MeshxBleScanRaw: device_id=48:49:76:A0:0E:F0 rssi=-83 advertisement_b64=AgEaAgoJCv9MABAFARgUgHsAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:25.672 22068 22068 I MeshxBleScanRaw: device_id=EC:51:77:F8:4E:B7 rssi=-70 advertisement_b64=Hv9MABIZ0EILc/1AfC3F/V2RUpe+yU2EA0y2SKgCiwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:25.964 22068 22068 I MeshxBleScanRaw: device_id=70:3B:8B:D5:04:6E rssi=-86 advertisement_b64=CRbz/hEBPvvRZAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[] service_uuids=[]
+05-18 15:51:26.203 22068 22068 I MeshxBleScanRaw: device_id=F0:E3:D0:38:E5:B2 rssi=-93 advertisement_b64=B/9MABICAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:27.024 22068 22068 I MeshxBleScanRaw: device_id=29:3B:86:81:B5:E8 rssi=-81 advertisement_b64=Hhbz/koXI1A3TDIRMoGGICMGnst0vbvTfRevxgjavQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[] service_uuids=[]
+05-18 15:51:27.119 22068 22068 I MeshxBleScanRaw: device_id=3B:81:0B:3E:86:30 rssi=-91 advertisement_b64=AgEYEBYs/gBABTAKCiH4PTT///8CCvQcCUxFLUJvc2UgUUMgVWx0cmEgSGVhZHBob25lcwAAAAAAAAAAAAA= manufacturer_ids=[] service_uuids=[]
+05-18 15:51:27.896 22068 22068 I MeshxBleScanRaw: device_id=68:84:AD:BD:28:B7 rssi=-59 advertisement_b64=AgEaB/9MABUCACYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:28.266 22068 22068 I MeshxBleScanRaw: device_id=FE:98:1D:00:2E:FE rssi=-81 advertisement_b64=B/9MABICAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:28.947 22068 22068 I MeshxBleScanRaw: device_id=7E:CF:90:AB:E0:37 rssi=-77 advertisement_b64=AgEaDf9MABYIAFbBOO2F2EEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:29.265 22068 22068 I MeshxBleScanRaw: device_id=76:5C:FE:AB:35:B9 rssi=-76 advertisement_b64=AgEaG/9MAAwOACv6bN/LD3PpTn5r22oQBkQdHAYgOAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:29.604 22068 22068 I MeshxBleScanRaw: device_id=5D:1E:DB:F3:EC:89 rssi=-81 advertisement_b64=AgEaG/9MAAwOACv6bN/LD3PpTn5r22oQBkQdHAYgOAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:29.746 22068 22068 I MeshxBleScanRaw: device_id=20:7F:4D:9C:6D:95 rssi=-84 advertisement_b64=Hv8GAAEPICI9XOrcy2vx9tzXCfu44b1bkm13UnrYWwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[6] service_uuids=[]
+05-18 15:51:35.002 22068 22068 I MeshxBleScanRaw: device_id=7F:4F:F5:E0:33:95 rssi=-98 advertisement_b64=AgEaDf9MABYIAM/19CRKeBMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:35.342 22068 22068 I MeshxBleScanRaw: device_id=76:5C:FE:AB:35:B9 rssi=-78 advertisement_b64=AgEaG/9MAAwOACz6ZVrp69Fqvo1Tgb0QBkQdHAYgOAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:36.273 22068 22068 I MeshxBleScanRaw: device_id=76:5C:FE:AB:35:B9 rssi=-79 advertisement_b64=AgEaG/9MAAwOAC36Wou6qOZOFszJHc4QBkQdHAYgOAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:36.306 22068 22068 I MeshxBleScanRaw: device_id=CD:F3:20:7A:73:89 rssi=-91 advertisement_b64=B/9MABICAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:36.319 22068 22068 I MeshxBleScanRaw: device_id=5D:1E:DB:F3:EC:89 rssi=-79 advertisement_b64=AgEaG/9MAAwOAC36Wou6qOZOFszJHc4QBkQdHAYgOAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:36.524 22068 22068 I MeshxBleScanRaw: device_id=35:58:D4:D7:5A:81 rssi=-92 advertisement_b64=AgECGBbx/ARTNBMxM1gKA5Ryt4WWS6xbAMjMPQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[] service_uuids=[]
+05-18 15:51:38.659 22068 22068 I MeshxBleScanRaw: device_id=79:0C:D9:3B:FD:5A rssi=-48 advertisement_b64=AgEaG/9MAAkIEwvAqAEYG1gVAgA0FggAjQyasPwq4QAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:38.700 22068 22068 I MeshxBleScanRaw: device_id=68:84:AD:BD:28:B7 rssi=-69 advertisement_b64=AgEaB/9MABUCADQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:38.998 22068 22068 I MeshxBleScanRaw: device_id=EA:76:55:E3:09:9F rssi=-94 advertisement_b64=B/9MABICAAMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:41.023 22068 22068 I MeshxBleScanRaw: device_id=C1:A7:E4:12:E0:66 rssi=-99 advertisement_b64=B/9MABICAAMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:41.974 22068 22068 I MeshxBleScanRaw: device_id=5D:1E:DB:F3:EC:89 rssi=-83 advertisement_b64=AgEaG/9MAAwOAC76XFK0bl3SkUB33coQBkQdHAYgOAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:42.487 22068 22068 I MeshxBleScanRaw: device_id=76:5C:FE:AB:35:B9 rssi=-79 advertisement_b64=AgEaG/9MAAwOAC76XFK0bl3SkUB33coQBkQdHAYgOAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:43.549 22068 22068 I MeshxBleScanRaw: device_id=EC:51:77:F8:4E:B7 rssi=-70 advertisement_b64=Hv9MABIZ0EILc/1AfC3F/V2RUpe+yU2EA0y2SKgCnwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:45.675 22068 22068 I MeshxBleScanRaw: device_id=76:5C:FE:AB:35:B9 rssi=-78 advertisement_b64=AgEaG/9MAAwOAC/6VPtMtRE/czBo4mYQBkQdHAYgOAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:45.792 22068 22068 I MeshxBleScanRaw: device_id=5D:1E:DB:F3:EC:89 rssi=-78 advertisement_b64=AgEaG/9MAAwOAC/6VPtMtRE/czBo4mYQBkQdHAYgOAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:48.435 22068 22068 I MeshxBleScanRaw: device_id=5D:1E:DB:F3:EC:89 rssi=-77 advertisement_b64=AgEaG/9MAAwOAC/6VPtMtRE/czBo4mYQBkQVHAYgOAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:51.809 22068 22068 I MeshxBleScanRaw: device_id=76:5C:FE:AB:35:B9 rssi=-76 advertisement_b64=AgEaG/9MAAwOAC/6VPtMtRE/czBo4mYQBkQVHAYgOAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:53.182 22068 22068 I MeshxBleScanRaw: device_id=0A:3F:A1:39:59:13 rssi=-101 advertisement_b64=Hhbz/koXI1hYTk0RMvcGYMPCNTJIX/jkBJuu909/3gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[] service_uuids=[]
+05-18 15:51:55.967 22068 22068 I MeshxBleScanRaw: device_id=F7:AF:0F:27:04:90 rssi=-95 advertisement_b64=AgEGAxnAAAcDDxgKGOf+CRYCOPevDycEkBQJQ09ST1MgUEFDRSAzIDZEQzU5RgAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[] service_uuids=[0000180f-0000-1000-8000-00805f9b34fb, 0000180a-0000-1000-8000-00805f9b34fb, 0000fee7-0000-1000-8000-00805f9b34fb]
+05-18 15:51:56.701 22068 22068 I MeshxBleScanRaw: device_id=66:0D:5A:B4:F8:8C rssi=-73 advertisement_b64=AgEaE/9MAAoEEl2qTRYIAONdqk2ioRUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:51:58.846 22068 22068 I MeshxBleScanRaw: device_id=50:AE:F9:A8:B6:16 rssi=-94 advertisement_b64=AwPz/h4W8/5KFyNMUDRUETRFa1kYCflLDbf8Nv0aHAybM0sAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[] service_uuids=[0000fef3-0000-1000-8000-00805f9b34fb]
+05-18 15:51:59.582 22068 22068 I MeshxBleScanRaw: device_id=52:5C:76:97:54:84 rssi=-94 advertisement_b64=CRbz/hEBzFWPXwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[] service_uuids=[]
+05-18 15:52:02.015 22068 22068 I MeshxBleScanRaw: device_id=66:0D:5A:B4:F8:8C rssi=-53 advertisement_b64=AgEaEP9MAAoBgBYIAONdqk2ioRUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[76] service_uuids=[]
+05-18 15:52:02.987 22068 22068 I MeshxBleScanRaw: device_id=69:94:8C:71:15:90 rssi=-93 advertisement_b64=AwPz/h4W8/5KFyNNMTdWETRBwWgmDirLjceeO2NCqnvIyKAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= manufacturer_ids=[] service_uuids=[0000fef3-0000-1000-8000-00805f9b34fb]
+05-18 15:52:03.426 22068 22094 I IOSHybridDirectMxReceiveTest: Evidence bundle: MB_cues=0 direct_MX_envelopes=0 fetch_svc_sightings=0 production_sink_events=5166
+05-18 15:52:03.429 22068 22094 E TestRunner: failed: receivesHybridDirectMxFromIOS(dev.meshx.mob.ble.IOSHybridDirectMxReceiveTest)
+05-18 15:52:03.429 22068 22094 E TestRunner: ----- begin exception -----
+05-18 15:52:03.444 22068 22094 E TestRunner: java.lang.AssertionError: MB legacy cue (22-byte manufacturer data beacon) must have been received and recognized as a ReceivedMessageBeacon (via MeshxMessageAdvertisement.decodeScanRecord)
+05-18 15:52:03.444 22068 22094 E TestRunner: 	at org.junit.Assert.fail(Assert.java:89)
+05-18 15:52:03.444 22068 22094 E TestRunner: 	at org.junit.Assert.assertTrue(Assert.java:42)
+05-18 15:52:03.444 22068 22094 E TestRunner: 	at dev.meshx.mob.ble.IOSHybridDirectMxReceiveTest.receivesHybridDirectMxFromIOS(IOSHybridDirectMxReceiveTest.kt:265)
+05-18 15:52:03.444 22068 22094 E TestRunner: 	at java.lang.reflect.Method.invoke(Native Method)
+05-18 15:52:03.444 22068 22094 E TestRunner: 	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:59)
+05-18 15:52:03.444 22068 22094 E TestRunner: 	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
+05-18 15:52:03.444 22068 22094 E TestRunner: 	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:56)
+05-18 15:52:03.444 22068 22094 E TestRunner: 	at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17)
+05-18 15:52:03.444 22068 22094 E TestRunner: 	at androidx.test.rule.GrantPermissionRule$RequestPermissionStatement.evaluate(GrantPermissionRule.java:136)
+05-18 15:52:03.444 22068 22094 E TestRunner: 	at org.junit.runners.ParentRunner$3.evaluate(ParentRunner.java:306)
+05-18 15:52:03.444 22068 22094 E TestRunner: 	at org.junit.runners.BlockJUnit4ClassRunner$1.evaluate(BlockJUnit4ClassRunner.java:100)
+05-18 15:52:03.444 22068 22094 E TestRunner: 	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:366)
+05-18 15:52:03.444 22068 22094 E TestRunner: 	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:103)
+05-18 15:52:03.444 22068 22094 E TestRunner: 	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:63)
+05-18 15:52:03.444 22068 22094 E TestRunner: 	at org.junit.runners.ParentRunner$4.run(ParentRunner.java:331)
+05-18 15:52:03.444 22068 22094 E TestRunner: 	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:79)
+05-18 15:52:03.444 22068 22094 E TestRunner: 	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:329)
+05-18 15:52:03.444 22068 22094 E TestRunner: 	at org.junit.runners.ParentRunner.access$100(ParentRunner.java:66)
+05-18 15:52:03.444 22068 22094 E TestRunner: 	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:293)
+05-18 15:52:03.444 22068 22094 E TestRunner: 	at org.junit.runners.ParentRunner$3.evaluate(ParentRunner.java:306)
+05-18 15:52:03.444 22068 22094 E TestRunner: 	at org.junit.runners.ParentRunner.run(ParentRunner.java:413)
+05-18 15:52:03.444 22068 22094 E TestRunner: 	at androidx.test.ext.junit.runners.AndroidJUnit4.run(AndroidJUnit4.java:162)
+05-18 15:52:03.444 22068 22094 E TestRunner: 	at org.junit.runners.Suite.runChild(Suite.java:128)
+05-18 15:52:03.444 22068 22094 E TestRunner: 	at org.junit.runners.Suite.runChild(Suite.java:27)
+05-18 15:52:03.444 22068 22094 E TestRunner: 	at org.junit.runners.ParentRunner$4.run(ParentRunner.java:331)
+05-18 15:52:03.444 22068 22094 E TestRunner: 	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:79)
+05-18 15:52:03.444 22068 22094 E TestRunner: 	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:329)
+05-18 15:52:03.444 22068 22094 E TestRunner: 	at org.junit.runners.ParentRunner.access$100(ParentRunner.java:66)
+05-18 15:52:03.444 22068 22094 E TestRunner: 	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:293)
+05-18 15:52:03.444 22068 22094 E TestRunner: 	at org.junit.runners.ParentRunner$3.evaluate(ParentRunner.java:306)
+05-18 15:52:03.444 22068 22094 E TestRunner: 	at org.junit.runners.ParentRunner.run(ParentRunner.java:413)
+05-18 15:52:03.444 22068 22094 E TestRunner: 	at org.junit.runner.JUnitCore.run(JUnitCore.java:137)
+05-18 15:52:03.444 22068 22094 E TestRunner: 	at org.junit.runner.JUnitCore.run(JUnitCore.java:115)
+05-18 15:52:03.444 22068 22094 E TestRunner: 	at androidx.test.internal.runner.TestExecutor.execute(TestExecutor.java:67)
+05-18 15:52:03.444 22068 22094 E TestRunner: 	at androidx.test.internal.runner.TestExecutor.execute(TestExecutor.java:58)
+05-18 15:52:03.444 22068 22094 E TestRunner: 	at androidx.test.runner.AndroidJUnitRunner.onStart(AndroidJUnitRunner.java:446)
+05-18 15:52:03.444 22068 22094 E TestRunner: 	at android.app.Instrumentation$InstrumentationThread.run(Instrumentation.java:2160)
+05-18 15:52:03.444 22068 22094 E TestRunner: ----- end exception -----
+05-18 15:52:03.462 22068 22094 I TestRunner: finished: receivesHybridDirectMxFromIOS(dev.meshx.mob.ble.IOSHybridDirectMxReceiveTest)
+05-18 15:52:03.472 22068 22094 I TestRunner: run finished: 1 tests, 1 failed, 0 ignored

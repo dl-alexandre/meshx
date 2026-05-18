@@ -1,0 +1,8 @@
+
+dev.meshx.mob.ble.IOSAuxFullMxAdvertSmokeTest:.
+
+Time: 6.102
+
+OK (1 test)
+
+
