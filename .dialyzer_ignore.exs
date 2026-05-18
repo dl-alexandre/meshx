@@ -74,6 +74,7 @@
   {"lib/meshx_mobile_app/ble/local_inbox_ux_decision_scenario_plan.ex", :unused_fun},
   {"lib/meshx_mobile_app/ble/local_inbox_ux_evidence_manifest.ex", :no_return},
   {"lib/meshx_mobile_app/ble/local_inbox_ux_evidence_manifest.ex", :unused_fun},
+  {"lib/meshx_mobile_app/ble/local_inbox_ux_evidence_manifest.ex", :guard_fail},
   {"lib/meshx_mobile_app/ble/local_inbox_ux_operator_capture_plan.ex", :no_return},
   {"lib/meshx_mobile_app/ble/local_inbox_ux_operator_capture_plan.ex", :unused_fun},
   {"lib/meshx_mobile_app/ble/local_inbox_ux_target_device_scenario_plan.ex", :no_return},
