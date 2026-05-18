@@ -168,9 +168,10 @@ grep -cE "kCBAdvDataManufacturerData=ffff" $ROOT/ios/*.log
 - **Main-looper requirement (fixed in `683950a`):** if you're on a
   build before that commit, the main-app scanner reports `:ok` but
   delivers no callbacks. Confirm the build is fresh.
-- **Temporary DIAG instrumentation:** if `IOSHybridDirectMxReceiveTest`
-  has `setLegacy(false)` or `DIAG` log lines, it's pre-cleanup. The
-  test asserts MB cue receipt — `setLegacy(false)` blocks that.
+- **DIAG / extended-scan cleanup complete (2026-05-18):** `IOSHybridDirectMxReceiveTest`
+  and `BleScanner` hybrid observer are now free of `setLegacy(false)` / duplicate-DIAG spam.
+  The test correctly exercises production MB-legacy + direct-service paths (for negative
+  carrier evidence: expect `direct_MX_envelopes=0`). Rebuild after edits.
 
 ## Post-run hygiene
 
@@ -178,6 +179,5 @@ grep -cE "kCBAdvDataManufacturerData=ffff" $ROOT/ios/*.log
   timestamped subdirs under `ios/`, `android/`, `test/`.
 - Write `$ROOT/evidence/$RUN_TS-summary.md` (use a previous one as
   template, e.g. `recapture-4-reverse/evidence/...`).
-- Remove any temporary `DIAG` or `setLegacy(false)` instrumentation
-  from the test before the next push.
 - `git status` — only stage non-artifact changes outside `local-ble/`.
+- (Cleanup done: no more DIAG/setLegacy bits to strip from test or BleScanner hybrid path.)

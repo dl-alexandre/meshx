@@ -20,16 +20,22 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * Receiver-side smoke test for the iOS→Android hybrid direct-MX receive path.
+ * Receiver-side smoke test for the iOS→Android hybrid direct-MX receive path
+ * (used for negative evidence collection after carrier decision).
+ *
+ * Carrier decision (see docs/ble_carrier_decision.md + commit 2d9cf11): the direct-MX
+ * service-data hybrid (...1001 + MB cue) is rejected for iOS↔Android production use due to
+ * CoreBluetooth foreground advertising restrictions on iOS emit side (no actual packets for
+ * custom service data or mfg data reach Android in practice, despite iOS console claims).
  *
  * When the iOS harness is launched with `--meshx-auto-direct-mx-hybrid-advertise`, it emits:
  *   - a short legacy MB (22-byte manufacturer data) cue (fleet-compatible beacon containing 8-byte hashes)
- *   - the full v1 MeshxMessageEnvelope carried in service data under MESHX_DIRECT_MX_SERVICE_UUID (...1001)
+ *   - (claimed) the full v1 MeshxMessageEnvelope carried in service data under MESHX_DIRECT_MX_SERVICE_UUID (...1001)
  *
- * This test exercises the production `BleScanner` (so the `HYBRID_*`, `DIRECT_MX_SERVICE_DATA_WITH_MAGIC`,
+ * This test exercises the *production* `BleScanner` + `AndroidBleDispatchRadio` path exactly as the
+ * main app does (post-683950a main-looper fix), emitting the `HYBRID_*`, `DIRECT_MX_SERVICE_DATA_WITH_MAGIC`,
  * `iOS_HYBRID_STARTED (received on Android)`, and `HYBRID_SUCCESS` / `HYBRID_RECEIVED_FROM_IOS` lines
- * are emitted exactly as they would be in a normal app run) while also performing explicit inspection
- * of scan records to assert:
+ * while also performing explicit inspection of scan records to assert:
  *
  *   - MB legacy cue (22-byte manufacturer data beacon) is received and recognized (as ReceivedMessageBeacon)
  *   - Direct-MX service-data advertisement on UUID `8f4f1201-6f3d-4f9c-9e3b-7f4a4f0f1001` is observed
@@ -38,8 +44,12 @@ import org.junit.runner.RunWith
  *     correlates with (matches) the hash key(s) from at least one observed MB cue — using proper hash
  *     computation, never a naive string-prefix match between hash-hex and full messageId (guards the
  *     exact class of off-by-header / format-mismatch bugs seen in earlier hybrid work)
- *   - No MeshxFetchGatt fetch-service (....2000) advertisements were observed during the window,
- *     proving the message was delivered directly via the service-data carrier with zero GATT round-trip
+ *   - No MeshxFetchGatt fetch-service (....2000) advertisements were observed during the window
+ *     (for a pure direct path; in negative carrier runs this may be moot since directs also absent)
+ *
+ * Expected for negative carrier re-confirmation runs (iPhone hybrid-emit + this test):
+ *   MB cues received (legacy path works), direct_MX_envelopes=0, test asserts fail as designed evidence.
+ * The production MB+GATT path (positive evidence) is validated separately via main-app selftest + capture.
  *
  * The test is deliberately lightweight: real BluetoothAdapter + real leScanner + `BleScanner` with
  * `InMemoryEventSink` + a minimal `MeshxBeaconFetchCoordinatorHook` recording implementation.
@@ -60,7 +70,7 @@ import org.junit.runner.RunWith
  *   adb shell am instrument -w -e class dev.meshx.mob.ble.IOSHybridDirectMxReceiveTest \
  *     dev.meshx.mob.test/androidx.test.runner.AndroidJUnitRunner
  *
- * Success signals (must appear for a passing evidence-grade run):
+ * Evidence signals (logged even when asserts fail on negative carrier runs):
  *   - Android logcat (from BleScanner + this test): "HYBRID_RECEIVED", "HYBRID_SUCCESS", "HYBRID_RECEIVED_FROM_IOS",
  *     "iOS_HYBRID_STARTED messageId=... (received on Android)", "DIRECT_MX_SERVICE_DATA_WITH_MAGIC",
  *     and the test's own "HYBRID_SUCCESS (test)" (the production heuristic emits on "any recent MB cue + magic"

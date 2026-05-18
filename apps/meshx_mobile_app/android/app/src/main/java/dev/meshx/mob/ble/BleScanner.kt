@@ -178,32 +178,15 @@ class BleScanner(
             recentCount = recentMBBeacons.size  // after prune, every entry is within the 15 s window
         }
         if (recentCount > 0) {
-            Log.i("HybridExperiment", "HYBRID_RECEIVED messageId=$messageId recentMB=$recentCount — legacy MB cue + direct MX service data both observed on Android. Success signal for the hybrid strategy (iOS → Android or Android → iOS).")
-            Log.i("HybridExperiment", "HYBRID_SUCCESS messageId=$messageId — full hybrid (MB cue + direct MX service data) successfully received on Android. This is the expected positive outcome for the hybrid advertising strategy in either direction.")
-            Log.i("HybridExperiment", "This hybrid was emitted by the iOS harness (direct service UUID + recent MB cue). Look for the matching iOS_HYBRID_STARTED line with the same messageId on the iOS console.")
-            Log.i("HybridExperiment", "Hybrid experiment complete for messageId=$messageId : MB cue + direct MX service data both observed. Success.")
-            Log.i("HybridExperiment", "iOS_HYBRID_STARTED messageId=$messageId (received on Android) — the hybrid that was started on iOS is now visible on the Android side.")
-            
-            // Additional high-level summary for the hybrid strategy on the Android receive side (makes the experiment results very obvious in normal runs with raw logging enabled).
-            Log.i("HybridExperiment", "HYBRID_RECEIVED_FROM_IOS messageId=$messageId — full hybrid (MB cue + direct MX service data) successfully received from iOS on Android. This is the expected positive outcome for the hybrid advertising strategy in the iOS → Android direction.")
-            
-            // Prominent "started" line on the Android receive side for perfect symmetry with the iOS emit side (so operators can grep for HYBRID_STARTED on both consoles and see the matching pair).
-            Log.i("HybridExperiment", "iOS_HYBRID_STARTED messageId=$messageId (received on Android) — the hybrid that was started on iOS is now visible on the Android side.")
-            
-            // Final high-level summary for the hybrid strategy on the Android receive side (makes the experiment results very obvious in normal runs with raw logging enabled).
-            Log.i("HybridExperiment", "HYBRID_RECEIVED_FROM_IOS messageId=$messageId — full hybrid (MB cue + direct MX service data) successfully received from iOS on Android. This is the expected positive outcome for the hybrid advertising strategy in the iOS → Android direction.")
-            
-            // Additional high-level summary for the hybrid strategy on the Android receive side (makes the experiment results very obvious in normal runs with raw logging enabled).
-            Log.i("HybridExperiment", "HYBRID_SUCCESS messageId=$messageId — full hybrid (MB cue + direct MX service data) successfully received on Android. This is the expected positive outcome for the hybrid advertising strategy in either direction.")
-            
-            // Final prominent "started" line on the Android receive side for perfect symmetry with the iOS emit side (so operators can grep for HYBRID_STARTED on both consoles and see the matching pair).
-            Log.i("HybridExperiment", "iOS_HYBRID_STARTED messageId=$messageId (received on Android) — the hybrid that was started on iOS is now visible on the Android side.")
-            
-            // One-line experiment result summary for the Android receive side of an iOS hybrid (very useful during hardware runs).
-            Log.i("HybridExperiment", "Hybrid experiment result (Android receive): messageId=$messageId → MB cue seen + direct MX service data seen with magic → HYBRID_SUCCESS (from iOS).")
-            
-            // Final high-level summary for the hybrid strategy on the Android receive side (makes the experiment results very obvious in normal runs with raw logging enabled).
-            Log.i("HybridExperiment", "HYBRID_SUCCESS messageId=$messageId — full hybrid (MB cue + direct MX service data) successfully received on Android. This is the expected positive outcome for the hybrid advertising strategy in either direction.")
+            // Clean, non-duplicative evidence signals (post-DIAG cleanup).
+            // These fire for any MB-cue + direct-MX-magic pair observed by production BleScanner.
+            // Used by IOSHybridDirectMxReceiveTest (negative evidence for rejected carrier) and
+            // future positive runs. Keep the key tokens (HYBRID_*, iOS_HYBRID_STARTED, DIRECT_MX...)
+            // stable for log greps in capture scripts and evidence bundles.
+            Log.i("HybridExperiment", "HYBRID_RECEIVED messageId=$messageId recentMB=$recentCount — legacy MB cue + direct MX service data both observed on Android.")
+            Log.i("HybridExperiment", "HYBRID_SUCCESS messageId=$messageId — full hybrid (MB cue + direct MX) received on Android.")
+            Log.i("HybridExperiment", "iOS_HYBRID_STARTED messageId=$messageId (received on Android) — matching the iOS emit side.")
+            Log.i("HybridExperiment", "HYBRID_RECEIVED_FROM_IOS messageId=$messageId — iOS→Android hybrid path observed (note: direct service-data carrier rejected for production; this is diagnostic only).")
         } else {
             Log.i("HybridExperiment", "DIRECT_MX_SERVICE_DATA_WITH_MAGIC messageId=$messageId (no recent matching MB cue in last 15s)")
         }
