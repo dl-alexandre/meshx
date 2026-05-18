@@ -1,0 +1,21 @@
+
+dev.meshx.mob.ble.IOSHybridDirectMxReceiveTest:
+Error in receivesHybridDirectMxFromIOS(dev.meshx.mob.ble.IOSHybridDirectMxReceiveTest):
+java.lang.AssertionError: MB legacy cue (22-byte manufacturer data beacon) must have been received and recognized as a ReceivedMessageBeacon (via MeshxMessageAdvertisement.decodeScanRecord)
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at dev.meshx.mob.ble.IOSHybridDirectMxReceiveTest.receivesHybridDirectMxFromIOS(IOSHybridDirectMxReceiveTest.kt:265)
+
+
+Time: 47.166
+There was 1 failure:
+1) receivesHybridDirectMxFromIOS(dev.meshx.mob.ble.IOSHybridDirectMxReceiveTest)
+java.lang.AssertionError: MB legacy cue (22-byte manufacturer data beacon) must have been received and recognized as a ReceivedMessageBeacon (via MeshxMessageAdvertisement.decodeScanRecord)
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at dev.meshx.mob.ble.IOSHybridDirectMxReceiveTest.receivesHybridDirectMxFromIOS(IOSHybridDirectMxReceiveTest.kt:265)
+
+FAILURES!!!
+Tests run: 1,  Failures: 1
+
+
