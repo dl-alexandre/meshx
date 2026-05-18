@@ -1,6 +1,8 @@
 defmodule MeshxMobileApp.BLE.LocalReleaseRecentEvidenceInventoryTest do
   use ExUnit.Case, async: true
 
+  @moduletag :hardware_artifact
+
   alias MeshxMobileApp.BLE.LocalReleaseRecentEvidenceInventory
 
   test "snapshot inventories recent local evidence while keeping release incomplete" do

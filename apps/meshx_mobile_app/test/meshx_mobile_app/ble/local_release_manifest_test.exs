@@ -1,6 +1,8 @@
 defmodule MeshxMobileApp.BLE.LocalReleaseManifestTest do
   use ExUnit.Case, async: true
 
+  @moduletag :hardware_artifact
+
   alias MeshxMobileApp.BLE.LocalReleaseManifest
 
   test "snapshot ties advert-only release criteria to open project readiness" do

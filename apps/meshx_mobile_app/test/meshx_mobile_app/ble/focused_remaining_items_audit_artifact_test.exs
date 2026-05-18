@@ -1,6 +1,8 @@
 defmodule MeshxMobileApp.BLE.FocusedRemainingItemsAuditArtifactTest do
   use ExUnit.Case, async: true
 
+  @moduletag :hardware_artifact
+
   @audit_path "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/focused-remaining-items-audit.json"
 
   test "focused remaining-items artifact preserves exact four-row completion state" do

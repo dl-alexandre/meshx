@@ -11,6 +11,8 @@ defmodule MeshxNoise.SwiftInteropTest do
 
   use ExUnit.Case, async: false
 
+  @moduletag :requires_swift
+
   alias MeshxNoise.Session
 
   @protocol "Noise_XX_25519_ChaChaPoly_BLAKE2s"

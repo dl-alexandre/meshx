@@ -1,6 +1,8 @@
 defmodule MeshxMobileApp.BLE.LocalReleaseArtifactBundleTest do
   use ExUnit.Case, async: true
 
+  @moduletag :hardware_artifact
+
   alias MeshxMobileApp.BLE.{LocalReleaseArtifactBundle, LocalReleaseManifest}
 
   test "snapshot lists generated, embedded, and operator-supplied release artifacts" do

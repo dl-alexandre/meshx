@@ -229,4 +229,9 @@ jobs:
       - name: Build PLTs
         run: mix dialyzer --plt
       - name: Run Dialyzer
-        run: mix dialyzer --format short
+        # `--format short` crashes in dialyxir 1.4.7 on OTP 28 with
+        # {:error, :unknown_warning, :exact_compare} — the formatter
+        # doesn't recognize the new warning kind. The default `dialyzer`
+        # format passes through unchanged. Switch back when dialyxir
+        # ships a release that knows :exact_compare.
+        run: mix dialyzer --format dialyzer
