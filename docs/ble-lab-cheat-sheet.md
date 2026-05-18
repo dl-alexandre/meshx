@@ -4,6 +4,9 @@ Single-page reference for on-device BLE validation runs. Keep printed or
 phone-bookmarked. Companion to `docs/BLE_BRIDGE.md` and
 `docs/ble_carrier_decision.md`.
 
+Uses the structured capture layout + `capture-hybrid-run.sh` (see
+`artifacts/local-ble/2026-05-18-iphone13-direct-mx-hybrid/`).
+
 ## Devices
 
 | Role          | Device      | ID                                       | OS         |
@@ -29,10 +32,11 @@ for s in R52W90AW7EN 5200f354f4fb277f; do
   adb -s $s install -r -t app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
 done
 
-# Fresh run directory
+# Fresh structured run (recommended)
 RUN_TS=$(date +%Y%m%d-%H%M%S)
 ROOT=artifacts/local-ble/$(date +%Y-%m-%d)-recapture-N
 mkdir -p $ROOT/{ios,android,test,evidence}
+# Then use the helper below for Android side (creates timestamped subdirs)
 ```
 
 ## iOS harness launch patterns
@@ -54,16 +58,19 @@ xcrun devicectl device process launch --device $UDID --terminate-existing --cons
     --meshx-auto-scan --meshx-log-raw-advert-data --meshx-log-candidate-discoveries
 ```
 
-## Android launch patterns
+## Android launch patterns (preferred = structured helper)
 
 ```sh
 SM=R52W90AW7EN  # or 5200f354f4fb277f
 
-# Main app with selftest scan + advertise (the production NIF path)
+# Preferred: structured capture (creates timestamped subdirs + filtered logs)
+./capture-hybrid-run.sh --serial $SM --run-ts $RUN_TS
+
+# Main app with selftest (quick scanner sanity / production path)
 adb -s $SM shell am start -n dev.meshx.mob/.MainActivity \
   --ez meshx_ble_selftest true --es mob_node_suffix lab
 
-# Instrumented hybrid receive test
+# Instrumented hybrid receive test (direct)
 adb -s $SM shell am instrument -w \
   -e class dev.meshx.mob.ble.IOSHybridDirectMxReceiveTest \
   dev.meshx.mob.test/androidx.test.runner.AndroidJUnitRunner
@@ -74,10 +81,30 @@ adb -s $SM shell am instrument -w \
   dev.meshx.mob.test/androidx.test.runner.AndroidJUnitRunner
 ```
 
-## Logcat capture
+## Capture helper (recommended for reproducible runs)
 
 ```sh
-# Filtered for hybrid + scan + selftest
+# From the repo root
+cd artifacts/local-ble/2026-05-18-...-recapture-N
+
+./capture-hybrid-run.sh --serial R52W90AW7EN --run-ts $RUN_TS
+```
+
+The script:
+- Clears logcat
+- Starts filtered background capture
+- Runs the requested instrumented test
+- Saves everything under `android/$RUN_TS-*.log`
+
+Use it for steps 2–4 of the validation day.
+
+## Logcat capture (use the helper when possible)
+
+```sh
+# Preferred (via capture-hybrid-run.sh)
+./capture-hybrid-run.sh --serial $SM --run-ts $RUN_TS
+
+# Manual filtered capture (hybrid/scan/selftest focus)
 adb -s $SM logcat -c
 adb -s $SM logcat -v threadtime \
   HybridExperiment:* MeshxBleScanRaw:* BleSelfTest:* \
@@ -88,28 +115,24 @@ LOGPID=$!
 kill $LOGPID; wait $LOGPID 2>/dev/null
 ```
 
-## Validation day order
+## Validation day order (use the helper for steps 2–4)
 
 1. **Scanner sanity** (verifies the 683950a main-looper fix). Launch
    main app with `meshx_ble_selftest=true` on both Android devices,
    emit MB beacons from iPhone. Watch `BleSelfTest: HEARTBEAT` —
-   pass iff `devices > 0` and `beacon_callbacks > 0`. If still zero,
-   the regression is back.
+   pass iff `devices > 0` and `beacon_callbacks > 0`.
 
-2. **Carrier-decision re-confirm.** Run `IOSHybridDirectMxReceiveTest`
-   on SM-T577U while iPhone emits hybrid. Expected per the rejected
-   carrier: MB cues received, `direct_MX_envelopes=0`.
+2. **Carrier-decision re-confirm.** Use
+   `./capture-hybrid-run.sh` + `IOSHybridDirectMxReceiveTest` while
+   iPhone emits hybrid. Expected: MB cues received,
+   `direct_MX_envelopes=0` (service-data carrier rejected).
 
 3. **Positive production-path evidence.** iPhone emits MB legacy cue
-   only; Android performs GATT fetch in response. Look for matching
-   messageId across `HYBRID_SUCCESS` / `iOS_HYBRID_STARTED` lines plus
-   visible GATT activity. Capture at least one clean run per Android
-   device (T390 covers older API/BT4 fleet).
+   only; Android performs GATT fetch. Look for matching messageId +
+   visible GATT. Use the helper for clean artifacts.
 
-4. **Optional — reverse direction.** Android emits hybrid via
-   `emitsHybridMbCuePlusServiceDataFullMxEnvelope`; iPhone observes
-   with raw logging. Expected per recapture-4: 52+ MB cues on iOS,
-   zero direct-MX (iOS scan-side restriction).
+4. **Optional — reverse direction.** Android emits hybrid via the
+   AUX test method; iPhone observes with raw logging.
 
 ## Correlation / evidence cheats
 
@@ -151,9 +174,10 @@ grep -cE "kCBAdvDataManufacturerData=ffff" $ROOT/ios/*.log
 
 ## Post-run hygiene
 
-- Move logs into `$ROOT/{ios,android,test}/` if not already structured.
-- Write `$ROOT/evidence/$RUN_TS-summary.md` (template:
-  `artifacts/local-ble/2026-05-18-iphone13-direct-mx-hybrid/recapture-4-reverse/evidence/20260518-095213-summary.md`).
-- Strip any temporary DIAG / `setLegacy(false)` from tests before push.
-- `git status` — confirm only artifact files outside the gitignored
-  `local-ble/` paths are staged.
+- Use `./capture-hybrid-run.sh` — it already creates the right
+  timestamped subdirs under `ios/`, `android/`, `test/`.
+- Write `$ROOT/evidence/$RUN_TS-summary.md` (use a previous one as
+  template, e.g. `recapture-4-reverse/evidence/...`).
+- Remove any temporary `DIAG` or `setLegacy(false)` instrumentation
+  from the test before the next push.
+- `git status` — only stage non-artifact changes outside `local-ble/`.
