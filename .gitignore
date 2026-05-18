@@ -36,7 +36,12 @@ erl_crash.dump
 # Ad-hoc BLE capture sessions; checked-in fixtures live under apps/*/test/fixtures/captures/.
 apps/*/priv/captures/
 
-# Generated local-BLE run outputs (manifests, logs).
+# Generated local-BLE run outputs (manifests, logs). Tests tagged
+# :hardware_artifact reference 20 specific files under
+# artifacts/local-ble/2026-05-17-sm-t577u-ipad9/ which are tracked
+# explicitly (committed via `git add -f`) — they remain in the index
+# regardless of this ignore. To add a new fixture file under here,
+# use `git add -f <path>`.
 /artifacts/local-ble/
 apps/*/tmp/
 

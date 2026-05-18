@@ -1,0 +1,696 @@
+{
+  "advert_gossip_audit_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/advert-gossip-audit.txt",
+  "completion_audit_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/local-completion-audit.json",
+  "completion_audit_plain_text_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/local-completion-audit.txt",
+  "completion_blocker_matrix_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/local-completion-blocker-matrix.json",
+  "full_resolution_review": {
+    "boundary": "full_message_resolution_transport_evidence_review",
+    "full_message_resolution_claim_allowed?": false,
+    "full_resolution_transport_evidence_complete?": true,
+    "gatt_fetch_success_claim_allowed?": false,
+    "known_good_transport_claim_allowed?": false,
+    "message_delivery_claim_allowed?": false,
+    "note": "Known-good/fetch evidence remains non-release-claiming; no full-message resolution claim.",
+    "real_fetch_transport_validated?": false,
+    "review_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/release-candidate/local-full-resolution-transport-review.json",
+    "review_version": 1,
+    "status": "ready",
+    "trusted_message_claim_allowed?": false
+  },
+  "full_resolution_review_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/release-candidate/local-full-resolution-transport-review.json",
+  "hardware_attachments": [
+    {
+      "command_or_harness": "adb shell am startservice meshx_ble_selftest with iPad MeshxMobileHarness --meshx-auto-scan",
+      "device_model": "SM-T577U / Android tablet",
+      "evidence_types_by_gate": {
+        "android_legacy_beacon_gossip_one_hop": "android_legacy_beacon_gossip_summary"
+      },
+      "gate_ids": [
+        "android_legacy_beacon_gossip_one_hop"
+      ],
+      "os_or_api_version": "Android device R52W90AW7EN (SM-T577U)",
+      "raw_log_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/android-to-ipad-beacon-rerun/android-meshx-extract.log",
+      "role": "attached Android sender observed by iPad harness",
+      "summary_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/summary.json"
+    },
+    {
+      "command_or_harness": "xcrun devicectl device process launch --console dev.meshx.mobile.harness -- --meshx-auto-scan / --meshx-auto-beacon",
+      "device_model": "iPad 9th generation (iPad12,1)",
+      "evidence_types_by_gate": {
+        "ios_advert_only_participation": "ios_advert_only_hardware_log"
+      },
+      "gate_ids": [
+        "ios_advert_only_participation"
+      ],
+      "os_or_api_version": "iOS 26.5",
+      "raw_log_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/android-to-ipad-beacon-rerun/ipad-observer.log",
+      "role": "foreground iOS harness observer and beacon dispatcher",
+      "summary_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/summary.json"
+    },
+    {
+      "command_or_harness": "archived local BLE hardware capture scripts",
+      "device_model": "SM-T577U / SM-T390 prior Android pair",
+      "evidence_types_by_gate": {
+        "android_full_envelope_advert_pair": "android_full_envelope_advert_summary",
+        "gatt_known_good_fetch": "standalone_gatt_interop_log"
+      },
+      "gate_ids": [
+        "android_full_envelope_advert_pair",
+        "gatt_known_good_fetch"
+      ],
+      "os_or_api_version": "Android hardware evidence captured 2026-05-12 and 2026-05-13",
+      "raw_log_path": "artifacts/local-ble/2026-05-13-sm-t577u-sm-t390/hardware/m40-gatt-interop-rerun/summary.md",
+      "role": "prior hardware gate evidence reference for still-blocked transport gates",
+      "summary_path": "artifacts/local-ble/2026-05-12-sm-t577u-sm-t390/hardware/m26-full-envelope/summary.json"
+    }
+  ],
+  "ios_parity_review": {
+    "boundary": "ios_advert_only_hardware_evidence_review",
+    "evidence_by_gate": {
+      "canonical_ingress_fixture": {
+        "artifact_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/android-to-ipad-beacon-rerun/ipad-observer.log",
+        "blocked_claims_called_out": [
+          "android_evidence_reuse",
+          "bridge_shell_only",
+          "direct_full_mx_aux_complete",
+          "foreground_only_ios_overclaim",
+          "ios_advert_only_validation",
+          "ios_background_advertise",
+          "ios_background_ble",
+          "ios_background_scan",
+          "ios_full_envelope_advert",
+          "ios_full_message_observation",
+          "ios_hardware_participation",
+          "ios_hardware_replay_fixture",
+          "ios_legacy_beacon_gossip",
+          "ios_legacy_beacon_observed",
+          "ios_one_hop_gossip_hardware_proof",
+          "ios_parity_claim",
+          "missing_ios_dispatcher",
+          "missing_ios_replay_fixture",
+          "unproven_ios_full_envelope_capability",
+          "unvalidated_ios_observe",
+          "upstream_patch_migration_complete"
+        ],
+        "evidence_type": "canonical_ingress_fixture",
+        "summary": "The iPad harness decoded MB legacy beacon manufacturer data into normalized legacy_beacon_received lines with beacon_version=1, envelope_version=1, payload_kind=TX, message_id_hash, and sender_peer_id_hash.",
+        "test_command": "rg legacy_beacon_received artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/android-to-ipad-beacon-rerun/ipad-observer.log"
+      },
+      "full_envelope_capability_probe": {
+        "artifact_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/android-to-ipad-beacon-rerun/ipad-observer.log",
+        "blocked_claims_called_out": [
+          "android_evidence_reuse",
+          "bridge_shell_only",
+          "direct_full_mx_aux_complete",
+          "foreground_only_ios_overclaim",
+          "ios_advert_only_validation",
+          "ios_background_advertise",
+          "ios_background_ble",
+          "ios_background_scan",
+          "ios_full_envelope_advert",
+          "ios_full_message_observation",
+          "ios_hardware_participation",
+          "ios_hardware_replay_fixture",
+          "ios_legacy_beacon_gossip",
+          "ios_legacy_beacon_observed",
+          "ios_one_hop_gossip_hardware_proof",
+          "ios_parity_claim",
+          "missing_ios_dispatcher",
+          "missing_ios_replay_fixture",
+          "unproven_ios_full_envelope_capability",
+          "unvalidated_ios_observe",
+          "upstream_patch_migration_complete"
+        ],
+        "evidence_type": "full_envelope_capability_probe",
+        "summary": "No full MX envelope receive was claimed in this run; observed evidence is MB legacy beacon refs only.",
+        "test_command": "rg received_message artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/android-to-ipad-beacon-rerun/ipad-observer.log"
+      },
+      "hardware_replay_fixture": {
+        "artifact_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/android-to-ipad-beacon-rerun/ipad-observer.log",
+        "blocked_claims_called_out": [
+          "android_evidence_reuse",
+          "bridge_shell_only",
+          "direct_full_mx_aux_complete",
+          "foreground_only_ios_overclaim",
+          "ios_advert_only_validation",
+          "ios_background_advertise",
+          "ios_background_ble",
+          "ios_background_scan",
+          "ios_full_envelope_advert",
+          "ios_full_message_observation",
+          "ios_hardware_participation",
+          "ios_hardware_replay_fixture",
+          "ios_legacy_beacon_gossip",
+          "ios_legacy_beacon_observed",
+          "ios_one_hop_gossip_hardware_proof",
+          "ios_parity_claim",
+          "missing_ios_dispatcher",
+          "missing_ios_replay_fixture",
+          "unproven_ios_full_envelope_capability",
+          "unvalidated_ios_observe",
+          "upstream_patch_migration_complete"
+        ],
+        "evidence_type": "hardware_replay_fixture",
+        "summary": "The hardware log records replay-normalizable fields for MB beacon refs; no full-message delivery, route, ACK, retry, or trust replay fixture is claimed.",
+        "test_command": "rg legacy_beacon_received artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/android-to-ipad-beacon-rerun/ipad-observer.log"
+      },
+      "ios_background_ble_boundary": {
+        "artifact_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/android-to-ipad-beacon-rerun/ipad-observer.log",
+        "blocked_claims_called_out": [
+          "android_evidence_reuse",
+          "bridge_shell_only",
+          "direct_full_mx_aux_complete",
+          "foreground_only_ios_overclaim",
+          "ios_advert_only_validation",
+          "ios_background_advertise",
+          "ios_background_ble",
+          "ios_background_scan",
+          "ios_full_envelope_advert",
+          "ios_full_message_observation",
+          "ios_hardware_participation",
+          "ios_hardware_replay_fixture",
+          "ios_legacy_beacon_gossip",
+          "ios_legacy_beacon_observed",
+          "ios_one_hop_gossip_hardware_proof",
+          "ios_parity_claim",
+          "missing_ios_dispatcher",
+          "missing_ios_replay_fixture",
+          "unproven_ios_full_envelope_capability",
+          "unvalidated_ios_observe",
+          "upstream_patch_migration_complete"
+        ],
+        "evidence_type": "ios_background_ble_boundary",
+        "summary": "All iPad captures were foreground devicectl harness launches; no iOS background scan or advertise behavior is claimed.",
+        "test_command": "xcrun devicectl device process launch --console dev.meshx.mobile.harness ..."
+      },
+      "legacy_beacon_gossip_hardware": {
+        "artifact_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/ipad-to-android-beacon-rerun/ipad-sender.log",
+        "blocked_claims_called_out": [
+          "android_evidence_reuse",
+          "bridge_shell_only",
+          "direct_full_mx_aux_complete",
+          "foreground_only_ios_overclaim",
+          "ios_advert_only_validation",
+          "ios_background_advertise",
+          "ios_background_ble",
+          "ios_background_scan",
+          "ios_full_envelope_advert",
+          "ios_full_message_observation",
+          "ios_hardware_participation",
+          "ios_hardware_replay_fixture",
+          "ios_legacy_beacon_gossip",
+          "ios_legacy_beacon_observed",
+          "ios_one_hop_gossip_hardware_proof",
+          "ios_parity_claim",
+          "missing_ios_dispatcher",
+          "missing_ios_replay_fixture",
+          "unproven_ios_full_envelope_capability",
+          "unvalidated_ios_observe",
+          "upstream_patch_migration_complete"
+        ],
+        "evidence_type": "legacy_beacon_gossip_hardware",
+        "summary": "Fresh iPad auto-beacon run dispatched 28 MB legacy beacon refs from sender ios-harness-B1C7BB9A; Android did not record a matched iPad sender hash, so this is iPad foreground emit evidence, not Android receive proof.",
+        "test_command": "xcrun devicectl device process launch --device 39FD8D3A-9CA5-5DEF-AFC0-AA5205511117 --terminate-existing --console dev.meshx.mobile.harness --meshx-auto-beacon"
+      },
+      "legacy_beacon_observe_hardware": {
+        "artifact_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/android-to-ipad-beacon-rerun/ipad-observer.log",
+        "blocked_claims_called_out": [
+          "android_evidence_reuse",
+          "bridge_shell_only",
+          "direct_full_mx_aux_complete",
+          "foreground_only_ios_overclaim",
+          "ios_advert_only_validation",
+          "ios_background_advertise",
+          "ios_background_ble",
+          "ios_background_scan",
+          "ios_full_envelope_advert",
+          "ios_full_message_observation",
+          "ios_hardware_participation",
+          "ios_hardware_replay_fixture",
+          "ios_legacy_beacon_gossip",
+          "ios_legacy_beacon_observed",
+          "ios_one_hop_gossip_hardware_proof",
+          "ios_parity_claim",
+          "missing_ios_dispatcher",
+          "missing_ios_replay_fixture",
+          "unproven_ios_full_envelope_capability",
+          "unvalidated_ios_observe",
+          "upstream_patch_migration_complete"
+        ],
+        "evidence_type": "legacy_beacon_observe_hardware",
+        "summary": "Fresh iPad observe run captured 474 legacy_beacon_received lines, including 247 lines with attached SM-T577U sender hash 12f78557517a13f9; this proves foreground iPad observe of Android MB beacon refs only.",
+        "test_command": "xcrun devicectl device process launch --device 39FD8D3A-9CA5-5DEF-AFC0-AA5205511117 --terminate-existing --console dev.meshx.mobile.harness --meshx-auto-scan --meshx-log-candidate-discoveries; adb -s R52W90AW7EN shell am start -n dev.meshx.mob/.MainActivity --ez meshx_ble_selftest true"
+      },
+      "negative_claim_review": {
+        "artifact_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/README.md",
+        "blocked_claims_called_out": [
+          "android_evidence_reuse",
+          "bridge_shell_only",
+          "direct_full_mx_aux_complete",
+          "foreground_only_ios_overclaim",
+          "ios_advert_only_validation",
+          "ios_background_advertise",
+          "ios_background_ble",
+          "ios_background_scan",
+          "ios_full_envelope_advert",
+          "ios_full_message_observation",
+          "ios_hardware_participation",
+          "ios_hardware_replay_fixture",
+          "ios_legacy_beacon_gossip",
+          "ios_legacy_beacon_observed",
+          "ios_one_hop_gossip_hardware_proof",
+          "ios_parity_claim",
+          "missing_ios_dispatcher",
+          "missing_ios_replay_fixture",
+          "unproven_ios_full_envelope_capability",
+          "unvalidated_ios_observe",
+          "upstream_patch_migration_complete"
+        ],
+        "evidence_type": "ios_parity_negative_fixture_matrix",
+        "summary": "Operator review keeps iOS parity, delivery, full-envelope, background, routing, trust, and whole-project completion claims blocked.",
+        "test_command": "mix meshx.mobile.local_ios_parity.hardware_review --input artifacts/local-ble/2026-05-17-sm-t577u-ipad9/ios/evidence.json --json"
+      },
+      "target_ios_device_matrix": {
+        "artifact_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/android-to-ipad-beacon-rerun/devicectl-devices.txt",
+        "blocked_claims_called_out": [
+          "android_evidence_reuse",
+          "bridge_shell_only",
+          "direct_full_mx_aux_complete",
+          "foreground_only_ios_overclaim",
+          "ios_advert_only_validation",
+          "ios_background_advertise",
+          "ios_background_ble",
+          "ios_background_scan",
+          "ios_full_envelope_advert",
+          "ios_full_message_observation",
+          "ios_hardware_participation",
+          "ios_hardware_replay_fixture",
+          "ios_legacy_beacon_gossip",
+          "ios_legacy_beacon_observed",
+          "ios_one_hop_gossip_hardware_proof",
+          "ios_parity_claim",
+          "missing_ios_dispatcher",
+          "missing_ios_replay_fixture",
+          "unproven_ios_full_envelope_capability",
+          "unvalidated_ios_observe",
+          "upstream_patch_migration_complete"
+        ],
+        "evidence_type": "target_ios_device_matrix",
+        "summary": "Coding iPad iPad12,1 on iOS 26.5 was connected over wired CoreDevice; SM-T577U Android 13/API 33 was connected over adb as the Android peer.",
+        "test_command": "xcrun devicectl list devices; adb devices -l"
+      }
+    },
+    "hardware_validation_plan": {
+      "blocked_claims": [
+        "ios_hardware_participation",
+        "ios_advert_only_validation",
+        "ios_legacy_beacon_observed",
+        "ios_legacy_beacon_gossip",
+        "ios_full_envelope_advert",
+        "ios_hardware_replay_fixture",
+        "ios_background_ble",
+        "ios_parity_claim"
+      ],
+      "blocked_gate_count": 8,
+      "boundary": "ios_advert_only_hardware_validation_plan",
+      "current_ios_mode": "contract_only",
+      "gate_count": 8,
+      "gates": [
+        {
+          "blocked_claims": [
+            "ios_hardware_participation",
+            "ios_parity_claim"
+          ],
+          "id": "target_ios_device_matrix",
+          "missing_evidence": [
+            "iOS device matrix for legacy beacon observe, legacy beacon gossip, and full-envelope capability runs.",
+            "Observer device metadata for every cross-platform hardware claim."
+          ],
+          "notes": [
+            "iOS parity evidence must be device-specific and cannot reuse Android-only proof."
+          ],
+          "required_evidence": [
+            "iPhone/iPad model, iOS version, BLE state, app build id, permission state, and foreground/background state for every run.",
+            "A matching Android or second MeshX observer entry when validating cross-platform observe or gossip."
+          ],
+          "status": "blocked"
+        },
+        {
+          "blocked_claims": [
+            "ios_advert_only_validation",
+            "ios_parity_claim"
+          ],
+          "id": "canonical_ingress_fixture",
+          "missing_evidence": [
+            "iOS bridge fixture for canonical received_message_beacon.",
+            "iOS bridge fixture for canonical received_message when full-envelope participation exists."
+          ],
+          "notes": [
+            "Canonical shape is necessary before any iOS hardware log becomes comparable to Android logs."
+          ],
+          "required_evidence": [
+            "Native iOS event mapped into canonical received_message_beacon or received_message JSON.",
+            "Replay fixture proving the iOS-origin event normalizes through the shared ingress path."
+          ],
+          "status": "blocked"
+        },
+        {
+          "blocked_claims": [
+            "ios_legacy_beacon_observed",
+            "ios_advert_only_validation"
+          ],
+          "id": "legacy_beacon_observe_hardware",
+          "missing_evidence": [
+            "iOS scan implementation evidence for legacy beacon decode.",
+            "iOS hardware capture proving legacy beacon observation."
+          ],
+          "notes": [
+            "Observing a beacon remains pointer/ref evidence, not full message delivery."
+          ],
+          "required_evidence": [
+            "iOS hardware log showing a compact legacy message beacon observed from Android or another MeshX peer.",
+            "Canonical received_message_beacon event with matching message_id_hash, sender_peer_hash, payload_kind, and envelope_version."
+          ],
+          "status": "blocked"
+        },
+        {
+          "blocked_claims": [
+            "ios_legacy_beacon_gossip",
+            "ios_one_hop_gossip_hardware_proof"
+          ],
+          "id": "legacy_beacon_gossip_hardware",
+          "missing_evidence": [
+            "iOS legacy beacon dispatcher or equivalent advert emission implementation.",
+            "Observer capture and audit summary for iOS-origin legacy beacon gossip."
+          ],
+          "notes": [
+            "Gossip evidence must not claim routing, ACKs, retries, or delivery."
+          ],
+          "required_evidence": [
+            "iOS hardware log showing compact legacy beacon emission or gossip.",
+            "Second MeshX-capable observer log proving canonical received_message_beacon capture from the iOS device."
+          ],
+          "status": "blocked"
+        },
+        {
+          "blocked_claims": [
+            "ios_full_envelope_advert",
+            "ios_full_message_observation"
+          ],
+          "id": "full_envelope_capability_probe",
+          "missing_evidence": [
+            "iOS full-envelope payload budget evidence.",
+            "Capability-proven iOS hardware pair or explicit negative capability ledger."
+          ],
+          "notes": [
+            "Full-envelope adverts remain capability-proven only; legacy beacons must not be promoted."
+          ],
+          "required_evidence": [
+            "iOS BLE capability probe for full-envelope advert payload size and scan compatibility.",
+            "Observer log containing canonical received_message if full-envelope advert is supported."
+          ],
+          "status": "blocked"
+        },
+        {
+          "blocked_claims": [
+            "ios_hardware_replay_fixture",
+            "ios_parity_claim"
+          ],
+          "id": "hardware_replay_fixture",
+          "missing_evidence": [
+            "Replay-normalized iOS hardware fixture.",
+            "Artifact metadata with iOS model, version, capture command, and observer role."
+          ],
+          "notes": [
+            "Replay normalization remains the canonical ingress proof for hardware captures."
+          ],
+          "required_evidence": [
+            "Committed iOS hardware JSONL fixture or validation ledger with raw capture reference.",
+            "Replay test proving fixture normalizes through the same canonical replay path."
+          ],
+          "status": "blocked"
+        },
+        {
+          "blocked_claims": [
+            "ios_background_ble",
+            "ios_background_scan",
+            "ios_background_advertise"
+          ],
+          "id": "ios_background_ble_boundary",
+          "missing_evidence": [
+            "iOS foreground/background participation decision.",
+            "Background capability and hardware logs if iOS background BLE is required."
+          ],
+          "notes": [
+            "iOS advert-only foreground parity and iOS background BLE are separate claims."
+          ],
+          "required_evidence": [
+            "Explicit foreground-only or background-capable policy for iOS advert-only participation.",
+            "Core Bluetooth background capability and hardware evidence if background participation is claimed."
+          ],
+          "status": "blocked"
+        },
+        {
+          "blocked_claims": [
+            "ios_parity_claim",
+            "ios_hardware_participation",
+            "ios_advert_only_validation"
+          ],
+          "id": "negative_claim_review",
+          "missing_evidence": [
+            "iOS implementation-backed negative fixture matrix.",
+            "Operator review preventing Android evidence from satisfying iOS claims."
+          ],
+          "notes": [
+            "Negative fixtures must replace pure claim gates before any iOS parity release claim."
+          ],
+          "required_evidence": [
+            "Implementation-backed negative fixtures for bridge shell only, Android evidence reuse, missing dispatcher, unproven capability, and missing replay fixture.",
+            "Release-note review preserving blocked iOS parity wording until every relevant gate passes."
+          ],
+          "status": "blocked"
+        }
+      ],
+      "ios_background_claims_allowed?": false,
+      "ios_hardware_claims_allowed?": false,
+      "ios_parity_claims_allowed?": false,
+      "ios_participation_claims_allowed?": false,
+      "notes": [
+        "iOS remains contract-only until native advert-only behavior and hardware evidence exist.",
+        "Android hardware evidence cannot satisfy iOS parity gates.",
+        "This plan adds evidence gates only; it does not change iOS runtime behavior."
+      ],
+      "plan_version": 1
+    },
+    "ios_background_ble_claim_allowed?": false,
+    "ios_full_envelope_advert_claim_allowed?": false,
+    "ios_hardware_claim_allowed?": false,
+    "ios_hardware_evidence_complete?": true,
+    "ios_legacy_beacon_gossip_claim_allowed?": false,
+    "ios_legacy_beacon_observe_claim_allowed?": false,
+    "ios_parity_claim_allowed?": false,
+    "ios_participation_claim_allowed?": false,
+    "missing": [],
+    "notes": [
+      "Ready evidence means the supplied metadata covers iOS advert-only hardware validation gates.",
+      "This review does not enable iOS scanner, advertiser, background BLE, full-envelope advert, gossip, or parity claims.",
+      "Android hardware evidence cannot satisfy iOS parity; iOS remains contract-only until implementation-backed device evidence passes."
+    ],
+    "required_blocked_claims": [
+      "ios_hardware_participation",
+      "ios_advert_only_validation",
+      "ios_legacy_beacon_observed",
+      "ios_legacy_beacon_gossip",
+      "ios_one_hop_gossip_hardware_proof",
+      "ios_full_envelope_advert",
+      "ios_full_message_observation",
+      "ios_hardware_replay_fixture",
+      "ios_background_ble",
+      "ios_background_scan",
+      "ios_background_advertise",
+      "ios_parity_claim"
+    ],
+    "required_gates": [
+      "target_ios_device_matrix",
+      "canonical_ingress_fixture",
+      "legacy_beacon_observe_hardware",
+      "legacy_beacon_gossip_hardware",
+      "full_envelope_capability_probe",
+      "hardware_replay_fixture",
+      "ios_background_ble_boundary",
+      "negative_claim_review"
+    ],
+    "review_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/ios/review.json",
+    "review_version": 1,
+    "status": "ready"
+  },
+  "ios_parity_review_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/ios/review.json",
+  "known_good_transport_review": {
+    "boundary": "known_good_transport_evidence_review",
+    "full_message_resolution_claim_allowed?": false,
+    "gatt_fetch_success_claim_allowed?": false,
+    "known_good_transport_claim_allowed?": false,
+    "known_good_transport_evidence_complete?": true,
+    "message_delivery_claim_allowed?": false,
+    "note": "Review summary preserves transport and delivery claims as blocked.",
+    "review_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/release-candidate/local-known-good-transport-review.json",
+    "review_version": 1,
+    "status": "ready"
+  },
+  "known_good_transport_review_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/release-candidate/local-known-good-transport-review.json",
+  "lifecycle_review": {
+    "android_background_ble_claim_allowed?": false,
+    "android_foreground_service_claim_allowed?": false,
+    "background_ble_claim_allowed?": false,
+    "background_gossip_claim_allowed?": false,
+    "boundary": "mobile_ble_lifecycle_hardware_evidence_review",
+    "delivery_claim_allowed?": false,
+    "ios_background_claim_allowed?": false,
+    "lifecycle_hardware_evidence_complete?": true,
+    "note": "Candidate metadata review only; background and delivery claims remain blocked.",
+    "restart_claim_allowed?": false,
+    "review_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/release-candidate/local-lifecycle-hardware-review.json",
+    "review_version": 1,
+    "scheduled_retry_claim_allowed?": false,
+    "status": "ready"
+  },
+  "lifecycle_review_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/release-candidate/local-lifecycle-hardware-review.json",
+  "multi_hop_review": {
+    "background_operation_claim_allowed?": false,
+    "boundary": "multi_hop_hardware_evidence_review",
+    "guaranteed_delivery_claim_allowed?": false,
+    "multi_hop_hardware_evidence_complete?": true,
+    "multi_hop_hardware_gossip_claim_allowed?": false,
+    "multi_hop_physical_proof_present?": false,
+    "note": "No physical multi-hop proof is present; claim booleans remain false.",
+    "review_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/release-candidate/local-multi-hop-hardware-review.json",
+    "review_version": 1,
+    "routed_delivery_claim_allowed?": false,
+    "status": "ready",
+    "trusted_delivery_claim_allowed?": false
+  },
+  "multi_hop_review_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/release-candidate/local-multi-hop-hardware-review.json",
+  "operator_notes": {
+    "advert_gossip_audit_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/advert-gossip-audit.txt",
+    "allowed_wording": "MeshX can show messages seen nearby from passive BLE advertisement observations.",
+    "blocked_claims_called_out": [
+      "authenticated_message_delivery",
+      "background_mobile_operation",
+      "direct_full_mx_aux_complete",
+      "full_message_resolution_from_beacon_refs",
+      "guaranteed_delivery",
+      "ios_advert_only_participation",
+      "multi_hop_hardware_delivery",
+      "routed_delivery",
+      "trusted_delivery",
+      "upstream_patch_migration_complete",
+      "whole_project_complete"
+    ],
+    "completion_audit_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/local-completion-audit.json",
+    "completion_audit_plain_text_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/local-completion-audit.txt",
+    "completion_blocker_matrix_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/local-completion-blocker-matrix.json",
+    "full_resolution_review_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/release-candidate/local-full-resolution-transport-review.json",
+    "ios_parity_review_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/ios/review.json",
+    "known_good_transport_review_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/release-candidate/local-known-good-transport-review.json",
+    "lifecycle_review_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/release-candidate/local-lifecycle-hardware-review.json",
+    "multi_hop_review_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/release-candidate/local-multi-hop-hardware-review.json",
+    "notes_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/README.md",
+    "open_hardware_gate_ids_called_out": [
+      "android_full_envelope_advert_pair",
+      "gatt_known_good_fetch",
+      "advert_gossip_multi_hop_hardware",
+      "ios_advert_only_participation"
+    ],
+    "persistence_lifecycle_plan_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/local-persistence-lifecycle-plan.json",
+    "readiness_manifest_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/local-readiness.json",
+    "recent_evidence_inventory_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/local-release-recent-evidence.json",
+    "release_manifest_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/local-release.json",
+    "routing_review_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/release-candidate/local-routing-production-review.json",
+    "security_review_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/release-candidate/local-security-release-review.json",
+    "ux_review_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/release-candidate/local-inbox-ux-review.json",
+    "focused_remaining_items_audit_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/focused-remaining-items-audit.json",
+    "focused_remaining_items_plain_text_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/focused-remaining-items-audit.txt",
+    "direct_full_mx_aux_validation_checklist_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/android-aux-full-mx-ios-observe-rerun/aux-validation-checklist.md",
+    "upstream_patch_maintainer_handoff_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/upstream-pr-recheck-1358/maintainer-handoff.md"
+  },
+  "persistence_lifecycle": {
+    "blocked_gate_count": 6,
+    "boundary": "production_default_local_inbox_persistence_plan",
+    "current_default_mode": "memory_only",
+    "default_lifecycle_claim_allowed?": false,
+    "gate_count": 6,
+    "opt_in_durable_snapshots_available?": true,
+    "plan_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/local-persistence-lifecycle-plan.json",
+    "plan_version": 1,
+    "production_default_persistence_allowed?": false
+  },
+  "persistence_lifecycle_plan_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/local-persistence-lifecycle-plan.json",
+  "readiness_manifest_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/local-readiness.json",
+  "recent_evidence_inventory_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/local-release-recent-evidence.json",
+  "release_manifest_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/local-release.json",
+  "routing_review": {
+    "boundary": "production_routing_evidence_review",
+    "forwarding_claim_allowed?": false,
+    "guaranteed_delivery_claim_allowed?": false,
+    "multi_hop_hardware_claim_allowed?": false,
+    "note": "Routing release claims remain blocked.",
+    "production_routing_evidence_complete?": true,
+    "review_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/release-candidate/local-routing-production-review.json",
+    "review_version": 1,
+    "route_selection_claim_allowed?": false,
+    "route_table_claim_allowed?": false,
+    "routed_delivery_claim_allowed?": false,
+    "status": "ready"
+  },
+  "routing_review_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/release-candidate/local-routing-production-review.json",
+  "security_review": {
+    "authenticated_message_claim_allowed?": false,
+    "authenticated_peer_identity_claim_allowed?": false,
+    "boundary": "local_security_release_evidence_review",
+    "note": "Security/auth/trust claims remain blocked.",
+    "review_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/release-candidate/local-security-release-review.json",
+    "review_version": 1,
+    "security_release_evidence_complete?": true,
+    "status": "ready",
+    "trusted_delivery_claim_allowed?": false,
+    "trusted_message_claim_allowed?": false
+  },
+  "security_review_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/release-candidate/local-security-release-review.json",
+  "ux_review": {
+    "all_target_devices_copy_reviewed?": true,
+    "all_target_devices_density_reviewed?": true,
+    "all_target_devices_have_interaction_coverage?": true,
+    "all_target_devices_have_selected_detail_copy_anchors?": true,
+    "all_target_devices_have_selected_detail_coverage?": true,
+    "all_target_devices_have_state_coverage?": true,
+    "boundary": "nearby_messages_on_device_ux_evidence",
+    "delivery_claim_allowed?": false,
+    "note": "UX metadata preserves visible limitation/copy anchors and does not claim delivery/trust/routing.",
+    "on_device_ux_evidence_complete?": true,
+    "production_ux_claim_allowed?": false,
+    "review_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/release-candidate/local-inbox-ux-review.json",
+    "review_version": 1,
+    "routing_claim_allowed?": false,
+    "status": "ready",
+    "target_device_count": 1,
+    "trusted_delivery_claim_allowed?": false
+  },
+  "ux_review_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/release-candidate/local-inbox-ux-review.json",
+  "focused_remaining_items_audit_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/focused-remaining-items-audit.json",
+  "focused_remaining_items_plain_text_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/focused-remaining-items-audit.txt",
+  "direct_full_mx_aux_validation_checklist_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/android-aux-full-mx-ios-observe-rerun/aux-validation-checklist.md",
+  "upstream_patch_maintainer_handoff_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/upstream-pr-recheck-1358/maintainer-handoff.md",
+  "required_blocked_claims": [
+    "whole_project_complete",
+    "guaranteed_delivery",
+    "trusted_delivery",
+    "authenticated_message_delivery",
+    "routed_delivery",
+    "multi_hop_hardware_delivery",
+    "full_message_resolution_from_beacon_refs",
+    "background_mobile_operation",
+    "ios_advert_only_participation",
+    "direct_full_mx_aux_complete",
+    "upstream_patch_migration_complete"
+  ]
+}

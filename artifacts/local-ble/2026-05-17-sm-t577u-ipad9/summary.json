@@ -1,0 +1,474 @@
+{
+  "android_sender_hash_hex": "12f78557517a13f9",
+  "attached_devices": {
+    "android": "R52W90AW7EN SM-T577U Android 13/API 33",
+    "ios": "Coding iPad iPad12,1 iOS 26.5"
+  },
+  "claims": {
+    "background_ble_claim_allowed": false,
+    "full_message_resolution_claim_allowed": false,
+    "ios_responder_fetch_claim_allowed": true,
+    "ios_foreground_legacy_beacon_emit_local_dispatch_evidence": true,
+    "ios_foreground_legacy_beacon_emit_cross_radio_evidence": false,
+    "ios_foreground_service_advertise_cross_radio_evidence": true,
+    "android_auto_fetch_from_ios_hash_cued_service_evidence": true,
+    "android_runtime_receive_only_fetch_from_ios_hash_cued_service_evidence": true,
+    "ios_foreground_legacy_beacon_observe_evidence": true,
+    "ios_responder_fetch_evidence": true,
+    "ios_parity_claim_allowed": false,
+    "message_delivery_claim_allowed": false
+  },
+  "ios_responder_fetch": {
+    "directory": "hardware/android-fetch-ios-responder-rerun",
+    "first_rerun_outcome": "failed_not_found_due_to_stale_android_cached_device_name",
+    "second_rerun_outcome": "passed",
+    "android_instrumentation_result": "OK (1 test)",
+    "android_requester": "R52W90AW7EN SM-T577U Android 13/API 33",
+    "ios_responder": "Coding iPad iPad12,1 iOS 26.5",
+    "service_discovery_gatt_status": 0,
+    "service_found": true,
+    "response_status": "ok",
+    "envelope_parse": "ok",
+    "terminal_event": "complete"
+  },
+  "remaining_items_objective": {
+    "audit_path": "docs/remaining_items_audit.md",
+    "machine_readable_audit_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/focused-remaining-items-audit.json",
+    "last_verified_at": "2026-05-17T13:58:54-0700",
+    "completed_rows": [
+      "hardware_validation_of_full_ios_responder_path",
+      "test_startup_friction_no_start_workaround"
+    ],
+    "not_completed_rows": [
+      "extended_advertising_interop_aux_scan_response",
+      "upstreaming_mob_dev_mob_patches"
+    ],
+    "verification_commands": [
+      "jq '.' artifacts/local-ble/2026-05-17-sm-t577u-ipad9/summary.json",
+      "rg 'OK \\(1 test\\)|fetch_service_discovery_result|fetch_response_received|envelope_parse=\"ok\"|terminal_event=\"complete\"' artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/android-fetch-ios-responder-rerun",
+      "cd apps/meshx_mobile_app && mix meshx.patch_deps --check > ../../artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/patch-deps-check-1212.log 2>&1",
+      "gh pr view 6 --repo GenericJam/mob_dev --json state,isDraft,mergeable,mergeStateStatus,statusCheckRollup,comments,reviews,url",
+      "gh pr view 5 --repo GenericJam/mob_new --json state,isDraft,mergeable,mergeStateStatus,statusCheckRollup,comments,reviews,url",
+      "gh pr view 6 --repo GenericJam/mob_dev --json comments",
+      "gh pr view 5 --repo GenericJam/mob_new --json comments",
+      "gh repo view GenericJam/mob_dev --json viewerPermission",
+      "gh repo view GenericJam/mob_new --json viewerPermission",
+      "adb -s R52W90AW7EN shell am instrument -w -e class dev.meshx.mob.ble.IOSAuxFullMxAdvertSmokeTest dev.meshx.mob.test/androidx.test.runner.AndroidJUnitRunner",
+      "xcrun devicectl device process launch --device 39FD8D3A-9CA5-5DEF-AFC0-AA5205511117 --terminate-existing --console dev.meshx.mobile.harness -- --meshx-auto-scan --meshx-log-candidate-discoveries",
+      "mix test apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_project_readiness_test.exs apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_project_completion_audit_test.exs apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_project_completion_blocker_matrix_test.exs apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_release_artifact_bundle_test.exs apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_hardware_validation_gates_test.exs apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_ios_parity_evidence_manifest_test.exs apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_ios_parity_hardware_validation_plan_test.exs",
+      "mix test apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_hardware_validation_gates_test.exs apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_project_readiness_test.exs apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_ios_advert_carrier_decision_test.exs apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_ios_parity_hardware_validation_plan_test.exs apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_ios_parity_evidence_manifest_test.exs",
+      "mix test apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_release_evidence_manifest_test.exs",
+      "mix test apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_ios_native_source_inventory_test.exs apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_ios_advert_carrier_decision_test.exs apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_ios_parity_evidence_manifest_test.exs apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_project_readiness_test.exs apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_project_completion_audit_test.exs apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_ios_parity_decision_scenario_plan_test.exs",
+      "mix test apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_project_completion_blocker_matrix_test.exs apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_project_completion_audit_test.exs apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_release_artifact_bundle_test.exs apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_ios_parity_contract_test.exs apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_ios_parity_policy_test.exs apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_ios_parity_proof_plan_test.exs",
+      "mix test apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_ios_parity_negative_validation_test.exs apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_ios_parity_evidence_manifest_test.exs apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_release_artifact_bundle_test.exs",
+      "mix test apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_release_recent_evidence_inventory_test.exs apps/meshx_mobile_app/test/mix/tasks/meshx_mobile_local_release_recent_evidence_test.exs",
+      "mix test",
+      "mix meshx.mobile.remaining_items.audit --json --out artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/focused-remaining-items-audit.json",
+      "mix meshx.mobile.local_ios_parity.evidence --json --out artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/local-ios-parity-evidence.json",
+      "mix meshx.mobile.local_release.manifest --json --out artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/local-release.json",
+      "mix meshx.mobile.local_release.recent_evidence --json --out artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/local-release-recent-evidence.json",
+      "mix meshx.mobile.local_release.candidate_review --input artifacts/local-ble/2026-05-17-sm-t577u-ipad9/release-candidate/evidence.json --json --out artifacts/local-ble/2026-05-17-sm-t577u-ipad9/release-candidate/review.json",
+      "rg broad remaining-item status wording over root docs, app docs, and patch docs",
+      "rg exact stale iOS emit/gossip wording patterns over artifacts, BLE gate modules, and focused docs",
+      "git diff --check",
+      "mix meshx.mobile.remaining_items.audit | tee artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/focused-remaining-items-audit.txt"
+    ],
+    "required_next_actions": [
+      {
+        "row": "extended_advertising_interop_aux_scan_response",
+        "owner": "future_hardware_or_api_validation",
+        "required_evidence": "Hardware/API capture proving FF FF 4D 58 MX AUX manufacturer data reaches the platform scanner callback and parses through canonical received_message while MB fallback still works."
+      },
+      {
+        "row": "upstreaming_mob_dev_mob_patches",
+        "owner": "GenericJam_maintainer",
+        "upstream_prs": [
+          {
+            "repo": "GenericJam/mob_dev",
+            "number": 6,
+            "url": "https://github.com/GenericJam/mob_dev/pull/6",
+            "handoff_comment_url": "https://github.com/GenericJam/mob_dev/pull/6#issuecomment-4471758623",
+            "visible_state": "open_non_draft_mergeable_unstable_gitguardian_success_handoff_comment_present",
+            "viewer_permission": "READ",
+            "branch_protection_visible": false,
+            "branch_protection_api_result": "404_not_found"
+          },
+          {
+            "repo": "GenericJam/mob_new",
+            "number": 5,
+            "url": "https://github.com/GenericJam/mob_new/pull/5",
+            "handoff_comment_url": "https://github.com/GenericJam/mob_new/pull/5#issuecomment-4471758634",
+            "visible_state": "open_non_draft_mergeable_unstable_gitguardian_success_handoff_comment_present",
+            "viewer_permission": "READ",
+            "branch_protection_visible": false,
+            "branch_protection_api_result": "404_not_found"
+          }
+        ],
+        "required_evidence": "Merge and release GenericJam/mob_dev#6 and GenericJam/mob_new#5, then migrate MeshX to released dependency versions and rerun the post-merge verification gates."
+      }
+    ],
+    "notes": [
+      "This bundle proves Android beacon cue -> iOS responder serving MX -> Android fetch on the attached SM-T577U/iPad12,1 hardware pair.",
+      "This bundle includes a negative direct full-MX AUX scan-response probe: Android emitted the payload, but iOS did not surface the MX callback.",
+      "This bundle does not prove direct full-MX AUX advertising delivery on iOS.",
+      "This bundle does not merge or release upstream mob_dev/mob_new PRs.",
+      "This bundle distinguishes foreground iOS MB beacon emit source/local dispatch evidence from missing iOS-origin cross-radio gossip proof.",
+      "This bundle proves iOS-origin foreground service UUID advertising is visible to the attached Android scanner, but not that it carries MeshX message payloads.",
+      "This bundle proves the Android opt-in scanner coordinator can use an iOS fetch-service local-name hash cue to fetch a full MX envelope from the iPad MeshxFetchGattResponder.",
+      "This bundle proves the Android runtime receive-only fetch opt-in works in a default debug build with self-test send disabled at the native send entry point.",
+      "Regenerated release, recent-evidence, and iOS parity manifests plus release-candidate review preserve iOS parity and whole-project completion as blocked.",
+    "Alternate iOS receiver availability was refreshed at 2026-05-17T13:58:54-0700 and archived under hardware/external-blocker-recheck-1358: Coding iPad remains connected, but DairyPhoneDeaux iPhone 13 remains unavailable.",
+      "Root mix test passed without --no-start at 2026-05-17T12:09:58-0700 and is archived at manifests/root-mix-test-1210.log, preserving the startup-friction completion row.",
+      "Readiness, release, completion audit, hardware gate, and iOS parity guardrail tests preserve the AUX and upstream blockers.",
+      "Downstream patch check passed at 2026-05-17T12:12:03-0700 and is archived at manifests/patch-deps-check-1212.log.",
+    "Direct full-MX AUX validation checklist records callback, canonical parse, fallback, and metadata evidence required to close the AUX row.",
+    "Direct full-MX AUX closure-progress artifact marks sender metadata, observer metadata, MB fallback control, and negative-boundary notes satisfied for the negative runs while keeping platform callback proof, canonical parse proof, and alternate iOS receiver path missing.",
+    "Upstream migration-progress artifact marks downstream patch verification, open replacement PRs, maintainer handoff, and READ-only permission evidence satisfied while keeping upstream merge, release, MeshX migration, downstream patch removal, and post-migration verification missing."
+  ],
+  "plain_text_audit_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/focused-remaining-items-audit.txt",
+  "aux_validation_checklist_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/android-aux-full-mx-ios-observe-rerun/aux-validation-checklist.md",
+  "aux_closure_progress_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/android-aux-full-mx-ios-observe-rerun/aux-closure-progress.json",
+  "upstream_patch_maintainer_handoff_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/upstream-pr-recheck-1358/maintainer-handoff.md",
+  "upstream_patch_migration_progress_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/upstream-pr-recheck-1358/upstream-migration-progress.json"
+  },
+  "external_blocker_recheck_1225": {
+    "directory": "hardware/external-blocker-recheck-1225",
+    "checked_at": "2026-05-17T12:25:05-0700",
+    "android_sender_available": true,
+    "android_sender": "R52W90AW7EN SM-T577U Android 13/API 33",
+    "ios_primary_receiver_available": true,
+    "ios_primary_receiver": "Coding iPad iPad12,1 iOS 26.5",
+    "ios_alternate_receiver_available": false,
+    "ios_alternate_receiver": "DairyPhoneDeaux iPhone 13 iPhone14,5",
+    "ios_alternate_receiver_state": "unavailable",
+    "mob_dev_pr": {
+      "repo": "GenericJam/mob_dev",
+      "number": 6,
+      "state": "OPEN",
+      "is_draft": false,
+      "mergeable": "MERGEABLE",
+      "merge_state_status": "UNSTABLE",
+      "head_sha": "0cf9df03224b163356404b5484b338005754b244",
+      "visible_check": "GitGuardian Security Checks passed",
+      "viewer_permission": "READ",
+      "handoff_comment_url": "https://github.com/GenericJam/mob_dev/pull/6#issuecomment-4471758623"
+    },
+    "mob_new_pr": {
+      "repo": "GenericJam/mob_new",
+      "number": 5,
+      "state": "OPEN",
+      "is_draft": false,
+      "mergeable": "MERGEABLE",
+      "merge_state_status": "UNSTABLE",
+      "head_sha": "3dbe111e33ecb7e42ab2b8c3f55c8960c69f1c43",
+      "visible_check": "GitGuardian Security Checks passed",
+      "viewer_permission": "READ",
+      "handoff_comment_url": "https://github.com/GenericJam/mob_new/pull/5#issuecomment-4471758634"
+    },
+    "direct_full_mx_aux_claim_allowed": false,
+    "upstream_patch_migration_complete": false,
+    "notes": [
+      "No alternate iOS receiver was available for a fresh AUX scan-response probe.",
+      "Both upstream PRs remained open at the latest recheck.",
+      "The current token still has READ permission on both upstream repositories."
+    ]
+  },
+  "upstream_pr_recheck_1225": {
+    "directory": "hardware/upstream-pr-recheck-1225",
+    "checked_at": "2026-05-17T12:25:05-0700",
+    "raw_outputs": [
+      "hardware/upstream-pr-recheck-1225/mob-dev-pr-6.json",
+      "hardware/upstream-pr-recheck-1225/mob-new-pr-5.json",
+      "hardware/upstream-pr-recheck-1225/mob-dev-repo.json",
+      "hardware/upstream-pr-recheck-1225/mob-new-repo.json"
+    ],
+    "mob_dev_pr": {
+      "repo": "GenericJam/mob_dev",
+      "number": 6,
+      "state": "OPEN",
+      "is_draft": false,
+      "mergeable": "MERGEABLE",
+      "merge_state_status": "UNSTABLE",
+      "head_sha": "0cf9df03224b163356404b5484b338005754b244",
+      "visible_check": "GitGuardian Security Checks passed",
+      "viewer_permission": "READ",
+      "handoff_comment_url": "https://github.com/GenericJam/mob_dev/pull/6#issuecomment-4471758623"
+    },
+    "mob_new_pr": {
+      "repo": "GenericJam/mob_new",
+      "number": 5,
+      "state": "OPEN",
+      "is_draft": false,
+      "mergeable": "MERGEABLE",
+      "merge_state_status": "UNSTABLE",
+      "head_sha": "3dbe111e33ecb7e42ab2b8c3f55c8960c69f1c43",
+      "visible_check": "GitGuardian Security Checks passed",
+      "viewer_permission": "READ",
+      "handoff_comment_url": "https://github.com/GenericJam/mob_new/pull/5#issuecomment-4471758634"
+    },
+    "upstream_patch_migration_complete": false,
+    "notes": [
+      "Both upstream PRs remained open at the latest upstream-only recheck.",
+      "The current token still has READ permission on both upstream repositories.",
+      "Raw gh JSON outputs are archived in the recheck directory."
+    ]
+  },
+  "ios_aux_full_mx_probe": {
+    "directory": "hardware/android-aux-full-mx-ios-observe",
+    "android_instrumentation_result": "OK (1 test)",
+    "android_extended_advertising_supported": true,
+    "android_max_advertising_data_length": 1024,
+    "advertising_set_started": true,
+    "payload_size": 80,
+    "connectable": false,
+    "scannable": true,
+    "data_carrier": "scan_response",
+    "ios_observer": "Coding iPad iPad12,1 iOS 26.5",
+    "ios_scan_started": true,
+    "ios_legacy_beacon_received_lines": 276,
+    "ios_received_message_lines": 0,
+    "ios_candidate_discovery_lines": 0,
+    "ios_decode_error_lines": 0,
+    "direct_full_mx_aux_claim_allowed": false,
+    "notes": [
+      "Android emitted a direct full-MX extended scan-response advert.",
+      "iOS CoreBluetooth did not surface the FF FF 4D 58 MX manufacturer data to the harness callback in this run.",
+      "This is negative evidence for the direct AUX row, not completion evidence."
+    ]
+  },
+  "ios_aux_full_mx_probe_rerun": {
+    "directory": "hardware/android-aux-full-mx-ios-observe-rerun",
+    "android_instrumentation_result": "OK (1 test)",
+    "android_extended_advertising_supported": true,
+    "android_max_advertising_data_length": 1024,
+    "advertising_set_started": true,
+    "payload_size": 80,
+    "connectable": false,
+    "scannable": true,
+    "data_carrier": "scan_response",
+    "ios_observer": "Coding iPad iPad12,1 iOS 26.5",
+    "ios_scan_started": true,
+    "ios_legacy_beacon_received_lines": 120,
+    "ios_received_message_lines": 0,
+    "ios_candidate_discovery_lines": 0,
+    "ios_decode_error_lines": 0,
+    "ios_mx_aux_callback_lines": 0,
+    "direct_full_mx_aux_claim_allowed": false,
+    "notes": [
+      "Android emitted a direct full-MX extended scan-response advert in the 11:19 rerun.",
+      "iOS CoreBluetooth did not surface the FF FF 4D 58 MX manufacturer data to the harness callback in this run.",
+      "This is fresh negative evidence for the direct AUX row, not completion evidence."
+    ]
+  },
+  "ios_aux_alternate_target_check": {
+    "directory": "hardware/aux-alternate-ios-target-check",
+    "android_sender_available": true,
+    "android_sender": "R52W90AW7EN SM-T577U Android 13/API 33",
+    "ios_primary_receiver_available": true,
+    "ios_primary_receiver": "Coding iPad iPad12,1 iOS 26.5",
+    "ios_alternate_receiver_available": false,
+    "ios_alternate_receiver": "DairyPhoneDeaux iPhone 13 iPhone14,5",
+    "ios_alternate_receiver_state": "unavailable",
+    "direct_full_mx_aux_claim_allowed": false,
+    "notes": [
+      "No second iOS receiver target was available for a fresh AUX scan-response probe.",
+      "The AUX status remains bounded by the attached iPad12,1 negative captures."
+    ]
+  },
+  "ipad_emit": {
+    "beacon_dispatched_lines": 28,
+    "expected_ipad_sender_hash_hex": "04a884d8e17b1704",
+    "matched_android_receive_lines": 0
+  },
+  "ipad_emit_instrumented": {
+    "beacon_dispatched_lines": 31,
+    "peripheral_advertising_started_lines": 31,
+    "peripheral_error_lines": 0,
+    "expected_ipad_sender_hash_hex": "1032dc6f4584999f",
+    "matched_android_receive_lines": 0,
+    "android_heartbeat_lines": 20,
+    "android_beacon_callbacks": 0
+  },
+  "ipad_basic_emit_raw_scan": {
+    "beacon_dispatched_lines": 36,
+    "peripheral_advertising_started_lines": 36,
+    "peripheral_error_lines": 0,
+    "expected_ipad_sender_hash_hex": "a597ba03c3738fed",
+    "android_raw_scan_lines": 40,
+    "android_raw_manufacturer_65535_lines": 4,
+    "android_distinct_mesh_message_lines": 8,
+    "android_last_heartbeat_beacon_callbacks": 33,
+    "matched_android_receive_lines": 0,
+    "matched_android_raw_scan_lines": 0,
+    "observed_65535_sender_hashes": [
+      "f70806eddc285bcc"
+    ]
+  },
+  "ipad_service_advertise_raw_scan": {
+    "directory": "hardware/ipad-service-advertise-raw-scan",
+    "service_advertise_requested_lines": 1,
+    "peripheral_advertising_started_lines": 1,
+    "peripheral_error_lines": 0,
+    "android_raw_scan_lines": 47,
+    "android_service_uuid_raw_lines": 2,
+    "android_meshx_peer_lines": 4,
+    "android_local_name_extract_lines": 4,
+    "service_uuid": "8f4f1201-6f3d-4f9c-9e3b-7f4a4f0f1000",
+    "local_name": "meshx-ipad",
+    "ios_service_uuid_visible_to_android": true,
+    "message_payload_carrier_proven": false,
+    "notes": [
+      "The iPad harness advertised the MeshX service UUID with local name meshx-ipad.",
+      "Android raw scan logs captured the service UUID twice and selftest logs classified meshx-ipad as a MeshX peer.",
+      "This proves a usable iOS-origin discovery carrier, not an iOS-origin MB or full-MX message payload carrier."
+    ]
+  },
+  "ipad_full_beacon_android_auto_fetch_hash_cue": {
+    "directory": "hardware/ipad-full-beacon-android-auto-fetch-hash-cue",
+    "android_build_flag": "MESHX_MX_SEND=true",
+    "ipad_beacon_dispatched_lines": 1,
+    "ipad_sender_hash_hex": "7c599662c0422b6d",
+    "ipad_message_hash_hex": "19f161af172a01c8",
+    "ipad_fetch_responder_started_lines": 1,
+    "ipad_fetch_responder_served_ok_lines": 1,
+    "ipad_fetch_responder_served_not_found_lines": 0,
+    "android_fetch_service_raw_lines": 1,
+    "android_fetch_start_lines": 1,
+    "android_fetch_requested_ipad_hash_lines": 1,
+    "android_fetch_response_ok_lines": 1,
+    "android_received_message_evidence_lines": 14,
+    "android_fetch_failed_lines": 0,
+    "android_auto_fetch_from_ios_hash_cued_service": true,
+    "notes": [
+      "The iPad advertised fetch service UUID 8f4f1201-6f3d-4f9c-9e3b-7f4a4f0f2000 with local name mx19f161af172a01c8.",
+      "Android parsed that local-name hash cue, requested the matching MFQ hash, and received an MFR status ok response.",
+      "The BEAM selftest observed fetched-envelope evidence after the Android scanner coordinator emitted the canonical received_message event.",
+      "This evidence is for the explicit full-MX debug opt-in path, not the fleet-safe default MB-only build."
+    ]
+  },
+  "ipad_full_beacon_android_runtime_fetch_receive_only": {
+    "directory": "hardware/ipad-full-beacon-android-runtime-fetch-receive-only",
+    "android_build_flag": "default debug build, no MESHX_MX_SEND",
+    "android_runtime_flags": {
+      "meshx_ble_selftest": true,
+      "meshx_ble_selftest_send": false,
+      "meshx_ble_fetch_on_beacon": true
+    },
+    "ipad_beacon_dispatched_lines": 1,
+    "ipad_sender_hash_lines": 1,
+    "ipad_message_hash_hex": "11a7fcb0a1861396",
+    "ipad_fetch_responder_started_lines": 2,
+    "ipad_fetch_responder_served_ok_lines": 1,
+    "ipad_fetch_responder_served_not_found_lines": 0,
+    "android_fetch_service_raw_lines": 5,
+    "android_fetch_start_lines": 1,
+    "android_fetch_requested_ipad_hash_lines": 1,
+    "android_fetch_response_ok_lines": 1,
+    "android_gatt_received_message_evidence_lines": 2,
+    "android_distinct_envelope_lines": 2,
+    "android_fetch_failed_lines": 0,
+    "android_selftest_send_disabled_lines": 2,
+    "android_native_send_rejected_lines": 5,
+    "android_native_self_dispatch_lines": 0,
+    "android_runtime_receive_only_fetch_from_ios_hash_cued_service": true,
+    "notes": [
+      "The Android app was launched with meshx_ble_fetch_on_beacon=true and meshx_ble_selftest_send=false.",
+      "The installed APK was a default debug build without the MESHX_MX_SEND full-MX sender flag.",
+      "The iPad advertised a fetch-service hash cue for message hash 11a7fcb0a1861396 and served one status=0 fetch response.",
+      "Android requested the matching hash, logged fetch_response_received with status ok, and emitted canonical received_message evidence with transport ble_android_gatt_fetch/source_event gatt_fetch_response.",
+      "Android rejected five stale Elixir self-test send attempts at MeshxBleNative.sendToPeer and logged zero native self dispatches."
+    ]
+  },
+  "ipad_observe": {
+    "legacy_beacon_received_lines": 474,
+    "matched_attached_android_sender_hash_lines": 247,
+    "other_sender_hash_lines": 227
+  },
+  "run_id": "2026-05-17-sm-t577u-ipad9",
+  "external_blocker_recheck_1358": {
+    "directory": "hardware/external-blocker-recheck-1358",
+    "checked_at": "2026-05-17T13:58:54-0700",
+    "android_sender_available": true,
+    "android_sender": "R52W90AW7EN SM-T577U Android 13/API 33",
+    "ios_primary_receiver_available": true,
+    "ios_primary_receiver": "Coding iPad iPad12,1 iOS 26.5",
+    "ios_alternate_receiver_available": false,
+    "ios_alternate_receiver": "DairyPhoneDeaux iPhone 13 iPhone14,5",
+    "ios_alternate_receiver_state": "unavailable",
+    "mob_dev_pr": {
+      "repo": "GenericJam/mob_dev",
+      "number": 6,
+      "state": "OPEN",
+      "is_draft": false,
+      "mergeable": "MERGEABLE",
+      "merge_state_status": "UNSTABLE",
+      "head_sha": "0cf9df03224b163356404b5484b338005754b244",
+      "visible_check": "GitGuardian Security Checks passed",
+      "viewer_permission": "READ",
+      "handoff_comment_url": "https://github.com/GenericJam/mob_dev/pull/6#issuecomment-4471758623"
+    },
+    "mob_new_pr": {
+      "repo": "GenericJam/mob_new",
+      "number": 5,
+      "state": "OPEN",
+      "is_draft": false,
+      "mergeable": "MERGEABLE",
+      "merge_state_status": "UNSTABLE",
+      "head_sha": "3dbe111e33ecb7e42ab2b8c3f55c8960c69f1c43",
+      "visible_check": "GitGuardian Security Checks passed",
+      "viewer_permission": "READ",
+      "handoff_comment_url": "https://github.com/GenericJam/mob_new/pull/5#issuecomment-4471758634"
+    },
+    "direct_full_mx_aux_claim_allowed": false,
+    "upstream_patch_migration_complete": false,
+    "notes": [
+      "No alternate iOS receiver was available for a fresh AUX scan-response probe.",
+      "Both upstream PRs remained open at the latest recheck.",
+      "The current token still has READ permission on both upstream repositories."
+    ]
+  },
+  "upstream_pr_recheck_1358": {
+    "directory": "hardware/upstream-pr-recheck-1358",
+    "checked_at": "2026-05-17T13:58:54-0700",
+    "raw_outputs": [
+      "hardware/upstream-pr-recheck-1358/mob-dev-pr-6.json",
+      "hardware/upstream-pr-recheck-1358/mob-new-pr-5.json",
+      "hardware/upstream-pr-recheck-1358/mob-dev-repo.json",
+      "hardware/upstream-pr-recheck-1358/mob-new-repo.json",
+      "hardware/upstream-pr-recheck-1358/maintainer-handoff.md",
+      "hardware/upstream-pr-recheck-1358/upstream-migration-progress.json"
+    ],
+    "mob_dev_pr": {
+      "repo": "GenericJam/mob_dev",
+      "number": 6,
+      "state": "OPEN",
+      "is_draft": false,
+      "mergeable": "MERGEABLE",
+      "merge_state_status": "UNSTABLE",
+      "head_sha": "0cf9df03224b163356404b5484b338005754b244",
+      "visible_check": "GitGuardian Security Checks passed",
+      "viewer_permission": "READ",
+      "handoff_comment_url": "https://github.com/GenericJam/mob_dev/pull/6#issuecomment-4471758623"
+    },
+    "mob_new_pr": {
+      "repo": "GenericJam/mob_new",
+      "number": 5,
+      "state": "OPEN",
+      "is_draft": false,
+      "mergeable": "MERGEABLE",
+      "merge_state_status": "UNSTABLE",
+      "head_sha": "3dbe111e33ecb7e42ab2b8c3f55c8960c69f1c43",
+      "visible_check": "GitGuardian Security Checks passed",
+      "viewer_permission": "READ",
+      "handoff_comment_url": "https://github.com/GenericJam/mob_new/pull/5#issuecomment-4471758634"
+    },
+    "upstream_patch_migration_complete": false,
+    "notes": [
+      "Both upstream PRs remained open at the latest upstream-only recheck.",
+      "The current token still has READ permission on both upstream repositories.",
+      "Raw gh JSON outputs are archived in the recheck directory.",
+      "Maintainer handoff checklist archives exact upstream and MeshX post-merge actions.",
+      "Migration-progress JSON records satisfied pre-merge criteria and missing merge, release, dependency migration, downstream patch removal, and post-migration verification criteria."
+    ]
+  }
+}

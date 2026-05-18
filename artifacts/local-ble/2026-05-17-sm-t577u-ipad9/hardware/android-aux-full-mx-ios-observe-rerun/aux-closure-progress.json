@@ -1,0 +1,107 @@
+{
+  "boundary": "direct_full_mx_aux_closure_progress",
+  "reviewed_at": "2026-05-17T13:58:54-0700",
+  "completion_claim_allowed": false,
+  "row_id": "extended_advertising_interop_aux_scan_response",
+  "source_runs": [
+    {
+      "id": "android-aux-full-mx-ios-observe",
+      "summary_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/android-aux-full-mx-ios-observe/summary.md",
+      "android_logcat_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/android-aux-full-mx-ios-observe/android-logcat.log",
+      "ios_log_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/android-aux-full-mx-ios-observe/ipad-aux-scan-response.log",
+      "android_payload_size": 80,
+      "android_payload_base64_logged": true,
+      "android_data_carrier": "scan_response",
+      "ios_legacy_beacon_lines": 276,
+      "ios_direct_mx_callback_lines": 0
+    },
+    {
+      "id": "android-aux-full-mx-ios-observe-rerun",
+      "summary_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/android-aux-full-mx-ios-observe-rerun/summary.md",
+      "android_logcat_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/android-aux-full-mx-ios-observe-rerun/android-logcat.log",
+      "ios_log_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/android-aux-full-mx-ios-observe-rerun/ipad-aux-scan-response.log",
+      "android_payload_size": 80,
+      "android_payload_base64_logged": true,
+      "android_data_carrier": "scan_response",
+      "ios_legacy_beacon_lines": 120,
+      "ios_direct_mx_callback_lines": 0
+    },
+    {
+      "id": "external-blocker-recheck-1358",
+      "summary_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/external-blocker-recheck-1358/summary.md",
+      "ios_alternate_receiver_available": false,
+      "ios_alternate_receiver_state": "unavailable"
+    }
+  ],
+  "criteria": [
+    {
+      "id": "sender_metadata",
+      "status": "satisfied_for_negative_runs",
+      "evidence": [
+        "Android device model/API recorded in summaries.",
+        "Extended advertising support and max advertising data length recorded in Android logcat.",
+        "advertising_set_started records payload_size=80, scannable=true, connectable=false, data_carrier=scan_response, tx_power, window_ms, attempt_id, and payload base64."
+      ]
+    },
+    {
+      "id": "observer_metadata",
+      "status": "satisfied_for_negative_runs",
+      "evidence": [
+        "iPad12,1 / iOS 26.5 observer and foreground scanner command recorded in summaries.",
+        "Rerun used --meshx-auto-scan --meshx-log-candidate-discoveries."
+      ]
+    },
+    {
+      "id": "platform_callback_proof",
+      "status": "missing",
+      "evidence": [
+        "Both iOS logs have zero FF FF 4D 58 direct MX callback evidence."
+      ]
+    },
+    {
+      "id": "canonical_parse_proof",
+      "status": "missing",
+      "evidence": [
+        "Both iOS logs have zero received_message lines and zero decode lines for the direct AUX payload."
+      ]
+    },
+    {
+      "id": "mb_fallback_control",
+      "status": "satisfied",
+      "evidence": [
+        "First probe observed 276 legacy_beacon_received lines while the direct AUX callback stayed at zero.",
+        "Rerun observed 120 legacy_beacon_received lines while the direct AUX callback stayed at zero."
+      ]
+    },
+    {
+      "id": "negative_boundary_notes",
+      "status": "satisfied_current_hardware",
+      "evidence": [
+        "docs/BLE_BRIDGE.md and docs/remaining_items_audit.md keep direct full-MX AUX delivery disabled for iOS until callback and canonical parse evidence exist."
+      ]
+    },
+    {
+      "id": "alternate_ios_receiver_path",
+      "status": "blocked",
+      "evidence": [
+        "external-blocker-recheck-1358 shows DairyPhoneDeaux iPhone 13 remains unavailable."
+      ]
+    }
+  ],
+  "satisfied_criteria": [
+    "sender_metadata",
+    "observer_metadata",
+    "mb_fallback_control",
+    "negative_boundary_notes"
+  ],
+  "missing_criteria": [
+    "platform_callback_proof",
+    "canonical_parse_proof",
+    "alternate_ios_receiver_path"
+  ],
+  "notes": [
+    "This artifact does not complete direct full-MX AUX interop.",
+    "The negative runs prove Android scan-response emission and MB fallback visibility, but not iOS delivery of direct MX manufacturer data.",
+    "A future hardware/API path must add platform callback proof and canonical received_message/MX parse proof before direct_full_mx_aux_complete can be claimed."
+  ]
+}
