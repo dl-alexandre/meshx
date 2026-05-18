@@ -5,6 +5,8 @@ import android.bluetooth.BluetoothAdapter
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanResult
 import android.bluetooth.le.ScanSettings
+import android.os.Handler
+import android.os.Looper
 import android.os.ParcelUuid
 import android.os.SystemClock
 import android.util.Log
@@ -49,6 +51,8 @@ class BleScanner(
     private val recentMBBeacons = mutableListOf<Pair<String, Long>>()
     @Volatile private var running = false
 
+    private val mainHandler = Handler(Looper.getMainLooper())
+
     private val callback = object : ScanCallback() {
         override fun onScanResult(callbackType: Int, result: ScanResult) {
             handle(result)
@@ -71,8 +75,8 @@ class BleScanner(
     @SuppressLint("MissingPermission")
     fun start(): Boolean {
         if (running) return true
-        val scanner = adapter?.bluetoothLeScanner
-        if (scanner == null) {
+        val leScanner = adapter?.bluetoothLeScanner
+        if (leScanner == null) {
             sink.accept(
                 BleEvent.Error(
                     kind = BleEvent.Companion.ErrorKind.BLUETOOTH_OFF,
@@ -87,31 +91,52 @@ class BleScanner(
             .setCallbackType(ScanSettings.CALLBACK_TYPE_ALL_MATCHES)
             .build()
 
-        try {
-            scanner.startScan(null, settings, callback)
-            running = true
-            return true
-        } catch (e: SecurityException) {
-            sink.accept(
-                BleEvent.Error(
-                    kind = BleEvent.Companion.ErrorKind.UNAUTHORIZED,
-                    detail = e.message ?: "BLUETOOTH_SCAN denied"
+        // Post the actual platform registration to the main looper. Calling
+        // BluetoothLeScanner.startScan directly from a non-UI thread (the
+        // NIF dispatch thread that reaches here via the BEAM -> JNI path)
+        // is accepted by the API but can result in a silent no-op for
+        // result delivery on some devices/Android versions. The instrumented
+        // test path happened to avoid this because of its thread context.
+        running = true
+        mainHandler.post {
+            try {
+                leScanner.startScan(null, settings, callback)
+            } catch (e: SecurityException) {
+                running = false
+                sink.accept(
+                    BleEvent.Error(
+                        kind = BleEvent.Companion.ErrorKind.UNAUTHORIZED,
+                        detail = e.message ?: "BLUETOOTH_SCAN denied"
+                    )
                 )
-            )
-            return false
+            } catch (t: Throwable) {
+                running = false
+                sink.accept(
+                    BleEvent.Error(
+                        kind = BleEvent.Companion.ErrorKind.SCAN_FAILED,
+                        detail = "startScan on main thread failed: ${t.message ?: t.javaClass.simpleName}"
+                    )
+                )
+            }
         }
+        return true
     }
 
     @SuppressLint("MissingPermission")
     fun stop() {
         if (!running) return
         running = false
-        val scanner = adapter?.bluetoothLeScanner ?: return
-        try {
-            scanner.stopScan(callback)
-        } catch (_: SecurityException) {
-            // Permission revoked while scanning — already stopped from
-            // the platform's perspective. Nothing to surface.
+        val leScanner = adapter?.bluetoothLeScanner ?: return
+        // Post the platform stop to the main thread for symmetry with start
+        // (ensures the exact same callback instance is stopped from the
+        // thread that started it).
+        mainHandler.post {
+            try {
+                leScanner.stopScan(callback)
+            } catch (_: SecurityException) {
+                // Permission revoked while scanning — already stopped from
+                // the platform's perspective. Nothing to surface.
+            }
         }
         seen.clear()
         synchronized(recentMBBeacons) {
