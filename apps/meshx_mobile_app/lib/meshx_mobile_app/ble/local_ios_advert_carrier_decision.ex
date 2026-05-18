@@ -135,17 +135,22 @@ defmodule MeshxMobileApp.BLE.LocalIOSAdvertCarrierDecision do
     %{
       id: :service_data_beacon_ref,
       direction: :emit,
-      status: :candidate_unvalidated,
-      evidence: ["LocalIOSAdvertCarrierDecision"],
+      status: :rejected,
+      evidence: [
+        "LocalIOSAdvertCarrierDecision",
+        "artifacts/local-ble/2026-05-18-iphone13-direct-mx-hybrid/recapture-3/summary.md",
+        "artifacts/local-ble/2026-05-18-iphone13-direct-mx-hybrid/recapture-4-reverse/evidence/20260518-095213-summary.md"
+      ],
       blocked_claims: [
         :ios_legacy_beacon_gossip,
         :ios_hardware_participation,
         :ios_parity_claim
       ],
       notes: [
-        "A future iOS-specific advertisement carrier may be evaluated if product requirements need iOS beacon emission.",
-        "It must preserve the BeaconRef fields and normalize through received_message_beacon.",
-        "No code or hardware evidence for this carrier exists yet."
+        "Rejected after 2026-05-18 bidirectional hardware validation on iPhone 13 + SM-T577U.",
+        "iOS emit direction: CoreBluetooth foreground restrictions drop third-party manufacturer data and custom 128-bit service data; iOS_HYBRID_STARTED logs succeed while the radio transmits nothing matching (recapture-3, messageId f1aa757a…).",
+        "iOS receive direction: scanForPeripherals(withServices: nil) excludes extended adverts on custom 128-bit UUIDs; Android-emitted MB cues arrive (52 sightings) but zero direct-MX service data on …1001 (recapture-4, messageId db9ae255…).",
+        "Both blockers are iOS platform restrictions, not code defects. MB legacy beacon + GATT fetch remains the canonical iOS↔Android full-envelope route."
       ]
     },
     %{

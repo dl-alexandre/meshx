@@ -59,7 +59,12 @@ defmodule MeshxMobileApp.BLE.LocalIOSAdvertCarrierDecisionTest do
 
     beacon_emit = Enum.find(emit_carriers, &(&1.id == :manufacturer_data_legacy_beacon_emit))
     assert beacon_emit.status == :implemented_unvalidated
-    assert Enum.any?(beacon_emit.notes, &String.contains?(&1, "zero matched Android receive lines"))
+
+    assert Enum.any?(
+             beacon_emit.notes,
+             &String.contains?(&1, "zero matched Android receive lines")
+           )
+
     assert Enum.all?(emit_carriers, &(:ios_parity_claim in &1.blocked_claims))
   end
 
@@ -92,7 +97,7 @@ defmodule MeshxMobileApp.BLE.LocalIOSAdvertCarrierDecisionTest do
     assert Enum.any?(
              snapshot["carriers"],
              &(&1["id"] == "service_data_beacon_ref" and
-                 &1["status"] == "candidate_unvalidated")
+                 &1["status"] == "rejected")
            )
   end
 end

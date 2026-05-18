@@ -7,14 +7,14 @@ Companion to:
 - `apps/meshx_mobile_app/lib/meshx_mobile_app/ble/local_ios_advert_carrier_decision.ex` — typed carrier states + evidence.
 - `docs/BLE_BRIDGE.md` — protocol-level wire format and PHY limitations.
 
-## Status (2026-05-17)
+## Status (2026-05-18)
 
 | Carrier | Direction | Status | Canonical for |
 |---|---|---|---|
 | MB legacy beacon (22-byte manufacturer data) | observe | hardware_validated | iOS receiving Android beacons |
 | MB legacy beacon | emit | implemented_unvalidated | iOS dispatch cue for GATT fetch responder |
 | Full MX extended advert (AUX_ADV_IND) | observe | **phy_blocked** | — (does not deliver on tested iOS stack) |
-| Direct-MX service-data carrier | emit | candidate, exercised in hybrid experiment | full-envelope without GATT round-trip |
+| Direct-MX service-data carrier | emit | **rejected** (2026-05-18 hardware) | — (iOS platform restrictions block both directions) |
 | Service UUID identity advert | emit | insufficient_for_beacon_ref | peer presence only |
 | Local-name encoded beacon ref | emit | rejected | — (fragile, user-visible) |
 
@@ -43,31 +43,44 @@ Companion to:
 | Full MX extended advert (AUX_ADV_IND) direct receive on iOS | PHY-blocked. CoreBluetooth on tested iOS stack does not surface non-Apple AUX manufacturer data to apps. See `docs/BLE_BRIDGE.md#extended-advertising-aux-delivery-limitation` and `artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/android-aux-full-mx-ios-observe/summary.md`. Do not re-attempt without a meaningfully different iOS stack or CoreBluetooth release. |
 | Local-name encoded beacon ref | Rejected by carrier-decision module. Fragile, user-visible, inconsistent with manufacturer-data ingress. |
 
-## What hybrid validation will decide
+## Hybrid validation outcome (2026-05-18)
 
-When the overnight bidirectional hybrid run produces evidence, the
-decision split is:
+Bidirectional hardware validation on iPhone 13 (DairyPhoneDeaux, UDID `1780F216-CB5C-560B-A86F-85D31F79ADEF`) and SM-T577U (R52W90AW7EN, Android 13) settled the question: the direct-MX service-data carrier is **rejected** for iOS↔Android. The MB legacy beacon + GATT fetch route remains canonical.
 
-- **HYBRID_SUCCESS count > 0 in both directions, GATT fallback rate low** → promote direct-MX service-data to a co-canonical full-envelope carrier alongside GATT fetch. Keep GATT fetch for fragmentation / large envelopes.
-- **HYBRID_SUCCESS works one direction only** → keep GATT fetch as canonical full-envelope, document direct-MX service-data as optional emit on the working side only.
-- **HYBRID_SUCCESS sparse or zero on hardware** → demote direct-MX service-data to "experiment only" in the carrier decision module, document it as not selected, and stop adding code that depends on it.
+### Evidence summary
 
-In all three cases, **MB legacy beacon stays canonical** as the cue
-carrier — the hybrid is about what carries the *payload*, not the cue.
+| Direction | MB cue | Direct-MX `…1001` | Limiting platform |
+|---|:-:|:-:|---|
+| iPhone emit → Android receive | ✗ (0) | ✗ (0) | **iOS emit-side**. CoreBluetooth foreground restrictions silently drop third-party `kCBAdvDataManufacturerData` and custom 128-bit service data. iOS console logs `iOS_HYBRID_STARTED` + `direct_mx_service_data_started=true` while the radio transmits nothing matching either claim. Android DIAG observer with `setLegacy(false)` + `PHY_LE_ALL_SUPPORTED` proved extended-adv reception works (caught one 90-byte extended adv from an unrelated device); zero from the iPhone during the emit window. |
+| Android emit → iPhone receive | ✓ (52) | ✗ (0) | **iOS scan-side**. `scanForPeripherals(withServices: nil)` excludes extended adverts on custom 128-bit UUIDs. iPhone sees 52 MeshX MB cues (manufacturer data starting `ffff`) and 252 service-data adverts on 16-bit SIG UUIDs, but zero on `8F4F1201-…-1001`. |
 
-## What to retire from code if hybrid fails
+Both blockers are iOS platform restrictions, not code defects. The carrier shape itself is sound (Android→Android tests pass); iOS cannot reliably emit it, and cannot generically receive it without an explicit-UUID scan filter.
 
-If the overnight evidence says no:
+### Run references
 
-- Strip the `USE_FULL_MX_ENVELOPES` flag handling that gates direct-MX emission.
+- `artifacts/local-ble/2026-05-18-iphone13-direct-mx-hybrid/recapture-3/summary.md` — iPhone emit messageId `f1aa757a484dc0f29ddfb5e65735320a`; Android DIAG, 82 distinct scan signatures, zero from iPhone.
+- `artifacts/local-ble/2026-05-18-iphone13-direct-mx-hybrid/recapture-4-reverse/evidence/20260518-095213-summary.md` — Android emit messageId `db9ae2550656ebe81d3ed252351625bb`; iPhone observer 4191 raw-advert lines, 52 MB cues, zero direct-MX.
+
+### Code disposition
+
+Applied:
+
+- `service_data_beacon_ref` carrier status moved to `:rejected` in `local_ios_advert_carrier_decision.ex`, with the recapture-3/4 summaries listed as evidence.
+
+Deferred (do when convenient, not blocking):
+
+- Strip the `USE_FULL_MX_ENVELOPES` flag handling that gates direct-MX emission on the iOS dispatch path.
 - Remove `MeshxBeaconFetchCoordinator` direct-MX dispatch paths that aren't needed for the GATT fetch route.
-- Mark `service_data_beacon_ref` carrier `status: :rejected` in `local_ios_advert_carrier_decision.ex`.
-- Keep all the HYBRID_* log lines and correlation hooks — they're harmless and useful for any future re-test.
+- Keep all the HYBRID_* log lines and correlation hooks — harmless and useful if iOS platform constraints change in a future release.
+- Keep `IOSAuxFullMxAdvertSmokeTest#emitsHybridMbCuePlusServiceDataFullMxEnvelope` and `IOSHybridDirectMxReceiveTest` as evidence-bundle tests; they document the carrier shape and would re-validate it cheaply if iOS evolves.
 
-## What to retire from code if hybrid succeeds
+### Revisit triggers
 
-- Nothing immediate. GATT fetch stays for fragmentation. Direct-MX service-data becomes the fast path for small full envelopes.
-- Eventually: a size threshold in the emit path picks direct-MX for ≤N bytes, GATT cue for larger payloads.
+Reopen this decision only if one of the following changes:
+
+- A future iOS release exposes a `setLegacy(false)`-equivalent on `CBCentralManager` scans, or relaxes foreground restrictions on `kCBAdvDataManufacturerData` / custom 128-bit service data.
+- Product scope changes to Android↔Android-only, where the carrier already works.
+- An iOS receive-only configuration (Android emit + iOS receive, with iPhone scanning by explicit `MESHX_DIRECT_MX_SERVICE_UUID` filter) becomes a useful intermediate path — would require one harness flag change to validate.
 
 ## Open questions (deferred until hardware evidence)
 
