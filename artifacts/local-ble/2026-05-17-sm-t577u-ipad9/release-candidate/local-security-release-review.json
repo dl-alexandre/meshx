@@ -1,0 +1,12 @@
+{
+  "authenticated_message_claim_allowed?": false,
+  "authenticated_peer_identity_claim_allowed?": false,
+  "boundary": "local_security_release_evidence_review",
+  "note": "Security/auth/trust claims remain blocked.",
+  "review_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/release-candidate/local-security-release-review.json",
+  "review_version": 1,
+  "security_release_evidence_complete?": true,
+  "status": "ready",
+  "trusted_delivery_claim_allowed?": false,
+  "trusted_message_claim_allowed?": false
+}

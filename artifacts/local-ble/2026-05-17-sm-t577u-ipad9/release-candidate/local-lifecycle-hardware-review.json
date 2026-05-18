@@ -1,0 +1,16 @@
+{
+  "android_background_ble_claim_allowed?": false,
+  "android_foreground_service_claim_allowed?": false,
+  "background_ble_claim_allowed?": false,
+  "background_gossip_claim_allowed?": false,
+  "boundary": "mobile_ble_lifecycle_hardware_evidence_review",
+  "delivery_claim_allowed?": false,
+  "ios_background_claim_allowed?": false,
+  "lifecycle_hardware_evidence_complete?": true,
+  "note": "Candidate metadata review only; background and delivery claims remain blocked.",
+  "restart_claim_allowed?": false,
+  "review_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/release-candidate/local-lifecycle-hardware-review.json",
+  "review_version": 1,
+  "scheduled_retry_claim_allowed?": false,
+  "status": "ready"
+}

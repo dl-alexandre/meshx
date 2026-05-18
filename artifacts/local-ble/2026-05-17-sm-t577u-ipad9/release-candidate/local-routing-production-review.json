@@ -1,0 +1,14 @@
+{
+  "boundary": "production_routing_evidence_review",
+  "forwarding_claim_allowed?": false,
+  "guaranteed_delivery_claim_allowed?": false,
+  "multi_hop_hardware_claim_allowed?": false,
+  "note": "Routing release claims remain blocked.",
+  "production_routing_evidence_complete?": true,
+  "review_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/release-candidate/local-routing-production-review.json",
+  "review_version": 1,
+  "route_selection_claim_allowed?": false,
+  "route_table_claim_allowed?": false,
+  "routed_delivery_claim_allowed?": false,
+  "status": "ready"
+}

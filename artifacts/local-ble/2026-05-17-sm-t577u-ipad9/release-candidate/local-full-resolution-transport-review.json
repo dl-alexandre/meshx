@@ -1,0 +1,14 @@
+{
+  "boundary": "full_message_resolution_transport_evidence_review",
+  "full_message_resolution_claim_allowed?": false,
+  "full_resolution_transport_evidence_complete?": true,
+  "gatt_fetch_success_claim_allowed?": false,
+  "known_good_transport_claim_allowed?": false,
+  "message_delivery_claim_allowed?": false,
+  "note": "Known-good/fetch evidence remains non-release-claiming; no full-message resolution claim.",
+  "real_fetch_transport_validated?": false,
+  "review_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/release-candidate/local-full-resolution-transport-review.json",
+  "review_version": 1,
+  "status": "ready",
+  "trusted_message_claim_allowed?": false
+}

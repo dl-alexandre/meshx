@@ -1,0 +1,19 @@
+{
+  "all_target_devices_copy_reviewed?": true,
+  "all_target_devices_density_reviewed?": true,
+  "all_target_devices_have_interaction_coverage?": true,
+  "all_target_devices_have_selected_detail_copy_anchors?": true,
+  "all_target_devices_have_selected_detail_coverage?": true,
+  "all_target_devices_have_state_coverage?": true,
+  "boundary": "nearby_messages_on_device_ux_evidence",
+  "delivery_claim_allowed?": false,
+  "note": "UX metadata preserves visible limitation/copy anchors and does not claim delivery/trust/routing.",
+  "on_device_ux_evidence_complete?": true,
+  "production_ux_claim_allowed?": false,
+  "review_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/release-candidate/local-inbox-ux-review.json",
+  "review_version": 1,
+  "routing_claim_allowed?": false,
+  "status": "ready",
+  "target_device_count": 1,
+  "trusted_delivery_claim_allowed?": false
+}

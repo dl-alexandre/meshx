@@ -1,0 +1,12 @@
+{
+  "boundary": "known_good_transport_evidence_review",
+  "full_message_resolution_claim_allowed?": false,
+  "gatt_fetch_success_claim_allowed?": false,
+  "known_good_transport_claim_allowed?": false,
+  "known_good_transport_evidence_complete?": true,
+  "message_delivery_claim_allowed?": false,
+  "note": "Review summary preserves transport and delivery claims as blocked.",
+  "review_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/release-candidate/local-known-good-transport-review.json",
+  "review_version": 1,
+  "status": "ready"
+}
