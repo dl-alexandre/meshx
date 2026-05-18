@@ -69,13 +69,19 @@ final class BLEHarnessModel: NSObject, ObservableObject {
 
         logMessageObserverDiscoveries = arguments.contains("--meshx-log-discoveries")
         logMessageObserverCandidateDiscoveries = arguments.contains("--meshx-log-candidate-discoveries")
+        messageObserver.debugLogRawAdvertisementData = arguments.contains("--meshx-log-raw-advert-data")
+        if messageObserver.debugLogRawAdvertisementData {
+            print("MeshxMessageObserver: raw_advert_logging_enabled")
+        }
 
         let autoScan = arguments.contains("--meshx-auto-scan")
         let autoBeacon = arguments.contains("--meshx-auto-beacon")
         let autoBeaconBasic = arguments.contains("--meshx-auto-beacon-basic")
         let autoServiceAdvertise = arguments.contains("--meshx-auto-service-advertise")
+        let autoDirectMxServiceAdvertise = arguments.contains("--meshx-auto-direct-mx-service-advertise")
+        let autoDirectMxHybridAdvertise = arguments.contains("--meshx-auto-direct-mx-hybrid-advertise")
 
-        guard autoScan || autoBeacon || autoBeaconBasic || autoServiceAdvertise else {
+        guard autoScan || autoBeacon || autoBeaconBasic || autoServiceAdvertise || autoDirectMxServiceAdvertise || autoDirectMxHybridAdvertise else {
             return
         }
 
@@ -85,6 +91,12 @@ final class BLEHarnessModel: NSObject, ObservableObject {
         }
         if autoServiceAdvertise {
             startServiceAdvertiseOnly()
+        }
+        if autoDirectMxServiceAdvertise {
+            startDirectMxServiceAdvertiseOnly()
+        }
+        if autoDirectMxHybridAdvertise {
+            startDirectMxHybridAdvertiseOnly()
         }
         if autoBeaconBasic {
             startBasicAutoBeaconDispatch()
@@ -187,6 +199,108 @@ final class BLEHarnessModel: NSObject, ObservableObject {
         peripheral.startAdvertising(localName: "meshx-ipad")
         updateStatus("Service advertising")
         record("Service advertising", detail: MeshxBLEUUID.service.uuidString)
+    }
+
+    private func startDirectMxServiceAdvertiseOnly() {
+        // "Different advertising strategy" experiment: iOS as emitter for the direct full-MX path.
+        // Advertises on the dedicated direct-MX service UUID (`MeshxBLEUUID.directMxService`)
+        // carrying a real `MessageEnvelope` v1 in service data.
+        //
+        // This is the iOS-side counterpart to the Android `emitsServiceDataFullMxEnvelope()` /
+        // hybrid tests. When run together with the Android raw/service-data observer, it lets
+        // us test the new carrier in the iOS → Android direction with fully parseable envelopes.
+        print("MeshxMessageObserver: direct_mx_service_advertise_requested service_uuid=\(MeshxBLEUUID.directMxService.uuidString) local_name=meshx-ipad-direct")
+        client.stopScan()
+        messageObserver.stopScan()
+
+        // Build a real small envelope (same pattern used elsewhere in the harness for fetch responders).
+        var messageId = Data(count: 16)
+        _ = messageId.withUnsafeMutableBytes { buf in
+            SecRandomCopyBytes(kSecRandomDefault, 16, buf.baseAddress!)
+        }
+        let payload = Data("ios-direct-mx-service-data-\(self.beaconDispatchCount + 1)".utf8)
+
+        let envelope: Data
+        do {
+            envelope = try MessageEnvelope.buildV1(
+                messageId: messageId,
+                senderPeerId: "ios-direct-mx",
+                createdAt: UInt64(Date().timeIntervalSince1970 * 1000),
+                payload: payload
+            )
+        } catch {
+            print("MeshxMessageObserver: direct_mx_envelope_build_failed error=\(String(describing: error))")
+            return
+        }
+
+        let messageIdHex = messageId.map { String(format: "%02x", $0) }.joined()
+        print("MeshxMessageObserver: direct_mx_envelope_built messageId=\(messageIdHex) size=\(envelope.count)")
+
+        peripheral.startDirectMxServiceDataAdvertising(localName: "meshx-ipad-direct", payload: envelope)
+        updateStatus("Direct MX service-data advertising (experimental)")
+        record("Direct MX service advertising", detail: MeshxBLEUUID.directMxService.uuidString)
+    }
+
+    private func startDirectMxHybridAdvertiseOnly() {
+        // Full "different advertising strategy" from iOS: send the short MB legacy beacon (fleet-safe cue)
+        // + the full MX envelope via the dedicated direct-MX service data UUID.
+        //
+        // This is the iOS-side equivalent of the Android `emitsHybridMbCuePlusServiceDataFullMxEnvelope()`.
+        // Run this on iOS + the Android raw/service-data observer (or the hybrid test) to validate
+        // the complete hybrid carrier in the iOS → Android direction.
+        print("MeshxMessageObserver: direct_mx_hybrid_advertise_requested")
+        client.stopScan()
+        messageObserver.stopScan()
+
+        // Build a real envelope (same as the pure direct-mx mode).
+        var messageId = Data(count: 16)
+        _ = messageId.withUnsafeMutableBytes { buf in
+            SecRandomCopyBytes(kSecRandomDefault, 16, buf.baseAddress!)
+        }
+        let payload = Data("ios-direct-mx-hybrid-\(self.beaconDispatchCount + 1)".utf8)
+
+        let envelope: Data
+        do {
+            envelope = try MessageEnvelope.buildV1(
+                messageId: messageId,
+                senderPeerId: "ios-direct-hybrid",
+                createdAt: UInt64(Date().timeIntervalSince1970 * 1000),
+                payload: payload
+            )
+        } catch {
+            print("MeshxMessageObserver: direct_mx_hybrid_envelope_build_failed error=\(String(describing: error))")
+            return
+        }
+
+        let messageIdHex = messageId.map { String(format: "%02x", $0) }.joined()
+        print("MeshxMessageObserver: direct_mx_hybrid_envelope_built messageId=\(messageIdHex)")
+
+        // 1. Send the short MB legacy beacon cue (fleet-safe, everyone can receive this).
+        // Use the peripheral's legacy beacon advertising support for a short window.
+        let beacon = MeshxLegacyBeaconAdvertisement.build(messageId: messageId, senderPeerId: "ios-direct-hybrid")
+        print("MeshxMessageObserver: direct_mx_hybrid_sending_mb_cue")
+        peripheral.startLegacyBeaconAdvertising(beacon: beacon, duration: 4.0) // short cue window
+
+        // Small delay so the cue is on air first
+        Thread.sleep(forTimeInterval: 1.0)
+
+        // 2. Advertise the full envelope via the direct service-data carrier.
+        peripheral.startDirectMxServiceDataAdvertising(localName: "meshx-ipad-hybrid", payload: envelope)
+
+        // Clear one-line summary for easy correlation on both sides (grep for this on iOS console).
+        print("MeshxMessageObserver: iOS_HYBRID_STARTED messageId=\(messageIdHex) MB_cue_sent=true direct_mx_service_data_started=true uuid=\(MeshxBLEUUID.directMxService.uuidString)")
+
+        updateStatus("Direct MX hybrid advertising (MB cue + service-data)")
+        record("Direct MX hybrid advertising", detail: MeshxBLEUUID.directMxService.uuidString)
+
+        // Fixed window for the experiment (matches Android test behavior of ~5-8s send window).
+        // This makes the iOS hybrid transmit a clean, time-bounded experiment just like the Android smoke tests.
+        let hybridWindow: TimeInterval = 8.0
+        print("MeshxMessageObserver: iOS hybrid experiment will run for \(hybridWindow)s then stop automatically")
+        Thread.sleep(forTimeInterval: hybridWindow)
+
+        peripheral.stopAdvertising()
+        print("MeshxMessageObserver: iOS_HYBRID_WINDOW_COMPLETE messageId=\(messageIdHex) — hybrid transmit window finished. Check Android logs for HYBRID_SUCCESS with the same messageId.")
     }
 
     func sendPing() {
@@ -375,7 +489,8 @@ extension BLEHarnessModel: MessageAdvertisementObserverDelegate {
         serviceUUIDs: [String],
         manufacturerDataLength: Int
     ) {
-        let isCandidate = serviceUUIDs.contains { $0.caseInsensitiveCompare("8F4F1201-6F3D-4F9C-9E3B-7F4A4F0F1000") == .orderedSame }
+        let isCandidate = serviceUUIDs.contains { $0.caseInsensitiveCompare(MeshxBLEUUID.service.uuidString) == .orderedSame }
+            || serviceUUIDs.contains { $0.caseInsensitiveCompare(MeshxBLEUUID.directMxService.uuidString) == .orderedSame }
             || manufacturerDataLength >= 60
             || (localName?.localizedCaseInsensitiveContains("meshx") ?? false)
 

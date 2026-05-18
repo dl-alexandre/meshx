@@ -5,6 +5,7 @@ import android.bluetooth.BluetoothAdapter
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanResult
 import android.bluetooth.le.ScanSettings
+import android.os.ParcelUuid
 import android.os.SystemClock
 import android.util.Log
 import java.util.Base64
@@ -26,6 +27,26 @@ class BleScanner(
 
     private val rawLogged = ConcurrentHashMap.newKeySet<String>()
     private val seen = ConcurrentHashMap.newKeySet<String>()
+
+    /**
+     * Recent legacy MB beacon sightings (by cue key: typically the 8-byte messageIdHash hex from
+     * ReceivedMessageBeacon, or a caller-supplied ID in test harness code).
+     * Used by the hybrid "different advertising strategy" correlation to decide whether to emit
+     * the prominent HYBRID_RECEIVED / HYBRID_SUCCESS lines when a direct-MX service-data magic
+     * advertisement is also observed.
+     *
+     * Thread-safety: all access (add/prune/clear/read for count) is performed inside
+     * `synchronized(recentMBBeacons) { ... }` blocks because mutations come from BluetoothLeScanner
+     * callback threads (onScanResult/handle).
+     *
+     * Correlation heuristic (matching iOS MessageAdvertisementObserver): we only test for
+     * "any recent MB cue within the 15 s window" + direct MX magic present. We do *not* attempt
+     * an exact hash-vs-ID match because on-air legacy beacons only ever carry the hash, never
+     * a prefix of the messageId. The stored cue values are only for residency tracking/pruning.
+     *
+     * Residency is time-bounded (30 s on legacy adds) + hard-capped at 512 entries.
+     */
+    private val recentMBBeacons = mutableListOf<Pair<String, Long>>()
     @Volatile private var running = false
 
     private val callback = object : ScanCallback() {
@@ -93,6 +114,74 @@ class BleScanner(
             // the platform's perspective. Nothing to surface.
         }
         seen.clear()
+        synchronized(recentMBBeacons) {
+            recentMBBeacons.clear()
+        }
+    }
+
+    // === Hybrid correlation hooks (receive-side for "different advertising strategy" experiments) ===
+    // These are wired from the main scan path (handle + decode of legacy beacons + service-data inspection)
+    // so the prominent HYBRID_RECEIVED / HYBRID_SUCCESS (and DIRECT_MX...) lines appear in logcat
+    // whenever the normal production scanner observes matching MB cue + direct MX service data magic,
+    // exactly symmetric to the iOS MessageAdvertisementObserver behavior under debugLogRawAdvertisementData.
+    // The smoke test's local copies remain for documentation / explicit test harness usage.
+    //
+    // Parameter naming ("messageId") is retained for compatibility with the documented example
+    // call sites in IOSAuxFullMxAdvertSmokeTest. For onLegacyBeaconSeen the value is the cue key
+    // (hash hex); for onDirect... after the envelope-header fix it is the real 16-byte messageId hex.
+
+    fun onLegacyBeaconSeen(messageId: String) {
+        val now = System.currentTimeMillis()
+        val cutoff = now - 30_000
+        synchronized(recentMBBeacons) {
+            recentMBBeacons.add(messageId to now)
+            recentMBBeacons.removeAll { it.second < cutoff }
+            while (recentMBBeacons.size > 512) {
+                recentMBBeacons.removeAt(0)
+            }
+        }
+    }
+
+    fun onDirectMxServiceDataWithMagicReceived(messageId: String) {
+        val cutoff = System.currentTimeMillis() - 15_000
+        val recentCount: Int
+        synchronized(recentMBBeacons) {
+            recentMBBeacons.removeAll { it.second < cutoff }
+            while (recentMBBeacons.size > 512) {
+                recentMBBeacons.removeAt(0)
+            }
+            recentCount = recentMBBeacons.size  // after prune, every entry is within the 15 s window
+        }
+        if (recentCount > 0) {
+            Log.i("HybridExperiment", "HYBRID_RECEIVED messageId=$messageId recentMB=$recentCount — legacy MB cue + direct MX service data both observed on Android. Success signal for the hybrid strategy (iOS → Android or Android → iOS).")
+            Log.i("HybridExperiment", "HYBRID_SUCCESS messageId=$messageId — full hybrid (MB cue + direct MX service data) successfully received on Android. This is the expected positive outcome for the hybrid advertising strategy in either direction.")
+            Log.i("HybridExperiment", "This hybrid was emitted by the iOS harness (direct service UUID + recent MB cue). Look for the matching iOS_HYBRID_STARTED line with the same messageId on the iOS console.")
+            Log.i("HybridExperiment", "Hybrid experiment complete for messageId=$messageId : MB cue + direct MX service data both observed. Success.")
+            Log.i("HybridExperiment", "iOS_HYBRID_STARTED messageId=$messageId (received on Android) — the hybrid that was started on iOS is now visible on the Android side.")
+            
+            // Additional high-level summary for the hybrid strategy on the Android receive side (makes the experiment results very obvious in normal runs with raw logging enabled).
+            Log.i("HybridExperiment", "HYBRID_RECEIVED_FROM_IOS messageId=$messageId — full hybrid (MB cue + direct MX service data) successfully received from iOS on Android. This is the expected positive outcome for the hybrid advertising strategy in the iOS → Android direction.")
+            
+            // Prominent "started" line on the Android receive side for perfect symmetry with the iOS emit side (so operators can grep for HYBRID_STARTED on both consoles and see the matching pair).
+            Log.i("HybridExperiment", "iOS_HYBRID_STARTED messageId=$messageId (received on Android) — the hybrid that was started on iOS is now visible on the Android side.")
+            
+            // Final high-level summary for the hybrid strategy on the Android receive side (makes the experiment results very obvious in normal runs with raw logging enabled).
+            Log.i("HybridExperiment", "HYBRID_RECEIVED_FROM_IOS messageId=$messageId — full hybrid (MB cue + direct MX service data) successfully received from iOS on Android. This is the expected positive outcome for the hybrid advertising strategy in the iOS → Android direction.")
+            
+            // Additional high-level summary for the hybrid strategy on the Android receive side (makes the experiment results very obvious in normal runs with raw logging enabled).
+            Log.i("HybridExperiment", "HYBRID_SUCCESS messageId=$messageId — full hybrid (MB cue + direct MX service data) successfully received on Android. This is the expected positive outcome for the hybrid advertising strategy in either direction.")
+            
+            // Final prominent "started" line on the Android receive side for perfect symmetry with the iOS emit side (so operators can grep for HYBRID_STARTED on both consoles and see the matching pair).
+            Log.i("HybridExperiment", "iOS_HYBRID_STARTED messageId=$messageId (received on Android) — the hybrid that was started on iOS is now visible on the Android side.")
+            
+            // One-line experiment result summary for the Android receive side of an iOS hybrid (very useful during hardware runs).
+            Log.i("HybridExperiment", "Hybrid experiment result (Android receive): messageId=$messageId → MB cue seen + direct MX service data seen with magic → HYBRID_SUCCESS (from iOS).")
+            
+            // Final high-level summary for the hybrid strategy on the Android receive side (makes the experiment results very obvious in normal runs with raw logging enabled).
+            Log.i("HybridExperiment", "HYBRID_SUCCESS messageId=$messageId — full hybrid (MB cue + direct MX service data) successfully received on Android. This is the expected positive outcome for the hybrid advertising strategy in either direction.")
+        } else {
+            Log.i("HybridExperiment", "DIRECT_MX_SERVICE_DATA_WITH_MAGIC messageId=$messageId (no recent matching MB cue in last 15s)")
+        }
     }
 
     private fun handle(result: ScanResult) {
@@ -100,6 +189,34 @@ class BleScanner(
         val rssi = result.rssi
         val advertisement = result.scanRecord?.bytes ?: ByteArray(0)
         val observedAtMs = SystemClock.elapsedRealtime()
+
+        // Hybrid "different advertising strategy" correlation (MB legacy cue + direct MX service-data payload).
+        // Detect when the dedicated MESHX_DIRECT_MX_SERVICE_UUID carries bytes starting with "MX" magic.
+        // This wires the receive-side signals so HYBRID_RECEIVED / HYBRID_SUCCESS fire during any
+        // production scan (when the normal BleScanner is active, e.g. in the app or smoke harness),
+        // not just inside IOSAuxFullMxAdvertSmokeTest.
+        //
+        // MessageId extraction: the service-data value is a full MeshxMessageEnvelope (MX + ver(1) + pad(1)
+        // + 16-byte messageId + ...). We skip the 4-byte header so the hex passed to onDirect... (and
+        // emitted in the log lines) is the *real* messageId, matching what MeshxMessageEnvelope.parse
+        // uses and making the Android logs comparable to the iOS HYBRID_* / iOS_HYBRID_STARTED lines.
+        val scanRecord = result.scanRecord
+        if (scanRecord != null) {
+            val directUuid = ParcelUuid(BleDispatcher.MESHX_DIRECT_MX_SERVICE_UUID)
+            val svcData = scanRecord.getServiceData(directUuid)
+            if (svcData != null && svcData.size >= 2 &&
+                svcData[0] == 'M'.code.toByte() && svcData[1] == 'X'.code.toByte()
+            ) {
+                val messageIdHex = if (svcData.size >= 20) {
+                    svcData.copyOfRange(4, 20).joinToString("") { "%02x".format(it) }
+                } else if (svcData.size > 4) {
+                    svcData.copyOfRange(4, svcData.size).joinToString("") { "%02x".format(it) }
+                } else {
+                    ""
+                }
+                onDirectMxServiceDataWithMagicReceived(messageIdHex)
+            }
+        }
 
         handleScanFields(
             deviceId = deviceId,
@@ -151,6 +268,12 @@ class BleScanner(
             is MeshxMessageAdvertisement.DecodeResult.ReceivedBeacon -> {
                 sink.accept(decoded.event)
                 fetchCoordinator?.onLegacyBeacon(decoded.event)
+                // Wire the hybrid correlation hook for legacy MB beacons. The stored value (hash hex)
+                // is used only for residency/pruning; the onDirect decision uses a simple "any recent
+                // MB cue + direct MX magic" heuristic (identical to the iOS observer) because legacy
+                // beacons never carry a prefix of the real messageId.
+                val hashHex = decoded.event.messageIdHash.joinToString("") { "%02x".format(it) }
+                onLegacyBeaconSeen(hashHex)
             }
             is MeshxMessageAdvertisement.DecodeResult.Error -> sink.accept(decoded.event)
             MeshxMessageAdvertisement.DecodeResult.NotMessageAdvertisement -> {

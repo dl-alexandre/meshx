@@ -230,7 +230,15 @@ defmodule MeshxMobileApp.BLE.LocalFocusedRemainingItemsAudit do
         "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/aux-alternate-ios-target-check/summary.md",
         "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/external-blocker-recheck-1358/summary.md"
       ],
-      commands: ["Android IOSAuxFullMxAdvertSmokeTest hardware run"],
+      commands: [
+        "Android IOSAuxFullMxAdvertSmokeTest (scan-response carrier) hardware run",
+        "Android IOSAuxFullMxAdvertSmokeTest (primary channel / extendedConnectable=true) — temporarily set extendedConnectable: true in the test for this variant",
+        "Android service-data carrier experiment (different advertising strategy) — run emitsServiceDataFullMxEnvelope() in IOSAuxFullMxAdvertSmokeTest (uses MESHX_DIRECT_MX_SERVICE_UUID); pair with iOS observer using --meshx-log-raw-advert-data (look for mx_magic_seen=true or [MX_MAGIC] in the raw dump)",
+        "Android hybrid experiment (MB legacy cue + service-data full payload) — run emitsHybridMbCuePlusServiceDataFullMxEnvelope() in IOSAuxFullMxAdvertSmokeTest; pair with iOS observer using --meshx-log-raw-advert-data (look for mx_magic_seen=true on both the MB cue and the service-data UUID)",
+        "iOS direct-MX service-data emit experiment (reverse direction) — iOS harness with --meshx-auto-direct-mx-service-advertise (emits full MX on the direct service UUID); pair with Android service-data / raw observer to test iOS → Android on the new carrier",
+        "iOS hybrid emit (MB cue + direct service-data full payload) — iOS harness with --meshx-auto-direct-mx-hybrid-advertise; the symmetric iOS→Android version of the Android hybrid test. Pair with Android raw observer and look for matching messageId in both the MB beacon and the DIRECT_MX_SERVICE_DATA_WITH_MAGIC log.",
+        "iOS observer (with raw dump for all carriers): xcrun devicectl device process launch --device <udid> --terminate-existing --console dev.meshx.mobile.harness -- --meshx-auto-scan --meshx-log-candidate-discoveries --meshx-log-raw-advert-data"
+      ],
       tests: [
         "apps/meshx_mobile_app/test/meshx_mobile_app/ble/focused_remaining_items_audit_artifact_test.exs",
         "apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_hardware_validation_gates_test.exs"

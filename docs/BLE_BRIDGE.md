@@ -332,6 +332,8 @@ candidate/discovery callback lines for the AUX payload while still recording
 276 MB legacy-beacon receives. Artifact:
 `artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/android-aux-full-mx-ios-observe/summary.md`.
 
+The iOS harness supports `--meshx-log-raw-advert-data` (use together with `--meshx-auto-scan --meshx-log-candidate-discoveries`) to emit `raw_advert keys=[...]` + value types for every `didDiscover`; this surfaces exactly which advertisementData fields (service UUIDs, service data, local name, TX power, etc.) from Android extended sets reach CoreBluetooth on the tested stack, guiding any future pivot to non-manufacturer-data carriers for direct cues.
+
 The MB beacon → GATT fetch path is the production-supported way to deliver >31-byte envelopes from Android to iOS.
 
 Do not promote the direct full-MX AUX path on iOS without a new hardware

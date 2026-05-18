@@ -12,6 +12,11 @@ public enum MeshxBLEUUID {
     public static let service = CBUUID(string: "8f4f1201-6f3d-4f9c-9e3b-7f4a4f0f1000")
     public static let rx      = CBUUID(string: "8f4f1202-6f3d-4f9c-9e3b-7f4a4f0f1000")
     public static let tx      = CBUUID(string: "8f4f1203-6f3d-4f9c-9e3b-7f4a4f0f1000")
+
+    /// Dedicated service UUID for direct full-MX delivery experiments over service data
+    /// (the "different advertising strategy" / service-data carrier path).
+    /// Matches Android's `BleDispatcher.MESHX_DIRECT_MX_SERVICE_UUID` (`...1001`).
+    public static let directMxService = CBUUID(string: "8f4f1201-6f3d-4f9c-9e3b-7f4a4f0f1001")
 }
 
 public struct MeshxLegacyBeaconAdvertisement: Sendable, Equatable {
@@ -501,6 +506,37 @@ public final class MeshxBLEPeripheral: NSObject {
     /// run beacon for ~5s window, restart GATT advert) — mirrors the
     /// Android `BleDispatcher` 5-second send window.
     ///
+
+    /// Advertise on the dedicated direct-MX service UUID, carrying a full MX envelope
+    /// in the service data. This is the iOS-side "different advertising strategy" emit path
+    /// (service-data carrier for full-MX delivery, symmetric to the Android experiments).
+    ///
+    /// The `payload` should be a complete `MeshxMessageEnvelope` v1 (starting with the
+    /// FF FF 4D 58 magic in the experiments). The peripheral will advertise the
+    /// `directMxService` UUID with that payload in `CBAdvertisementDataServiceDataKey`.
+    ///
+    /// Replaces any currently-running advertisement.
+    public func startDirectMxServiceDataAdvertising(localName: String = "meshx-direct", payload: Data) {
+        requestedLocalName = localName
+        shouldAdvertise = true
+
+        guard manager.state == .poweredOn else {
+            if manager.state != .unknown && manager.state != .resetting {
+                delegate?.meshxPeripheralDidError(PeripheralError.stateNotPoweredOn(manager.state))
+            }
+            return
+        }
+
+        // We don't need the full GATT service for a pure service-data emit experiment.
+        // Just advertise the direct service UUID + the payload in service data.
+        manager.startAdvertising([
+            CBAdvertisementDataServiceUUIDsKey: [MeshxBLEUUID.directMxService],
+            CBAdvertisementDataServiceDataKey: [MeshxBLEUUID.directMxService: payload],
+            CBAdvertisementDataLocalNameKey: localName
+        ])
+
+        delegate?.meshxPeripheralDidStartAdvertising()
+    }
     /// Manufacturer data is the only field set; `CoreBluetooth`
     /// silently drops `CBAdvertisementDataManufacturerDataKey` when
     /// the app is backgrounded, so this method's effective range is
@@ -527,6 +563,28 @@ public final class MeshxBLEPeripheral: NSObject {
         ])
 
         return beacon
+    }
+
+    /// Advertise a legacy beacon (`MB` cue) for a bounded duration then auto-stop.
+    ///
+    /// This supports the hybrid direct-MX emit experiment (`--meshx-auto-direct-mx-hybrid-advertise`):
+    /// emit the short fleet-compatible MB legacy beacon cue, then (after a brief delay in the
+    /// caller) switch to advertising the full MX envelope in service data under the dedicated
+    /// `directMxService` UUID. Mirrors the Android hybrid emit sequencing.
+    ///
+    /// The duration is typically 4s for the cue window. The caller is responsible for sequencing
+    /// the subsequent direct-MX service-data advertisement (which will replace the active advert).
+    public func startLegacyBeaconAdvertising(beacon: MeshxLegacyBeaconAdvertisement, duration: TimeInterval) {
+        _ = startBeaconAdvertising(beacon)
+        // Schedule stop for the cue window. Safe to call stop even if a later advert (e.g. direct-MX)
+        // has already replaced this one; CoreBluetooth tolerates it.
+        DispatchQueue.main.asyncAfter(deadline: .now() + duration) { [weak self] in
+            guard let self else { return }
+            if self.manager.isAdvertising {
+                self.manager.stopAdvertising()
+                self.delegate?.meshxPeripheralDidStopAdvertising()
+            }
+        }
     }
 
     /// Build + advertise a legacy beacon in one call.

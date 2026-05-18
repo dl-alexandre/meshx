@@ -35,6 +35,8 @@ class BleAdvertGossipDispatcherTest {
         override fun startExtendedAdvertising(
             payload: ByteArray,
             extendedConnectable: Boolean,
+            useServiceDataForPayload: Boolean,
+            serviceDataUuid: UUID?,
             callback: AdvertisingSetCallback
         ) = Unit
 

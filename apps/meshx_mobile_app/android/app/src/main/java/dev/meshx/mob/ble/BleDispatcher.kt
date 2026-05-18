@@ -36,6 +36,8 @@ internal interface BleDispatchRadio {
     fun startExtendedAdvertising(
         payload: ByteArray,
         extendedConnectable: Boolean,
+        useServiceDataForPayload: Boolean = false,
+        serviceDataUuid: UUID? = null,
         callback: AdvertisingSetCallback
     )
 
@@ -96,6 +98,8 @@ internal class AndroidBleDispatchRadio(
     override fun startExtendedAdvertising(
         payload: ByteArray,
         extendedConnectable: Boolean,
+        useServiceDataForPayload: Boolean,
+        serviceDataUuid: UUID?,
         callback: AdvertisingSetCallback
     ) {
         val scannable = !extendedConnectable
@@ -108,10 +112,17 @@ internal class AndroidBleDispatchRadio(
             .setInterval(AdvertisingSetParameters.INTERVAL_LOW)
             .setTxPowerLevel(AdvertisingSetParameters.TX_POWER_MEDIUM)
             .build()
-        val data = AdvertiseData.Builder()
-            .addManufacturerData(BleDispatcher.MESHX_COMPANY_IDENTIFIER, payload)
-            .addServiceUuid(ParcelUuid(BleDispatcher.MESHX_SERVICE_UUID))
-            .build()
+        val data = if (useServiceDataForPayload && serviceDataUuid != null) {
+            AdvertiseData.Builder()
+                .addServiceUuid(ParcelUuid(BleDispatcher.MESHX_SERVICE_UUID))
+                .addServiceData(ParcelUuid(serviceDataUuid), payload)
+                .build()
+        } else {
+            AdvertiseData.Builder()
+                .addManufacturerData(BleDispatcher.MESHX_COMPANY_IDENTIFIER, payload)
+                .addServiceUuid(ParcelUuid(BleDispatcher.MESHX_SERVICE_UUID))
+                .build()
+        }
         val advertiseData = if (scannable) AdvertiseData.Builder().build() else data
         val scanResponse = if (scannable) data else null
         advertiser?.startAdvertisingSet(parameters, advertiseData, scanResponse, null, null, callback)
@@ -171,6 +182,14 @@ class BleDispatcher internal constructor(
         const val LOGCAT_TAG = "MeshxBleDispatch"
         const val MESHX_COMPANY_IDENTIFIER = 0xFFFF
         val MESHX_SERVICE_UUID: UUID = UUID.fromString("8f4f1201-6f3d-4f9c-9e3b-7f4a4f0f1000")
+
+        /**
+         * Dedicated service UUID for the "direct full-MX via service data" experimental carrier
+         * (different advertising strategy for the iOS AUX interop blocker).
+         * Used with useServiceDataForPayload=true in the experimental smoke tests.
+         */
+        val MESHX_DIRECT_MX_SERVICE_UUID: UUID = UUID.fromString("8f4f1201-6f3d-4f9c-9e3b-7f4a4f0f1001")
+
         const val MAX_LEGACY_MANUFACTURER_PAYLOAD = 24
         const val MAX_MANUFACTURER_PAYLOAD = MAX_LEGACY_MANUFACTURER_PAYLOAD
         const val LEGACY_BEACON_PAYLOAD_SIZE = 22
@@ -320,7 +339,9 @@ class BleDispatcher internal constructor(
         dryRun: Boolean = false,
         extendedConnectable: Boolean = false,
         legacyBeaconFallback: Boolean = true,
-        forceLegacyBeacon: Boolean = false
+        forceLegacyBeacon: Boolean = false,
+        useServiceDataForPayload: Boolean = false,
+        serviceDataUuid: UUID? = null
     ): BleDispatchResult {
         val now = SystemClock.elapsedRealtime()
 
@@ -416,7 +437,9 @@ class BleDispatcher internal constructor(
                     targetPeerId,
                     targetDeviceIds,
                     now,
-                    extendedConnectable
+                    extendedConnectable,
+                    useServiceDataForPayload,
+                    serviceDataUuid
                 )
             } else {
                 startLegacyAdvertising(
@@ -496,7 +519,9 @@ class BleDispatcher internal constructor(
         targetPeerId: String,
         targetDeviceIds: List<String>,
         now: Long,
-        extendedConnectable: Boolean
+        extendedConnectable: Boolean,
+        useServiceDataForPayload: Boolean = false,
+        serviceDataUuid: UUID? = null
     ) {
         val scannable = !extendedConnectable
         val dataCarrier = if (scannable) "scan_response" else "advertisement"
@@ -537,7 +562,13 @@ class BleDispatcher internal constructor(
             }
         }
 
-        radio.startExtendedAdvertising(payload, extendedConnectable, callback)
+        radio.startExtendedAdvertising(
+            payload,
+            extendedConnectable,
+            useServiceDataForPayload,
+            serviceDataUuid,
+            callback
+        )
     }
 
     private fun finished(

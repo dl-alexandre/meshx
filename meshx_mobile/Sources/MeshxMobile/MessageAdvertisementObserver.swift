@@ -89,6 +89,12 @@ public final class MessageAdvertisementObserver: NSObject {
     /// we've successfully fetched (or attempted) within this window.
     public var fetchDedupTTL: TimeInterval = 60.0
 
+    /// When true, the observer will print the full advertisementData keys
+    /// and types for every didDiscover (useful for extended advertising
+    /// interop debugging on iOS when manufacturer data for custom company
+    /// IDs is being filtered by CoreBluetooth).
+    public var debugLogRawAdvertisementData = false
+
     private var fetchInFlight: [UUID: MeshxFetchGattClient] = [:]
     private var fetchedHashes: [Data: Date] = [:]
     private var pendingBeacons: [UUID: (beacon: MeshxLegacyBeaconAdvertisement, rssi: Int)] = [:]
@@ -154,6 +160,93 @@ extension MessageAdvertisementObserver: CBCentralManagerDelegate {
         advertisementData: [String : Any],
         rssi RSSI: NSNumber
     ) {
+        if debugLogRawAdvertisementData {
+            let keys = advertisementData.keys.sorted().joined(separator: ", ")
+            let types = advertisementData.map { "\($0.key)=\(type(of: $0.value))" }.sorted().joined(separator: "; ")
+
+            // For Data fields (manufacturer data, service data, etc.) also emit a short hex prefix
+            // so we can see actual payload content (e.g. whether FF FF 4D 58 or service data arrived)
+            // without flooding the log on every discovery.
+            //
+            // Additionally detect the MX envelope magic (FF FF 4D 58) so the log line immediately
+            // answers the key question for all "different advertising strategy" experiments.
+            let mxMagic: [UInt8] = [0xff, 0xff, 0x4d, 0x58]
+
+            let dataFields = advertisementData
+                .compactMap { (key, value) -> String? in
+                    // Top-level Data (manufacturer data, etc.)
+                    if let data = value as? Data, !data.isEmpty {
+                        let hex = data.prefix(24).map { String(format: "%02x", $0) }.joined()
+                        let suffix = data.count > 24 ? "..." : ""
+                        let hasMagic = data.range(of: Data(mxMagic)) != nil
+                        let magicNote = hasMagic ? " [MX_MAGIC]" : ""
+                        return "\(key)=\(hex)\(suffix) (\(data.count)B)\(magicNote)"
+                    }
+
+                    // Service data dictionary: [CBUUID: Data] — very relevant for the service-data carrier strategy
+                    if key == CBAdvertisementDataServiceDataKey as String,
+                       let svcData = value as? [CBUUID: Data], !svcData.isEmpty {
+                        let parts = svcData.map { (uuid, data) in
+                            let hex = data.prefix(24).map { String(format: "%02x", $0) }.joined()
+                            let suffix = data.count > 24 ? "..." : ""
+                            let hasMagic = data.range(of: Data(mxMagic)) != nil
+                            let magicNote = hasMagic ? " [MX_MAGIC]" : ""
+                            return "\(uuid.uuidString)=\(hex)\(suffix) (\(data.count)B)\(magicNote)"
+                        }.sorted().joined(separator: " ")
+                        return "serviceData={\(parts)}"
+                    }
+
+                    return nil
+                }
+                .sorted()
+                .joined(separator: " ")
+
+            let dataPart = dataFields.isEmpty ? "" : " data={\(dataFields)}"
+
+            // Quick summary flag so you can instantly see from the log line (or grep) whether
+            // any advertisement in this discovery carried the MX envelope magic.
+            let anyMxMagic = advertisementData.values.contains { value in
+                if let data = value as? Data {
+                    return data.range(of: Data(mxMagic)) != nil
+                }
+                // Also check inside service data dictionary
+                if let svcData = value as? [CBUUID: Data] {
+                    return svcData.values.contains { $0.range(of: Data(mxMagic)) != nil }
+                }
+                return false
+            }
+            let magicSummary = anyMxMagic ? " mx_magic_seen=true" : ""
+
+            print("MeshxMessageObserver: raw_advert keys=[\(keys)] types={\(types)}\(dataPart)\(magicSummary) device_id=\(peripheral.identifier.uuidString)")
+
+            // Special prominent signal for the hybrid / service-data strategy experiments.
+            // When we see the dedicated direct-MX service data UUID carrying the MX magic,
+            // print an unmistakable line so it's obvious the hybrid experiment produced a positive signal.
+            if let svcData = advertisementData[CBAdvertisementDataServiceDataKey as String] as? [CBUUID: Data] {
+                for (uuid, data) in svcData {
+                    if uuid == MeshxBLEUUID.directMxService,
+                       data.range(of: Data(mxMagic)) != nil {
+                        let messageIdHex = data.prefix(16).map { String(format: "%02x", $0) }.joined()
+
+                        // Check for recent legacy MB beacons (within last 15s) to help correlate hybrid experiments.
+                        let recentMBCount = recentBeacons.filter { Date().timeIntervalSince($0.at) < 15 }.count
+                        let correlationNote = recentMBCount > 0 ? " recent_legacy_mb_cues=\(recentMBCount)" : ""
+
+                        print("MeshxMessageObserver: DIRECT_MX_SERVICE_DATA_WITH_MAGIC uuid=\(uuid.uuidString) messageId=\(messageIdHex)\(correlationNote) — hybrid/service-data experiment positive signal (see raw dump above for full hex)")
+
+                        if recentMBCount > 0 {
+                            print("MeshxMessageObserver: possible_hybrid_correlation — direct MX magic arrived shortly after recent MB beacon(s). Check messageId match on the emitter side.")
+                        }
+
+                        // Prominent success signal for the hybrid strategy when both parts are observed close together.
+                        if recentMBCount > 0 {
+                            print("MeshxMessageObserver: HYBRID_CORRELATED messageId=\(messageIdHex) recent_legacy_mb_cues=\(recentMBCount) — legacy MB cue + direct MX service data both observed. This is the expected positive outcome for the hybrid advertising strategy.")
+                        }
+                    }
+                }
+            }
+        }
+
         let manufacturerData = advertisementData[CBAdvertisementDataManufacturerDataKey] as? Data
         let fullAdvertisement = manufacturerData ?? Data()
         let receivedAt = UInt64(Date().timeIntervalSince1970 * 1000)
