@@ -1,0 +1,7 @@
+ipad_beacon_dispatched=0
+ipad_fetch_responder_started=0
+ipad_fetch_responder_served=0
+android_fetch_start=0
+android_fetch_response_ok=0
+android_received_message=0
+android_fetch_failed=0

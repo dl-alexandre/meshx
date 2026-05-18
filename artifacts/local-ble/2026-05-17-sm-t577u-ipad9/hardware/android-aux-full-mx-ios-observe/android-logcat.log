@@ -1,0 +1,15 @@
+--------- beginning of main
+05-17 10:36:25.693  6551  6551 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+05-17 10:36:25.699  6551  6551 I AndroidRuntime: Using default boot image
+05-17 10:36:25.699  6551  6551 I AndroidRuntime: Leaving lock profiling enabled
+05-17 10:36:25.700  6551  6551 D AndroidRuntime: addProductProperty: pBrand1 is not null
+05-17 10:36:25.700  6551  6551 D AndroidRuntime: addProductProperty: not brand or 7
+05-17 10:36:25.845  6551  6551 D AndroidRuntime: Calling main entry com.android.commands.am.Am
+05-17 10:36:26.768  6562  6588 I TestRunner: run started: 1 tests
+05-17 10:36:26.770  6562  6588 I TestRunner: started: emitsScannableAuxScanResponseFullMxEnvelope(dev.meshx.mob.ble.IOSAuxFullMxAdvertSmokeTest)
+05-17 10:36:26.820  6562  6588 I MeshxBleDispatch: {"v":1,"event":"ble_capabilities","supports_extended_advertising":true,"max_advertising_data_length":1024,"is_multiple_advertisement_supported":true,"legacy_manufacturer_payload_budget":24}
+05-17 10:36:26.840  6562  6588 I MeshxBleDispatch: {"v":1,"event":"attempt_outcome","attempt_id":"aux-scan-response-1779039386809","message_id":"m+FfheAVWAr1sc8fDStvSw==","target_peer_id":"ios-harness","target_device_ids":["ios-harness"],"kind":"dispatched","reason":null,"adapter":"ble_android","outcome_at_ms":203058870}
+05-17 10:36:26.850  6562  6562 I MeshxBleDispatch: {"v":1,"event":"advertising_set_started","attempt_id":"aux-scan-response-1779039386809","payload_size":80,"payload":"TVgBAJvhX4XgFVgK9bHPHw0rb0sAAAGeNwK8twERbWVzaHgtYW5kcm9pZC1hdXgAAlRYAAAabXgtYXV4LXNjYW4tcmVzcG9uc2Utc21va2U=","tx_power":-7,"window_ms":5000,"connectable":false,"scannable":true,"data_carrier":"scan_response"}
+05-17 10:36:32.843  6562  6588 I TestRunner: finished: emitsScannableAuxScanResponseFullMxEnvelope(dev.meshx.mob.ble.IOSAuxFullMxAdvertSmokeTest)
+05-17 10:36:32.856  6562  6588 I TestRunner: run finished: 1 tests, 0 failed, 0 ignored
+05-17 10:36:32.912  6551  6551 I AndroidRuntime: VM exiting with result code 0.

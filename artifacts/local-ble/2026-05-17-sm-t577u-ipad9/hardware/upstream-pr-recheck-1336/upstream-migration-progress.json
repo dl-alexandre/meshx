@@ -1,0 +1,103 @@
+{
+  "boundary": "upstream_patch_migration_progress",
+  "reviewed_at": "2026-05-17T13:36:58-0700",
+  "row_id": "upstreaming_mob_dev_mob_patches",
+  "completion_claim_allowed": false,
+  "source_artifacts": {
+    "mob_dev_pr": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/upstream-pr-recheck-1336/mob-dev-pr-6.json",
+    "mob_new_pr": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/upstream-pr-recheck-1336/mob-new-pr-5.json",
+    "mob_dev_repo": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/upstream-pr-recheck-1336/mob-dev-repo.json",
+    "mob_new_repo": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/upstream-pr-recheck-1336/mob-new-repo.json",
+    "maintainer_handoff": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/upstream-pr-recheck-1336/maintainer-handoff.md",
+    "downstream_patch_check": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/patch-deps-check-1212.log"
+  },
+  "satisfied_criteria": [
+    "downstream_patch_path_verified",
+    "replacement_prs_open",
+    "maintainer_handoff_present",
+    "viewer_permission_recorded"
+  ],
+  "missing_criteria": [
+    "upstream_prs_merged",
+    "upstream_changes_released",
+    "meshx_dependency_migration",
+    "downstream_patch_removal",
+    "post_migration_verification"
+  ],
+  "criteria": [
+    {
+      "id": "downstream_patch_path_verified",
+      "status": "satisfied",
+      "evidence": [
+        "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/patch-deps-check-1212.log"
+      ],
+      "notes": "The app-owned patch dependency check passed at 2026-05-17T12:12:03-0700 and reports both locked-version downstream patches already applied."
+    },
+    {
+      "id": "replacement_prs_open",
+      "status": "satisfied",
+      "evidence": [
+        "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/upstream-pr-recheck-1336/mob-dev-pr-6.json",
+        "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/upstream-pr-recheck-1336/mob-new-pr-5.json"
+      ],
+      "notes": "GenericJam/mob_dev#6 and GenericJam/mob_new#5 are open, non-draft, mergeable, and GitGuardian-passing in the archived PR JSON."
+    },
+    {
+      "id": "maintainer_handoff_present",
+      "status": "satisfied",
+      "evidence": [
+        "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/upstream-pr-recheck-1336/maintainer-handoff.md",
+        "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/upstream-pr-recheck-1336/mob-dev-pr-6.json",
+        "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/upstream-pr-recheck-1336/mob-new-pr-5.json"
+      ],
+      "notes": "The local handoff artifact and PR issue comments identify the maintainer merge/release action and the MeshX post-merge migration gate."
+    },
+    {
+      "id": "viewer_permission_recorded",
+      "status": "satisfied",
+      "evidence": [
+        "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/upstream-pr-recheck-1336/mob-dev-repo.json",
+        "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/upstream-pr-recheck-1336/mob-new-repo.json"
+      ],
+      "notes": "Both upstream repo JSON files show this checkout has READ permission only."
+    },
+    {
+      "id": "upstream_prs_merged",
+      "status": "missing",
+      "evidence": [
+        "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/upstream-pr-recheck-1336/mob-dev-pr-6.json",
+        "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/upstream-pr-recheck-1336/mob-new-pr-5.json"
+      ],
+      "notes": "Both archived PR JSON files have state OPEN and mergedAt null."
+    },
+    {
+      "id": "upstream_changes_released",
+      "status": "missing",
+      "evidence": [],
+      "notes": "No upstream release or dependency ref containing both PR changes has been selected for MeshX."
+    },
+    {
+      "id": "meshx_dependency_migration",
+      "status": "missing",
+      "evidence": [],
+      "notes": "MeshX is still pinned to the downstream-patched dependency versions."
+    },
+    {
+      "id": "downstream_patch_removal",
+      "status": "missing",
+      "evidence": [],
+      "notes": "The downstream patch files and mix meshx.patch_deps requirement must remain until the upstream changes are merged, released, and adopted."
+    },
+    {
+      "id": "post_migration_verification",
+      "status": "missing",
+      "evidence": [],
+      "notes": "Post-migration MeshX build and test gates, including mix test, have not run against released upstream dependency versions without the downstream patches."
+    }
+  ],
+  "notes": [
+    "This artifact records upstream migration progress only; it does not close the upstreaming row.",
+    "The row remains blocked on maintainer merge/release, MeshX dependency migration, downstream patch removal, and post-migration verification.",
+    "Do not remove mix meshx.patch_deps or the downstream patch files based on the open PR state."
+  ]
+}

@@ -1,0 +1,12 @@
+12:17:51  Acquired tunnel connection to device.
+12:17:51  Enabling developer disk image services.
+12:17:51  Acquired usage assertion.
+Launched application with dev.meshx.mobile.harness bundle identifier.
+Waiting for the application to terminate…
+MeshxMessageObserver: beacon_dispatch_started sender_peer_id=ios-harness-B5C978F1
+MeshxMessageObserver: state CBManagerState(rawValue: 5)
+MeshxMessageObserver: beacon_dispatched seq=1 message_id=fe8ee20e0373c60a567b2033fad51f8a message_id_hash=19f161af172a01c8 sender_peer_id=ios-harness-B5C978F1 sender_peer_id_hash=7c599662c0422b6d
+MeshxMessageObserver: peripheral_advertising_started
+MeshxMessageObserver: fetch_responder_advertising_started
+MeshxMessageObserver: fetch_responder_served request_id=151245c8-54c2-407f-bdc3-8df92a03d7ea message_id_hash=19f161af172a01c8 status=0
+App terminated due to signal 15.

@@ -1,0 +1,10 @@
+ipad_beacon_dispatched=1
+ipad_sender_hash=9ee3da5edc118588
+ipad_message_hash=b892e05ab5f8acb9
+ipad_fetch_responder_started=1
+ipad_fetch_responder_served=2
+android_fetch_service_raw=1
+android_fetch_start=2
+android_fetch_response_ok=0
+android_received_message=0
+android_fetch_failed=2

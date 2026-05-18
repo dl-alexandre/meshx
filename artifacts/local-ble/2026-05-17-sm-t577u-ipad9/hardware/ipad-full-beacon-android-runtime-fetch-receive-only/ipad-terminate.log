@@ -1,0 +1,4 @@
+Error: Missing expected argument '--pid <pid>'
+Help:  --pid <pid>  The process identifier to terminate.
+Usage: devicectl device process terminate --device <uuid|ecid|serial_number|udid|name|dns_name> --pid <pid> [--kill] [--verbose] [--quiet] [--timeout <seconds>] [--json-output <path>] [--log-output <path>]
+  See 'devicectl device process terminate --help' for more information.

@@ -1,0 +1,3 @@
+List of devices attached
+R52W90AW7EN            device usb:1-1 product:gtactive3ue model:SM_T577U device:gtactive3 transport_id:12
+

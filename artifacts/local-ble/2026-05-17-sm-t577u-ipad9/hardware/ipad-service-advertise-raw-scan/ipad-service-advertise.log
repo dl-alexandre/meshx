@@ -1,0 +1,9 @@
+11:54:09  Acquired tunnel connection to device.
+11:54:09  Enabling developer disk image services.
+11:54:09  Acquired usage assertion.
+Launched application with dev.meshx.mobile.harness bundle identifier.
+Waiting for the application to terminate…
+MeshxMessageObserver: service_advertise_requested service_uuid=8F4F1201-6F3D-4F9C-9E3B-7F4A4F0F1000 local_name=meshx-ipad
+MeshxMessageObserver: state CBManagerState(rawValue: 5)
+MeshxMessageObserver: peripheral_advertising_started
+App terminated due to signal 15.

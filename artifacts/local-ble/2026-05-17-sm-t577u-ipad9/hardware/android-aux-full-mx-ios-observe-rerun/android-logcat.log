@@ -1,0 +1,223 @@
+--------- beginning of main
+05-17 11:19:03.434  1200  3617 D SemWifiUsabilityStatsMonitor: onWifiUsabilityStats - seqNum 6056, isSameBssidAndFreq true
+05-17 11:19:03.440  1200  1507 I SemWifiLinkQualityMonitor: Link Qos Query: 0.069 ms / 115.619 Mbps (1200 / 0.063 / 1.000)
+--------- beginning of system
+05-17 11:19:05.026  1200  1243 E Watchdog: !@Sync: 6836 heap: 88 / 88 FD: 906 [2026-05-17 11:19:05.025]
+05-17 11:19:06.529  1200  3617 D SemWifiUsabilityStatsMonitor: onWifiUsabilityStats - seqNum 6057, isSameBssidAndFreq true
+05-17 11:19:06.531  1200  1507 I SemWifiLinkQualityMonitor: Link Qos Query: 0.076 ms / 105.614 Mbps (1200 / 0.069 / 1.000)
+05-17 11:19:06.560  7343  7343 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+05-17 11:19:06.566  7343  7343 I AndroidRuntime: Using default boot image
+05-17 11:19:06.566  7343  7343 I AndroidRuntime: Leaving lock profiling enabled
+05-17 11:19:06.567  7343  7343 D SecNativeFeatureCppIf: encoded
+05-17 11:19:06.567  7343  7343 D SecNativeFeatureCppIf: decoding and unzip finish
+05-17 11:19:06.567  7343  7343 D SecNativeFeatureCppIf: use unCompDataBuff. encoded
+05-17 11:19:06.567  7343  7343 D SecNativeFeatureCppIf: Free unCompDataBuff
+05-17 11:19:06.567  7343  7343 D AndroidRuntime: addProductProperty: pBrand1 is not null
+05-17 11:19:06.567  7343  7343 D AndroidRuntime: addProductProperty: not brand or 7
+05-17 11:19:06.570  7343  7343 I app_process: Using CollectorTypeCC GC.
+05-17 11:19:06.658  7343  7343 W app_process: FaultHandler: MEMBARRIER_CMD_REGISTER_PRIVATE_EXPEDITED failed: 38 Function not implemented
+05-17 11:19:06.675  7343  7343 D nativeloader: InitDefaultPublicLibraries for_preload=1: libandroid.so:libaaudio.so:libamidi.so:libbinder_ndk.so:libc.so:libcamera2ndk.so:libdl.so:libEGL.so:libGLESv1_CM.so:libGLESv2.so:libGLESv3.so:libicu.so:libicui18n.so:libicuuc.so:libjnigraphics.so:liblog.so:libmediandk.so:libm.so:libnativehelper.so:libnativewindow.so:libOpenMAXAL.so:libOpenSLES.so:libRS.so:libstdc++.so:libsync.so:libvulkan.so:libwebviewchromium_plat_support.so:libz.so
+05-17 11:19:06.685  7343  7343 D nativeloader: Load libicu_jni.so using APEX ns com_android_art for caller /apex/com.android.art/javalib/core-oj.jar: ok
+05-17 11:19:06.685  7343  7343 D app_process: Time zone APEX ICU file found: /apex/com.android.tzdata/etc/icu/icu_tzdata.dat
+05-17 11:19:06.685  7343  7343 D app_process: I18n APEX ICU file found: /apex/com.android.i18n/etc/icu/icudt70l.dat
+05-17 11:19:06.686  7343  7343 D nativeloader: Load libjavacore.so using APEX ns com_android_art for caller /apex/com.android.art/javalib/core-oj.jar: ok
+05-17 11:19:06.686  7343  7343 D nativeloader: Load libopenjdk.so using APEX ns com_android_art for caller /apex/com.android.art/javalib/core-oj.jar: ok
+05-17 11:19:06.688  7343  7343 I app_process: Priority-to-niceness mapping: 19, 16, 13, 10, 0, -2, -4, -5, -6, -8
+05-17 11:19:06.702  7343  7343 E SemDvfsManager_JNI: SemDvfsManager: registerfunction enter
+05-17 11:19:06.702  7343  7343 E SemAffinityControl: SemAffinityControl: registerfunction enter
+05-17 11:19:06.711  7343  7343 D nativeloader: Load libframework-connectivity-tiramisu-jni.so using APEX ns com_android_tethering for caller /apex/com.android.tethering/javalib/framework-connectivity-t.jar: ok
+05-17 11:19:06.711  7343  7343 D AndroidRuntime: Calling main entry com.android.commands.am.Am
+05-17 11:19:06.727  1200  1882 I ActivityManager: Force stopping dev.meshx.mob appid=10313 user=0: start instr
+05-17 11:19:06.731  1200  1882 D CompatibilityChangeReporter: Compat change id reported: 135634846; UID 10313; state: DISABLED
+05-17 11:19:06.731  1200  1882 D CompatibilityChangeReporter: Compat change id reported: 177438394; UID 10313; state: DISABLED
+05-17 11:19:06.731  1200  1882 D CompatibilityChangeReporter: Compat change id reported: 135772972; UID 10313; state: DISABLED
+05-17 11:19:06.731  1200  1882 D CompatibilityChangeReporter: Compat change id reported: 135754954; UID 10313; state: ENABLED
+05-17 11:19:06.732  1200  1249 D CompatibilityChangeReporter: Compat change id reported: 143937733; UID 10313; state: ENABLED
+05-17 11:19:06.752   837   837 D Zygote  : Forked child process 7354
+05-17 11:19:06.754  1200  1249 I ActivityManager: Start proc 7354:dev.meshx.mob/u0a313 for added application dev.meshx.mob
+05-17 11:19:06.754  1200  1249 D DynamicHiddenApp_BGProtectManager: [SecIpm] it's a ML_TYPE_EMPTYPROCESS protected process dev.meshx.mob
+05-17 11:19:06.773  7354  7354 I dev.meshx.mob: Late-enabling -Xcheck:jni
+05-17 11:19:06.800  7354  7354 I dev.meshx.mob: Using CollectorTypeCC GC.
+05-17 11:19:06.805  2598  2604 I adbd    : jdwp connection from 7354
+05-17 11:19:06.811  7354  7354 D nativeloader: Load libframework-connectivity-tiramisu-jni.so using APEX ns com_android_tethering for caller /apex/com.android.tethering/javalib/framework-connectivity-t.jar: ok
+05-17 11:19:06.813  7354  7354 D ActivityThread: setConscryptValidator
+05-17 11:19:06.813  7354  7354 D ActivityThread: setConscryptValidator - put
+05-17 11:19:06.822  1200  1733 D CompatibilityChangeReporter: Compat change id reported: 168419799; UID 10313; state: DISABLED
+05-17 11:19:06.823  1200  1733 I ActivityManager: DSS OFF for dev.meshx.mob
+05-17 11:19:06.828  1200  1733 I ActivityManager: Changes in 10313 19 to 4, 0 to 14
+05-17 11:19:06.828  1200  1733 I AppOps  : updateUidProcState uid: 10313 procState: 4 capability:14
+05-17 11:19:06.828  1200  1733 I AppOps  : commitUidPendingStateLocked() :: UID - 10313, 700 > 400, 0 > 14
+05-17 11:19:06.835  2496  2542 I RequestManager_FLP: onOpChanged, op=0 / packageName=dev.meshx.mob
+05-17 11:19:06.845  7354  7354 D CompatibilityChangeReporter: Compat change id reported: 171979766; UID 10313; state: ENABLED
+05-17 11:19:06.860  7354  7354 W ActivityThread: Package uses different ABI(s) than its instrumentation: package[dev.meshx.mob]: arm64-v8a, null instrumentation[dev.meshx.mob.test]: null, null
+05-17 11:19:07.117  7354  7354 D nativeloader: Configuring clns-4 for other apk /system/framework/android.test.runner.jar:/system/framework/android.test.mock.jar:/system/framework/android.test.base.jar:/data/app/~~fQhNo37npKVClNaucv55vg==/dev.meshx.mob.test-BtFoJeCDoyUD9OHi4W6TvA==/base.apk:/data/app/~~lutGmUXpKKttmyLXHus8Vw==/dev.meshx.mob-F7zIiUYOYVVyQzwNaD0vFg==/base.apk. target_sdk_version=34, uses_libraries=, library_path=/data/app/~~fQhNo37npKVClNaucv55vg==/dev.meshx.mob.test-BtFoJeCDoyUD9OHi4W6TvA==/lib/arm64:/data/app/~~lutGmUXpKKttmyLXHus8Vw==/dev.meshx.mob-F7zIiUYOYVVyQzwNaD0vFg==/lib/arm64:/data/app/~~fQhNo37npKVClNaucv55vg==/dev.meshx.mob.test-BtFoJeCDoyUD9OHi4W6TvA==/base.apk!/lib/arm64-v8a:/data/app/~~lutGmUXpKKttmyLXHus8Vw==/dev.meshx.mob-F7zIiUYOYVVyQzwNaD0vFg==/base.apk!/lib/arm64-v8a, permitted_path=/data:/mnt/expand:/data/user/0/dev.meshx.mob
+05-17 11:19:07.125  7354  7354 D nativeloader: Load libframework-connectivity-jni.so using APEX ns com_android_tethering for caller /apex/com.android.tethering/javalib/framework-connectivity.jar: ok
+05-17 11:19:07.131  7354  7354 V GraphicsEnvironment: ANGLE Developer option for 'dev.meshx.mob' set to: 'default'
+05-17 11:19:07.132  7354  7354 V GraphicsEnvironment: ANGLE GameManagerService for dev.meshx.mob: false
+05-17 11:19:07.132  7354  7354 V GraphicsEnvironment: Neither updatable production driver nor prerelease driver is supported.
+05-17 11:19:07.135  7354  7354 D ApplicationLoaders: Returning zygote-cached class loader: /system/framework/android.test.base.jar
+05-17 11:19:07.137  7354  7354 D nativeloader: Configuring clns-5 for other apk /system/framework/android.test.mock.jar. target_sdk_version=34, uses_libraries=ALL, library_path=/data/app/~~fQhNo37npKVClNaucv55vg==/dev.meshx.mob.test-BtFoJeCDoyUD9OHi4W6TvA==/lib/arm64:/data/app/~~lutGmUXpKKttmyLXHus8Vw==/dev.meshx.mob-F7zIiUYOYVVyQzwNaD0vFg==/lib/arm64, permitted_path=/data:/mnt/expand
+05-17 11:19:07.137  7354  7354 D nativeloader: Extending system_exposed_libraries: libBestComposition.polarr.so:libTracking.polarr.so:libFeature.polarr.so:libBeauty_v4.camera.samsung.so:libexifa.camera.samsung.so:libjpega.camera.samsung.so:libOpenCv.camera.samsung.so:libImageScreener.camera.samsung.so:libMyFilter.camera.samsung.so:libtflite2.myfilters.camera.samsung.so:libSmartScan.camera.samsung.so:libRectify.camera.samsung.so:libDocRectifyWrapper.camera.samsung.so:libHpr_RecGAE_cvFeature_v1.0.camera.samsung.so:libHprFace_GAE_api.camera.samsung.so:libFace_Landmark_API.camera.samsung.so:libHprFace_GAE_jni.camera.samsung.so:libFacialBasedSelfieCorrection.camera.samsung.so:libcolor_engine.camera.samsung.so:libDLInterface_aidl.camera.samsung.so:libImageTagger.camera.samsung.so:libSceneDetector_v1.camera.samsung.so:libQREngine.camera.samsung.so:libEventDetector.camera.samsung.so:libFood.camera.samsung.so:libFoodDetector.camera.samsung.so:libPortraitSolution.camera.samsung.so:libsrib_CNNInterface.camera.samsung.so:libsrib_humanaware_engine.camera.samsung.so:l
+05-17 11:19:07.139  7354  7354 D ApplicationLoaders: Returning zygote-cached class loader: /system/framework/android.test.base.jar
+05-17 11:19:07.141  7354  7354 D nativeloader: Configuring clns-6 for other apk /system/framework/android.test.runner.jar. target_sdk_version=34, uses_libraries=ALL, library_path=/data/app/~~fQhNo37npKVClNaucv55vg==/dev.meshx.mob.test-BtFoJeCDoyUD9OHi4W6TvA==/lib/arm64:/data/app/~~lutGmUXpKKttmyLXHus8Vw==/dev.meshx.mob-F7zIiUYOYVVyQzwNaD0vFg==/lib/arm64, permitted_path=/data:/mnt/expand
+05-17 11:19:07.141  7354  7354 D nativeloader: Extending system_exposed_libraries: libBestComposition.polarr.so:libTracking.polarr.so:libFeature.polarr.so:libBeauty_v4.camera.samsung.so:libexifa.camera.samsung.so:libjpega.camera.samsung.so:libOpenCv.camera.samsung.so:libImageScreener.camera.samsung.so:libMyFilter.camera.samsung.so:libtflite2.myfilters.camera.samsung.so:libSmartScan.camera.samsung.so:libRectify.camera.samsung.so:libDocRectifyWrapper.camera.samsung.so:libHpr_RecGAE_cvFeature_v1.0.camera.samsung.so:libHprFace_GAE_api.camera.samsung.so:libFace_Landmark_API.camera.samsung.so:libHprFace_GAE_jni.camera.samsung.so:libFacialBasedSelfieCorrection.camera.samsung.so:libcolor_engine.camera.samsung.so:libDLInterface_aidl.camera.samsung.so:libImageTagger.camera.samsung.so:libSceneDetector_v1.camera.samsung.so:libQREngine.camera.samsung.so:libEventDetector.camera.samsung.so:libFood.camera.samsung.so:libFoodDetector.camera.samsung.so:libPortraitSolution.camera.samsung.so:libsrib_CNNInterface.camera.samsung.so:libsrib_humanaware_engine.camera.samsung.so:l
+05-17 11:19:07.378  1200  1210 I system_server: Background concurrent copying GC freed 20MB AllocSpace bytes, 188(3760KB) LOS objects, 27% free, 64MB/88MB, paused 520us,168us total 256.662ms
+05-17 11:19:07.402  7354  7354 D NetworkSecurityConfig: Using Network Security Config from resource network_security_config debugBuild: true
+05-17 11:19:07.414  1200  1212 W System  : A resource failed to call close. 
+05-17 11:19:07.416  1200  1212 W System  : A resource failed to call close. 
+05-17 11:19:07.416  1200  1212 W System  : A resource failed to call close. 
+05-17 11:19:07.417  1200  1212 W System  : A resource failed to call close. 
+05-17 11:19:07.417  1200  1212 W System  : A resource failed to call CursorWindow.close. 
+05-17 11:19:07.418  1200  1212 W System  : A resource failed to call close. 
+05-17 11:19:07.419  1200  1212 W System  : A resource failed to call close. 
+05-17 11:19:07.419  1200  1212 W System  : A resource failed to call close. 
+05-17 11:19:07.420  1200  1212 W System  : A resource failed to call close. 
+05-17 11:19:07.431  7354  7354 D NetworkSecurityConfig: Using Network Security Config from resource network_security_config debugBuild: true
+05-17 11:19:07.431  7354  7354 I MonitoringInstr: newApplication called!
+05-17 11:19:07.441  7354  7354 D CompatibilityChangeReporter: Compat change id reported: 183155436; UID 10313; state: ENABLED
+05-17 11:19:07.455  7354  7354 I FirebaseApp: Device unlocked: initializing all Firebase APIs for app [DEFAULT]
+05-17 11:19:07.472  7354  7354 I FirebaseInitProvider: FirebaseApp initialization successful
+05-17 11:19:07.500  7354  7354 I MonitoringInstr: Instrumentation started!
+05-17 11:19:07.550  7354  7354 I AndroidJUnitRunner: onCreate Bundle[{class=dev.meshx.mob.ble.IOSAuxFullMxAdvertSmokeTest}]
+05-17 11:19:07.552  7354  7354 V TestEventClient: No service name argument was given (testDiscoveryService, testRunEventService or orchestratorService)
+05-17 11:19:07.553  7354  7378 D AndroidJUnitRunner: onStart is called.
+05-17 11:19:07.556  7354  7354 I MonitoringInstr: No JSBridge.
+05-17 11:19:07.560  1200  1733 D CompatibilityChangeReporter: Compat change id reported: 161145287; UID 10313; state: DISABLED
+05-17 11:19:07.565  7354  7378 D TestRequestBuilder: Skipping class path scanning and directly running [dev.meshx.mob.ble.IOSAuxFullMxAdvertSmokeTest]
+05-17 11:19:07.575  7354  7378 D AndroidJUnitRunner: Use the raw file system for managing file I/O.
+05-17 11:19:07.578  7354  7378 D TestExecutor: Adding listener androidx.test.internal.runner.listener.LogRunListener
+05-17 11:19:07.578  7354  7378 D TestExecutor: Adding listener androidx.test.internal.runner.listener.InstrumentationResultPrinter
+05-17 11:19:07.578  7354  7378 D TestExecutor: Adding listener androidx.test.internal.runner.listener.ActivityFinisherRunListener
+05-17 11:19:07.578  7354  7378 D TestExecutor: Adding listener androidx.test.internal.runner.listener.TraceRunListener
+05-17 11:19:07.581  7354  7378 I TestRunner: run started: 1 tests
+05-17 11:19:07.582  7354  7378 I TestRunner: started: emitsScannableAuxScanResponseFullMxEnvelope(dev.meshx.mob.ble.IOSAuxFullMxAdvertSmokeTest)
+05-17 11:19:07.593   914  1114 I SurfaceFlinger: id=536 createSurf flag=80004, WindowToken{e708567 type=2032 android.os.Binder@2c0d526}#536
+05-17 11:19:07.594  1200  1733 D SettingsProvider: isChangeAllowed() : name = accessibility_enabled
+05-17 11:19:07.595  1200  1733 I GenerationRegistry: mBackingStore.isClosed() : false
+05-17 11:19:07.595  1200  1733 I GenerationRegistry: Incremented generation for  key:Key[user=0;type=SETTINGS_SECURE] generation :92 at index:2
+05-17 11:19:07.596  1200  1733 D WindowMagnificationMgr: requestConnection :false mConnectionState : 3
+05-17 11:19:07.596  1200  1733 W WindowMagnificationMgr: requestConnection duplicated request: connect=false, mConnectionState=DISCONNECTED
+05-17 11:19:07.601  7354  7378 I GrantPermissionCallable: Permission: android.permission.BLUETOOTH_ADVERTISE is already granted!
+05-17 11:19:07.601  7354  7378 I GrantPermissionCallable: Permission: android.permission.BLUETOOTH_SCAN is already granted!
+05-17 11:19:07.601  7354  7378 I GrantPermissionCallable: Permission: android.permission.BLUETOOTH_CONNECT is already granted!
+05-17 11:19:07.601  1200  1200 D BatterySaverPolicy: accessibility changed to true, updating policy.
+05-17 11:19:07.602  1200  1733 W WindowManager: Cannot find window which accessibility connection is added to
+05-17 11:19:07.609  1200  1403 D BluetoothManagerService: mDisableBleCallbacks count 12
+05-17 11:19:07.609  7354  7378 I BluetoothAdapter: BluetoothAdapter() : dev.meshx.mob
+05-17 11:19:07.610  7354  7378 I BluetoothAdapter: STATE_ON
+05-17 11:19:07.620  7354  7378 I BluetoothAdapter: STATE_ON
+05-17 11:19:07.621  7354  7378 I BluetoothAdapter: BLE support array set: [true, true, true, true, true, true]
+05-17 11:19:07.621  7354  7378 I BluetoothAdapter: STATE_ON
+05-17 11:19:07.622  7354  7378 I BluetoothAdapter: STATE_ON
+05-17 11:19:07.623  7354  7378 I BluetoothAdapter: STATE_ON
+05-17 11:19:07.623  7354  7378 I MeshxBleDispatch: {"v":1,"event":"ble_capabilities","supports_extended_advertising":true,"max_advertising_data_length":1024,"is_multiple_advertisement_supported":true,"legacy_manufacturer_payload_budget":24}
+05-17 11:19:07.623  7354  7378 I BluetoothAdapter: STATE_ON
+05-17 11:19:07.624  7354  7378 I BluetoothAdapter: STATE_ON
+05-17 11:19:07.628  7354  7378 I BluetoothAdapter: BluetoothAdapter() : dev.meshx.mob
+05-17 11:19:07.628  7354  7378 I BluetoothAdapter: STATE_ON
+05-17 11:19:07.628  7354  7378 I BluetoothAdapter: STATE_ON
+05-17 11:19:07.628  7354  7378 I BluetoothAdapter: STATE_ON
+05-17 11:19:07.628  7354  7378 I BluetoothAdapter: STATE_ON
+05-17 11:19:07.628  7354  7378 I BluetoothAdapter: STATE_ON
+05-17 11:19:07.631  7354  7378 I BluetoothAdapter: STATE_ON
+05-17 11:19:07.633  1928  3855 I bt_stack: [INFO:le_advertising_manager.cc(137)] StartAdvertisingSet in shim layer
+05-17 11:19:07.633  1928  3855 W bt_stack: le_advertising_manager :: allocate_advertiser - id : 1
+05-17 11:19:07.633  1928  3855 I bt_stack: [INFO:le_advertising_manager.cc(157)] create advertising set, reg_id:-5143, id:1
+05-17 11:19:07.634  1928  2282 W bt_stack: le_advertising_manager :: create_extended_advertiser - id : 1
+05-17 11:19:07.634  1928  2282 W bt_stack: le_advertising_manager :: enable_advertiser - id : 1
+05-17 11:19:07.634  1928  2282 W bt_stack: register_client :: client registered!!!
+05-17 11:19:07.636  7354  7378 I MeshxBleDispatch: {"v":1,"event":"attempt_outcome","attempt_id":"aux-scan-response-1779041947615","message_id":"RCHaL6MxgWUpp9MtwKnKEQ==","target_peer_id":"ios-harness","target_device_ids":["ios-harness"],"kind":"dispatched","reason":null,"adapter":"ble_android","outcome_at_ms":205619676}
+05-17 11:19:07.646  1928  2260 E BtGatt.GattService: [GSIM LOG]: gsimLogHandler, msg: MESSAGE_ADV_SET_START, appName: dev.meshx.mob, id: 1, isLegacy: false
+05-17 11:19:07.646  7354  7354 D BluetoothLeAdvertiser: onAdvertisingSetStarted(1, -7, 0)
+05-17 11:19:07.647  7354  7354 I MeshxBleDispatch: {"v":1,"event":"advertising_set_started","attempt_id":"aux-scan-response-1779041947615","payload_size":80,"payload":"TVgBAEQh2i+jMYFlKafTLcCpyhEAAAGeNynP3QERbWVzaHgtYW5kcm9pZC1hdXgAAlRYAAAabXgtYXV4LXNjYW4tcmVzcG9uc2Utc21va2U=","tx_power":-7,"window_ms":5000,"connectable":false,"scannable":true,"data_carrier":"scan_response"}
+05-17 11:19:07.658   602   602 D io_stats: !@   8,0 r 1031067 33600512 w 592371 56642816 d 0 0 f 0 0 iot 512488 0 th 0 0 0 pt 0 inp 0 0 205195.231
+05-17 11:19:08.677  2905  3764 I SDHMS:D : SIOP:: AP:266 BAT:238 USB:241 CHG:272 PA:257 WIFI:259 BLK:254 SKIN:315 SKINF:315 SKINB:280 LRP:315 LRF:315 LRB:280 
+05-17 11:19:09.650  1200  3617 D SemWifiUsabilityStatsMonitor: onWifiUsabilityStats - seqNum 6058, isSameBssidAndFreq true
+05-17 11:19:09.653  1200  1507 I SemWifiLinkQualityMonitor: Link Qos Query: 0.073 ms / 109.967 Mbps (1200 / 0.066 / 1.000)
+05-17 11:19:09.660   602   602 D io_stats: !@   8,0 r 1031068 33600512 w 592373 56642852 d 0 0 f 0 0 iot 512492 0 th 0 0 0 pt 0 inp 0 0 205197.233
+05-17 11:19:09.746   869   869 E sehhealth-service: Could not open /sys/class/power_supply/battery/lrp
+05-17 11:19:10.625  1707  1707 I wpa_supplicant: Heartbeat 20499
+05-17 11:19:12.653  7354  7354 I BluetoothAdapter: STATE_ON
+05-17 11:19:12.653  7354  7354 I BluetoothAdapter: STATE_ON
+05-17 11:19:12.657  7354  7354 D BluetoothLeAdvertiser: Stop AdvertingSet
+05-17 11:19:12.662  1928  3855 I bt_stack: [INFO:le_advertising_manager.cc(70)] Unregister in shim layer
+05-17 11:19:12.663  1928  2282 W bt_stack: le_advertising_manager :: remove_advertiser - id : 1
+05-17 11:19:12.665  1928  2260 E BtGatt.GattService: [GSIM LOG]: gsimLogHandler, msg: MESSAGE_ADV_SET_STOP, appName: dev.meshx.mob, id: 1, isLegacy: false
+05-17 11:19:12.673  7354  7354 D BluetoothLeAdvertiser: onAdvertisingSetStopped(1)
+05-17 11:19:12.708  7354  7381 D ProfileInstaller: Installing profile for dev.meshx.mob
+05-17 11:19:12.751  1200  3617 D SemWifiUsabilityStatsMonitor: onWifiUsabilityStats - seqNum 6059, isSameBssidAndFreq true
+05-17 11:19:12.753  1200  1507 I SemWifiLinkQualityMonitor: Link Qos Query: 0.072 ms / 111.334 Mbps (1200 / 0.065 / 1.000)
+05-17 11:19:12.807  1200  1257 D BatteryExternalStatsWorker: update stats : write (63)
+05-17 11:19:12.846  2905  2905 I SDHMS:LOAD: type: LoadsFreqs, value: 0:0:0:906100:2704000:650000:906100:2704000:650000:0:0:0
+05-17 11:19:12.877  1200  1257 D BatteryExternalStatsWorker: Fetch WiFi data
+05-17 11:19:12.877  1200  1257 D BatteryExternalStatsWorker: Update Rail Energy data
+05-17 11:19:12.878  1200  1257 D BatteryExternalStatsWorker: Fetch Bluetooth data
+05-17 11:19:12.880  1200  1257 D BatteryExternalStatsWorker: Fetch modem data
+05-17 11:19:12.917  1200  2983 D TelephonyManager: requestModemActivityInfo: Sending result to app: ModemActivityInfo{ mTimestamp=205624977 mSleepTimeMs=196559511 mIdleTimeMs=2626923 mActivityStatsTechSpecificInfo=[{mRat=UNKNOWN,mFrequencyRange=UNKNOWN,mTxTimeMs[]=[0, 0, 0, 0, 0],mRxTimeMs=6428599}]}
+05-17 11:19:13.022  1200  1257 D BatteryExternalStatsWorker: Update CPU state
+05-17 11:19:13.023  1200  1257 I KernelWakelockReader: readKernelWakelockStats(false)
+05-17 11:19:13.028   615 19449 W android.system.suspend@1.0-service: getWakeLockStats +
+05-17 11:19:13.028   615 19449 I android.system.suspend@1.0-service: name: PowerManagerService.Display, isActive: 1, LC: 205200601, AC: 41, AT: 8043379, TT: 18894050
+05-17 11:19:13.028   615 19449 I android.system.suspend@1.0-service: name: PowerManager.SuspendLockout, isActive: 1, LC: 205200601, AC: 41, AT: 8043379, TT: 18894089
+05-17 11:19:13.028   615 19449 W android.system.suspend@1.0-service: getWakeLockStats -
+05-17 11:19:13.028  1200  1257 D KernelWakelockReader: name=PowerManagerService.WakeLocks	 isActive=false	 lastChange=205200493	 activeCount=4899	 activeTime=0	 totalTime=3954820	 version=247	 time_delta=9300000
+05-17 11:19:13.028  1200  1257 D KernelWakelockReader: name=PowerManagerService.Broadcasts	 isActive=false	 lastChange=197157794	 activeCount=40	 activeTime=0	 totalTime=19206	 version=247	 time_delta=0
+05-17 11:19:13.028  1200  1257 D KernelWakelockReader: name=PowerManagerService.Display	 isActive=true	 lastChange=205200601	 activeCount=41	 activeTime=8043379	 totalTime=18894050	 version=247	 time_delta=1761403000
+05-17 11:19:13.028  1200  1257 D KernelWakelockReader: name=PowerManager.SuspendLockout	 isActive=true	 lastChange=205200601	 activeCount=41	 activeTime=8043379	 totalTime=18894089	 version=247	 time_delta=1761403000
+05-17 11:19:13.028  1200  1257 D KernelWakelockReader: name=PowerManagerService.Booting	 isActive=false	 lastChange=23130	 activeCount=1	 activeTime=0	 totalTime=8817	 version=247	 time_delta=0
+05-17 11:19:13.030  1200  1257 I BatteryStatsImpl: updateKernelWakelocksLocked:: name=PowerManager.SuspendLockout / totalTime=18894089000 / mCount=41 / version=247
+05-17 11:19:13.030  1200  1257 I BatteryStatsImpl: updateKernelWakelocksLocked:: name=PowerManagerService.Display / totalTime=18894050000 / mCount=41 / version=247
+05-17 11:19:13.030  1200  1257 I BatteryStatsImpl: updateKernelWakelocksLocked:: name=PowerManagerService.WakeLocks / totalTime=3954820000 / mCount=4899 / version=247
+05-17 11:19:13.030  1200  1257 I BatteryStatsImpl: updateKernelWakelocksLocked:: name=PowerManagerService.Broadcasts / totalTime=19206000 / mCount=40 / version=247
+05-17 11:19:13.030  1200  1257 I BatteryStatsImpl: updateKernelWakelocksLocked:: name=PowerManagerService.Booting / totalTime=8817000 / mCount=1 / version=247
+05-17 11:19:13.030  1200  1257 D BatteryExternalStatsWorker: Update Kernel wakelock & memory state
+05-17 11:19:13.030  1200  1257 D BatteryExternalStatsWorker: Update RPM state
+05-17 11:19:13.031  1200  1257 D BatteryExternalStatsWorker: Update bluetooth state
+05-17 11:19:13.031  1200  1257 D BatteryExternalStatsWorker: mStats lock released
+05-17 11:19:13.052  1200  1257 D BatteryExternalStatsWorker: Update wifi state
+05-17 11:19:13.089  1200  1257 D BatteryExternalStatsWorker: Update modem state
+05-17 11:19:13.089  1200  1257 D BatteryExternalStatsWorker: done updateExternalStatsLocked
+05-17 11:19:13.560  1928  2282 W bt_stack: pause_registered_clients()
+05-17 11:19:13.560  1928  2282 W bt_stack: le_scanning_manager :: OnPause()
+05-17 11:19:13.560  1928  2282 W bt_stack: Stop LeSetExtendedScan
+05-17 11:19:13.560  1928  2282 W bt_stack: le_scanning_manager :: OnPause() - call AckPause
+05-17 11:19:13.562  1928  2282 W bt_stack: le_address_manager :: ack_pause()
+05-17 11:19:13.562  1928  2282 W bt_stack: le_address_manager :: ack_pause() - handle_next_command
+05-17 11:19:13.563  1928  2282 W bt_stack: handle_next_command()
+05-17 11:19:13.571  1928  2282 W bt_stack: Received command complete with op_code LE_SET_RANDOM_ADDRESS
+05-17 11:19:13.572  1928  2282 W bt_stack: le_scanning_manager :: OnResume()
+05-17 11:19:13.572  1928  2282 W bt_stack: Start LeSetExtendedScan
+05-17 11:19:13.572  1928  2282 W bt_stack: le_scanning_manager :: OnResume() - call AckResume
+05-17 11:19:13.572  1928  2282 W bt_stack: le_address_manager :: ack_resume()
+05-17 11:19:13.640  7354  7378 I TestRunner: finished: emitsScannableAuxScanResponseFullMxEnvelope(dev.meshx.mob.ble.IOSAuxFullMxAdvertSmokeTest)
+05-17 11:19:13.658  7354  7378 I TestRunner: run finished: 1 tests, 0 failed, 0 ignored
+05-17 11:19:13.662   602   602 D io_stats: !@   8,0 r 1031070 33600512 w 592378 56643656 d 0 0 f 0 0 iot 512508 0 th 0 0 0 pt 0 inp 0 0 205201.235
+05-17 11:19:13.701  1200  2983 D SettingsProvider: isChangeAllowed() : name = accessibility_enabled
+05-17 11:19:13.702  1200  2983 I GenerationRegistry: mBackingStore.isClosed() : false
+05-17 11:19:13.703  1200  2983 I GenerationRegistry: Incremented generation for  key:Key[user=0;type=SETTINGS_SECURE] generation :93 at index:2
+05-17 11:19:13.703  1200  2983 D WindowMagnificationMgr: requestConnection :false mConnectionState : 3
+05-17 11:19:13.703  1200  2983 W WindowMagnificationMgr: requestConnection duplicated request: connect=false, mConnectionState=DISCONNECTED
+05-17 11:19:13.705  1200  1882 D SettingsProvider: isChangeAllowed() : name = accelerometer_rotation
+05-17 11:19:13.706  1200  1882 D SettingsProvider: isChangeAllowed() : name = user_rotation
+05-17 11:19:13.706  1200  1882 V WindowManager: rotationForOrientation(orient=SCREEN_ORIENTATION_USER (2), last=ROTATION_0 (0)); user=ROTATION_0 (0) 
+05-17 11:19:13.706  1200  1882 D WindowManager: rotationForOrientation, orientationSource=Window{339d9e9 u0 NotificationShade}
+05-17 11:19:13.707  1200  1882 V WindowManager: Computed rotation=ROTATION_0 (0) for display id=0 based on lastOrientation=SCREEN_ORIENTATION_USER (2) and oldRotation=ROTATION_0 (0), caller=com.android.server.wm.DisplayContent.updateRotationUnchecked:2438 com.android.server.wm.WindowManagerService.updateRotationUnchecked:4812 com.android.server.wm.WindowManagerService.thawDisplayRotation:4753 com.android.server.wm.WindowManagerService.thawRotation:4717 android.view.IWindowManager$Stub.onTransact:2536 com.android.server.wm.WindowManagerService.onTransact:1610 
+05-17 11:19:13.711  1200  1200 D BatterySaverPolicy: accessibility changed to false, updating policy.
+05-17 11:19:13.720   914   914 I SurfaceFlinger: SFWD update time=205201293482958
+05-17 11:19:13.721   914   914 I Layer   : id=536 removeFromCurrentState WindowToken{e708567 type=2032 android.os.Binder@2c0d526}#536 (96)
+05-17 11:19:13.721   914   914 I SurfaceFlinger: id=536 Removed WindowToken{e708567 type=2032 android.os.Binder@2c0d526}#536 (96)
+05-17 11:19:13.721   914   914 I Layer   : id=536 Destroyed WindowToken{e708567 type=2032 android.os.Binder@2c0d526}#536
+05-17 11:19:13.720  1200  1882 I ActivityManager: Force stopping dev.meshx.mob appid=10313 user=0: finished inst
+05-17 11:19:13.727  7343  7343 I app_process: System.exit called, status: 0
+05-17 11:19:13.727  7343  7343 I AndroidRuntime: VM exiting with result code 0.
+05-17 11:19:13.732  1200  1882 I ActivityManager: Killing 7354:dev.meshx.mob/u0a313 (adj 0): stop dev.meshx.mob due to finished inst
+05-17 11:19:13.733  1200  3026 W WindowManager: Cannot find window which accessibility connection is added to
+05-17 11:19:13.734  1200  1882 D ActivityManager: proc ProcessRecord{52b15aa 7354:dev.meshx.mob/u0a313} already removed. so we skip next process.
+05-17 11:19:13.797  1200  3026 V ActivityManager: Got obituary of 7354:dev.meshx.mob
+05-17 11:19:13.797  2598  2598 I adbd    : Remote process closed the socket (on MSG_PEEK)
+05-17 11:19:13.800  1200  1250 I libprocessgroup: Successfully killed process cgroup uid 10313 pid 7354 in 66ms
+05-17 11:19:13.801   837   837 I Zygote  : Process 7354 exited due to signal 9 (Killed)
+05-17 11:19:15.664   602   602 D io_stats: !@   8,0 r 1031071 33600512 w 592380 56643692 d 0 0 f 0 0 iot 512512 0 th 0 0 0 pt 0 inp 0 0 205203.236
+05-17 11:19:15.866  1200  3617 D SemWifiUsabilityStatsMonitor: onWifiUsabilityStats - seqNum 6060, isSameBssidAndFreq true
+05-17 11:19:15.872  1200  1507 I SemWifiLinkQualityMonitor: Link Qos Query: 0.066 ms / 120.888 Mbps (1200 / 0.060 / 1.000)
+05-17 11:19:17.665   602   602 D io_stats: !@   8,0 r 1031072 33600512 w 592383 56643808 d 0 0 f 0 0 iot 512520 0 th 0 0 0 pt 0 inp 0 0 205205.238
