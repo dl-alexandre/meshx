@@ -92,7 +92,7 @@ final class ObserverCLI: NSObject, MessageAdvertisementObserverDelegate {
         output.write("MeshxMessageObserverCLI: scanning")
     }
 
-    func meshxDidObserveReceivedMessage(_ event: ReceivedMessageEvent) {
+    func didObserveReceivedMessage(_ event: ReceivedMessageEvent) {
         seen += 1
         output.write("MeshxMessageObserverCLI: \(event.jsonLine())")
 
@@ -102,7 +102,7 @@ final class ObserverCLI: NSObject, MessageAdvertisementObserverDelegate {
         }
     }
 
-    func meshxDidObserveMessageDecodeError(_ reason: String, deviceId: String, rssi: Int) {
+    func didObserveMessageDecodeError(_ reason: String, deviceId: String, rssi: Int) {
         let event = MessageAdvertisementDecodeErrorEvent(
             reason: reason,
             deviceId: deviceId,
@@ -111,7 +111,7 @@ final class ObserverCLI: NSObject, MessageAdvertisementObserverDelegate {
         output.write("MeshxMessageObserverCLI: \(event.jsonLine())")
     }
 
-    func meshxMessageObserverDidObserveLegacyBeacon(
+    func messageObserverDidObserveLegacyBeacon(
         _ beacon: MeshxLegacyBeaconAdvertisement,
         deviceId: String,
         rssi: Int
@@ -127,7 +127,7 @@ final class ObserverCLI: NSObject, MessageAdvertisementObserverDelegate {
         }
     }
 
-    func meshxMessageObserverDidObserveAdvertisement(
+    func messageObserverDidObserveAdvertisement(
         deviceId: String,
         rssi: Int,
         localName: String?,

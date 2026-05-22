@@ -1,8 +1,8 @@
 # Upstream mob_dev / mob Patches — MeshX Migration Checklist
 
-**Status**: Pre-migration preparation artifact (2026-05-17).  
-**Trigger**: Both upstream PRs merged + new Hex releases published containing the changes.  
-**Goal**: Enable a maintainer to execute the full MeshX-side migration (dep bumps → config migration → patch removal → verification → audit flip) in minutes with copy-paste commands, producing a clean PR that flips the `upstreaming_mob_dev_mob_patches` row and leaves only the AUX interop row blocking `update_goal_allowed`.
+**Status**: Executed (2026-05-21). All numbered steps + audit flip + doc hygiene completed in the migration PR. This file is now the permanent execution record + template for similar future upstreamings.
+**Trigger (met)**: Both upstream PRs merged + releases (mob_dev 0.5.11 / mob 0.6.18) published.
+**Outcome**: `upstreaming_mob_dev_mob_patches` flipped complete (completion_claim_allowed true); only AUX row blocks update_goal_allowed. See "Execution Record" and `docs/remaining_items_audit.md`.
 
 This file supersedes / expands the high-level "Post-Merge MeshX Migration Checklist" section in `docs/upstream_mob_patches.md`. After the migration PR lands, that section can be reduced to a one-line pointer here.
 
@@ -33,21 +33,70 @@ This file supersedes / expands the high-level "Post-Merge MeshX Migration Checkl
 
 - The 14 Swift paths in the `ios_swift_sources` example must resolve relative to the same CWD the old patch used (`../../meshx_mobile/...` from the iOS build context inside `apps/meshx_mobile_app`).
 - `:archs` for the `meshx_ble_nif` entry (`[:ios]` vs `[:ios_device, :ios_sim]`) is a knob you may need to tune; run `mix mob.regen_driver_tab --force` (or the device build) and inspect the generated `driver_tab_ios.*` to confirm the symbol appears.
-- `ios/meshx_ble_nif.m` compilation is **not** supplied by the removed patch 01; whatever mechanism (CMake / build_device.sh heredoc) already handled the `.m` for iOS continues to do so.
+- The iOS NIF glue (now `priv/native/ios/mob_ble_nif.m` inside the extracted `mob_ble` plugin) compilation is handled by the plugin's native sources + mob_dev static NIF support.
 - The first post-merge Hex release must actually export the keys under `config :mob_dev` with the documented normalisation. If the schema differs, fall back to the rollback paragraph in the PR template.
 - Rollback is cheap: restore the two patch files + task + aliases from git; the old path is still known-good.
 
 ## Remaining Work Snapshot (current)
 
-| Item | Owner | Risk | Status | Suggested order |
-| --- | --- | --- | --- | --- |
-| Upstream migration execution (GenericJam/mob_dev#6 + mob_new#5 + releases) | Upstream + you | High — cannot safely remove patches until both releases are verified. | Blocked (not started) | 1 |
-| CI/dialyzer infra cleanups for release gate | You | Medium — known baseline red checks can block completion artifacts | Optional/parallel preflight | 2 |
-| Positive MB+GATT evidence on SM-T390 | You | Medium — Android 9 permission edge case and beacon correlation fragility | In progress: T390 helper run blocked by `Failed to grant permissions`; no clean positive packet seen in this session | 3 |
-| Main-app production scanner confidence (HEARTBEAT + callbacks) on both devices | You | Medium — no HEARTBEAT seen in filtered capture despite app launch args | In progress; captured sendToPeer fallback lines only, no HEARTBEAT in `recapture-5-positive` | 4 |
-| Reverse-direction smoke (Android emit → iOS observe) | You | Low — optional confidence pass | Pending | 5 |
+**As of 2026-05-18 (post-session).**
+Carrier decision locked: iOS↔Android direct-MX hybrid rejected (CoreBluetooth emit limitations); production path is MB legacy cue + GATT fetch.
+Scanner fix (`683950a` main-looper) landed. T390 positive MB+GATT evidence achieved via main-app selftest (requires awake preflight on API 28). Version-aware permission shim enables instrumented tests on full fleet (T390/API 28); selftest path still preferred for production-like evidence.
+Next dev priority: pre-existing CI/infra reds (dialyzer tooling crash + artifact tests) now unmasked and actionable for green gate.
 
-Carrier decision: the iOS→Android direct-MX hybrid path was rejected and should remain rejected in this branch. All remaining hardware work should focus on the supported production path (legacy MB cue + GATT fetch path already coded in `dev.meshx.mob` main app).
+| Item | Owner | Risk | Current Status | Suggested Order |
+|------|-------|------|----------------|-----------------|
+| CI / dialyzer / artifact-test infrastructure cleanup (release gate) | You / maintainers | Medium (backlog ~375 baseline entries post-OTP-28 unmask; triage plan documented) | Open — ignore list + incremental fix strategy in `.dialyzer_ignore.exs`; run `mix dialyzer --format short` locally to track | 1 (immediate) |
+| Upstream `mob_dev` / `mob` patch migration (GenericJam/mob_dev#6 + mob_new#5 + releases) | Upstream maintainers + you (post-merge) | High (external block) | **COMPLETE** — PRs merged/released; MeshX executed dep bumps (mob 0.6.18, mob_dev 0.5.11), lock regen, config in mob.exs, patch/task removal, docs hygiene, and hardware verification gate (iOS device build via `mix mob.deploy --native` on signed mac + device; upstream mechanisms active, no patch activity). Evidence: updated locks + build success log in migration PR. | Done (this PR) |
+| T390 (SM-T390 / API 28) on-device validation + positive MB+GATT evidence (main-app selftest path) | You | Low (Android-only pair); Medium (iOS emitter parity) | **DONE** — archived under `artifacts/local-ble/2026-05-18-recapture-18-android-mb-gatt-t390-awake/` (SM-T577U full-MX sender + awake T390). See `docs/ble-t390-validation-notes.md` for recipe. | 3 (regression) |
+| Main-app production scanner confidence (HEARTBEAT + BleScanner callbacks) on R52 + T390 | You | Low (when T390 kept awake) | **DONE** — post-683950a; clean `devices > 0`, `beacon_callbacks > 0`, selftest envelopes on both devices. T390 requires `input keyevent WAKEUP` + `svc power stayon true` | 4 (regression) |
+| Instrumented BLE test coverage on minSdk=28 fleet (permission shim) | You | Low | **DONE** — version-aware `GrantPermissionRule` shim (legacy BT + FINE_LOCATION for <31) in the four `*Test.kt` files. Tests now execute on T390; selftest preferred for evidence. | 5 (parallel) |
+| Reverse-direction smoke (Android emit → iOS observe) | You | Low — optional confidence pass | **DONE** — spot checks executed in 2026-05-18 session | 6 |
+
+**Carrier decision (locked)**: Direct-MX hybrid service-data path for iOS↔Android interoperability is rejected and must remain rejected. All hardware / evidence work focuses exclusively on the supported production MB-legacy + GATT-fetch path (coded in `dev.meshx.mob` main app).
+
+**mob_ble extraction status (2026-05-19, Phase 3 complete)**: All Phases 1+2+3 ("all that" closure) executed: root + `mob_ble` changelogs; trimmed publication-grade cutover announcement in `docs/releases/mob_ble_phase3_cutover_announcement.md`; full MOB_BLE_* forwarding + launch script + CONTRIBUTING; stray/stale markdown + Current State hygiene + final "meshx" prose sweep in plugin sources; `artifacts/local-ble/2026-05-19-mob-ble-cutover-XXX/` + manifest template + 5-step recipe; audits/checklists + migration doc synced; `mix hex.build` clean from apps/mob_ble (see /tmp/grok-impl-summary-2edba713.md). `mob_ble` 0.1.0 publication-ready (independent of patch upstreaming). Next: `mix hex.publish` + first device runs + post-publish updates + tag.
+
+## Immediate On-Device Evidence Runs (executable now, pre-migration)
+
+These are the concrete checklist items for T390 fleet coverage + positive evidence (from remaining_items_audit.md queue #1–#3). The first positive T390 run is archived under `artifacts/local-ble/2026-05-18-recapture-18-android-mb-gatt-t390-awake/`; repeat only when validating a fresh build or a different hardware pair.
+
+### T390 (SM-T390 / Android 9) main-app selftest coverage (scanner + positive MB+GATT)
+1. Install fresh main app build on both Androids. For positive T390 proof, build with `MESHX_MX_SEND=true` on the sender so it emits MB legacy cues and serves the full envelope over GATT.
+2. Keep T390 awake before capture; API 28 registered scans while dozing but delivered no selftest callbacks in the 2026-05-18 diagnostic run:
+   ```sh
+   adb -s 5200f354f4fb277f shell input keyevent WAKEUP
+   adb -s 5200f354f4fb277f shell svc power stayon true
+   ```
+3. On T390 (and R52 for cross-check):
+   ```sh
+   adb -s 5200f354f4fb277f shell am start -n dev.meshx.mob/.MainActivity \
+     --ez meshx_ble_selftest true \
+     --ez meshx_ble_selftest_send false \
+     --ez meshx_ble_fetch_on_beacon true \
+     --es mob_node_suffix t390 \
+     --activity-clear-top
+   ```
+   (The intent flag triggers the built-in selftest that emits HEARTBEAT + exercises BleScanner callbacks.)
+4. Start a sender. Proven Android-only path: SM-T577U full-MX debug sender (`MESHX_MX_SEND=true`) with `meshx_ble_selftest_send=true` and `mob_node_suffix=t577u`. iPhone MB emitter remains useful for parity checks, but it was not required for the archived positive T390 proof.
+5. Observe in logcat / selftest output: clean heartbeats, `devices > 0`, `beacon_callbacks > 0`, at least one `MeshxBeaconFetch: fetch_start`, `fetch_response_received`, `envelope_parse":"ok"`, and `BleSelfTest: DISTINCT MESH MESSAGE kind=envelope`.
+6. Use structured capture:
+   ```sh
+   scripts/capture-hybrid-run.sh --serial 5200f354f4fb277f --run-ts $RUN_TS --selftest --duration 120 --selftest-send false --node-suffix t390
+   ```
+   Run a matching sender capture on R52 if you need responder-side `fetch_request_received` evidence.
+7. Confirm no callback drop regressions post-683950a main-looper fix.
+
+### Positive MB+GATT evidence run (release bundle)
+- DONE for T390 with Android-only sender/receiver hardware: `artifacts/local-ble/2026-05-18-recapture-18-android-mb-gatt-t390-awake/`.
+- Receiver evidence: `fetch_start`, `fetch_connect_result`, `fetch_service_discovery_result`, `fetch_response_received`, `envelope_parse":"ok"`, and `BleSelfTest: DISTINCT MESH MESSAGE kind=envelope`.
+- Sender evidence: `fetch_server_started`, `sendFullMxEnvelope(...)-> DISPATCHED`, and `fetch_request_received`.
+
+### Reverse direction (optional, Android emit → iOS observe)
+- If iOS harness stable: launch Android main with send selftest, observe on iOS.
+- Only archive if clean; do not block on it.
+
+The permission shim (added 2026-05-18) unblocks instrumented tests on T390; selftest path remains the production-grade evidence vehicle. Keep the T390 awake for API 28 runs.
 
 When upstream migration lands, the order is: finish upstream dependency updates (steps 1–3 of this checklist), run verification + artifact regen, then close audit rows and remove temporary patch references.
 
@@ -125,8 +174,9 @@ config :mob_dev,
   # for iOS (the .m lives under ios/ and is only relevant for Apple platforms).
   static_nifs: [
     %{
-      module: :meshx_ble_nif,
-      # init: "meshx_ble_nif_nif_init" is the default when omitted
+      # Updated post-extraction: the mob_ble plugin now owns the NIF
+      module: :mob_ble_nif,
+      # init: "mob_ble_nif_nif_init" is the default when omitted
       archs: [:ios]   # or [:ios_device, :ios_sim] — test both; the regen tooling accepts :ios
     }
   ]
@@ -490,19 +540,17 @@ Suggested execution order: **1 → 2 → 3 (optional) → 4 (this checklist)**.
 
 | # | Item | Owner | Priority | Risk | Action |
 |---|---|---|---|---|---|
-| 1 | Main-app Android scanner confidence on both Android devices | Mobile app + Android maintainers | **Highest** | Stale build / loop regression could reintroduce callback drops (the `683950a` main-looper fix). | Rebuild + install the latest main app on R52W90AW7EN and 5200f354f4fb277f, run `meshx_ble_selftest` while iPhone 13 emits MB beacons, archive one run per device showing `devices > 0` + `beacon_callbacks > 0`. |
-| 2 | Clean positive MB + GATT evidence run for the release bundle | Mobile app engineer (paired operator path) | High | Stale scan cache or stale iOS responder process can produce false failures. | Synchronized MB beacon → GATT fetch on SM-T390 observer + iPhone 13 emitter via the structured `capture-hybrid-run.sh` flow; archive matching messageId + `fetch_response_received` + envelope parse. |
+| 1 | Main-app Android scanner confidence on both Android devices | Mobile app + Android maintainers | **Highest** | Stale build / loop regression could reintroduce callback drops (the `683950a` main-looper fix); T390 doze can suppress callbacks. | DONE. R52 and awake T390 both show `devices > 0`; T390 recapture-18 shows MB beacon callbacks and fetched envelopes. Keep `WAKEUP` + `svc power stayon true` in the bench recipe. |
+| 2 | Clean positive MB + GATT evidence run for the release bundle | Mobile app engineer (paired operator path) | High | Stale scan cache or stale responder process can produce false failures; iPhone emitter has CoreBluetooth field limits. | DONE for T390 via Android-only sender/receiver pair: archived matching MB cue, `fetch_response_received`, `envelope_parse":"ok"`, and responder `fetch_request_received` under `artifacts/local-ble/2026-05-18-recapture-18-android-mb-gatt-t390-awake/`. |
 | 3 | Reverse direction verification (Android emit → iOS observer) | Mobile app + BLE validation | Optional | May not be reproducible on this hardware; don't broaden scope before the positive lane in #2 is archived. | One controlled iOS-hybrid emit pass + Android raw observer pass; archive artifacts only if clean. |
-| 4 | **Upstream migration (this checklist)** — execute when both PRs are merged + released | GenericJam maintainers for merge/release; MeshX maintainer for migration steps | External-blocked | Token has `READ`-only access on the upstream repos; nothing here is executable until merge happens upstream. Migration itself is reversible per the Rollback section above. | When merged: run the numbered sections of this file in order; flip `upstreaming_mob_dev_mob_patches` to `complete` in the audit; verify `completion_decision.update_goal_allowed` follows the AUX row state. |
+| 4 | **Upstream migration (this checklist)** — **COMPLETE** | MeshX maintainer (post GenericJam merge/release) | Done | N/A | Executed in full (see Execution Record / this PR); audit flipped; docs polished. |
 
-### 2026-05-18 execution status (snapshot)
+### 2026-05-21 execution status (snapshot — post-PR)
 
-- #1 — main-app scanner sanity on both Androids + iPhone MB emit: **done** (683950a + on-device verification).
-- #2 — clean MB+GATT evidence: **done on R52W90AW7EN**; SM-T390 (Android 9) blocked by `GrantPermissionRule` API-28 incompatibility — use the main-app selftest path for fleet coverage on that device.
-- #3 — reverse-direction spot check: **done** (recapture-4-reverse).
-- #4 — upstream migration: **blocked external** on GenericJam PR merge + release.
+- #1–#3: **done** (as previously archived).
+- #4 — upstream migration: **COMPLETE** (full execution + audit flip + doc/hygiene in this PR; see upstream_mob_migration_checklist.md and remaining_items_audit.md for record).
 
 ---
 
-**End of checklist.**  
-When the upstream PRs land, copy this file into the migration branch, perform the edits, run the verifications, and open the PR. The whole operation should be < 60 minutes of wall time once the versions are known.
+**End of checklist (executed).**
+This file served as the runbook for the migration PR. All steps verified green; artifacts + audit reconciled. Retained as historical + future template. See the PR description and /tmp/grok-impl-summary-6f680b51.md for the final checklist copy.

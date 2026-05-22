@@ -8,7 +8,6 @@ defmodule MeshxMobileApp.MixProject do
       elixir: "~> 1.18",
       start_permanent: false,
       deps: deps(),
-      aliases: aliases(),
       erlc_paths: ["src"],
       erlc_options: [:debug_info],
       # Exclude runtime-only modules from coverage averaging — these are
@@ -29,22 +28,9 @@ defmodule MeshxMobileApp.MixProject do
           Mix.Tasks.Meshx.Mobile.AdvertGossip.Audit,
           Mix.Tasks.Meshx.Mobile.Capture,
           Mix.Tasks.Meshx.Mobile.DeployDevice,
-          Mix.Tasks.Meshx.Mobile.Replay,
-          Mix.Tasks.Meshx.PatchDeps
+          Mix.Tasks.Meshx.Mobile.Replay
         ]
       ]
-    ]
-  end
-
-  # Project-local patches to vendored deps (mob_dev build template + mob
-  # static NIF table) for our extra Swift sources and meshx_ble_nif. The
-  # `meshx.patch_deps` task is idempotent — safe to run on every deps
-  # change. See `mix help meshx.patch_deps`.
-  defp aliases do
-    [
-      "deps.get": ["deps.get", "meshx.patch_deps"],
-      "deps.update": ["deps.update", "meshx.patch_deps"],
-      "deps.compile": ["meshx.patch_deps", "deps.compile"]
     ]
   end
 
@@ -54,11 +40,21 @@ defmodule MeshxMobileApp.MixProject do
 
   defp deps do
     [
+      # Explicit dep on the BLE transport adapter (even though pulled
+      # transitively via meshx_runtime) because `MeshxMobileApp.App` and
+      # the wiring test directly reference `MeshxTransportBLE` modules.
+      # Required for Phase 2 of the mob_ble bridge migration hygiene.
       {:meshx_runtime, in_umbrella: true},
+      {:meshx_transport_ble, in_umbrella: true},
       {:meshx_mob, in_umbrella: true},
       {:meshx_store, in_umbrella: true},
-      {:mob, "~> 0.5"},
-      {:mob_dev, "~> 0.3", only: [:dev, :test], runtime: false}
+      {:mob_ble, in_umbrella: true},
+      # Post upstream migration (GenericJam/mob_dev#6 + mob_new#5):
+      # Bumped to first releases containing :ios_swift_sources / :static_nifs
+      # support (mob_dev 0.5.11 series + corresponding mob 0.6.x).
+      # Verified via `mix hex.info` and lock regen.
+      {:mob, "~> 0.6"},
+      {:mob_dev, "~> 0.5.11", only: [:dev, :test], runtime: false}
     ]
   end
 end

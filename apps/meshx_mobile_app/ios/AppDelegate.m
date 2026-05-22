@@ -39,6 +39,12 @@ static void* beam_thread(void* arg) {
     // unset and behave normally. Mirrors the Android intent-extra path
     // (MainActivity.kt) so iOS can be exercised without a UI tap.
     //
+    // Phase 3 update (mob_ble default path): we now set MOB_BLE_SELFTEST
+    // (the recommended plugin-owned probe for the canonical Mob.Ble path)
+    // instead of the legacy MESHX_BLE_SELFTEST. This matches the new
+    // default in MeshxMobileApp.App and avoids NIF owner contention.
+    // Legacy MESHX_* still honored for explicit opt-out testing.
+    //
     // NOTE: For this gate to actually fire on `mix mob.deploy --native`
     // builds, the build script must define DEBUG. As of this writing,
     // the Provision.xcodeproj Debug config does NOT set
@@ -47,8 +53,37 @@ static void* beam_thread(void* arg) {
     // currently never taken. Add `-DDEBUG=1` to the `$CC` flags in
     // native_build.ex's template (or to GCC_PREPROCESSOR_DEFINITIONS
     // in the Xcode project) to re-enable the autoselftest hook.
-    setenv("MESHX_BLE_SELFTEST", "1", 1);
+    setenv("MOB_BLE_SELFTEST", "1", 1);
 #endif
+
+    // MOB_BLE_* forwarding from launch options (iOS parity with Android
+    // MainActivity intent-extra handling for MOB_BLE_*). Supports future
+    // harness / devicectl launches that pass custom keys in launch opts
+    // (or via --environment which populates process environ directly).
+    // These feed the same System.get_env checks in MeshxMobileApp.App
+    // (MOB_BLE_TRANSPORT, MOB_BLE_LOCAL_NAME, MOB_BLE_SELFTEST, etc.).
+    // Full backward compat for any MESHX_* legacy keys is preserved in App.ex.
+    if (opts[@"mob_ble_selftest"]) {
+        setenv("MOB_BLE_SELFTEST", "1", 1);
+        NSLog(@"[Mob] MOB_BLE_SELFTEST=1 from launch opts (recommended mob_ble path)");
+    }
+    NSString* mobLocal = opts[@"mob_ble_local_name"];
+    if (mobLocal && mobLocal.length > 0) {
+        setenv("MOB_BLE_LOCAL_NAME", [mobLocal UTF8String], 1);
+        NSLog(@"[Mob] MOB_BLE_LOCAL_NAME=%@", mobLocal);
+    }
+    if (opts[@"mob_ble_transport_0"]) {
+        setenv("MOB_BLE_TRANSPORT", "0", 1);
+        NSLog(@"[Mob] MOB_BLE_TRANSPORT=0 (legacy opt-out from launch opts)");
+    } else if (opts[@"mob_ble_transport"]) {
+        const char* t = [opts[@"mob_ble_transport"] UTF8String];
+        setenv("MOB_BLE_TRANSPORT", t, 1);
+        NSLog(@"[Mob] MOB_BLE_TRANSPORT=%s (from launch opts)", t);
+    }
+    if (opts[@"mob_ble_fetch_on_beacon"]) {
+        setenv("MOB_BLE_FETCH_ON_BEACON", "1", 1);
+        NSLog(@"[Mob] MOB_BLE_FETCH_ON_BEACON=1");
+    }
 
     extern const char* mob_app_module(void);
     pthread_t t;

@@ -1,1 +1,5 @@
 include ':app'
+def pluginProjects = file('plugin_projects.gradle')
+if (pluginProjects.exists()) {
+    apply from: pluginProjects
+}

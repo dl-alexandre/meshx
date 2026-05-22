@@ -8,7 +8,7 @@ import CryptoKit
 /// Connect/discover/subscribe, MXB1 chunking, and Noise frame handling are
 /// wired. Hardware-dependent behavior (MTU negotiation timing, retry on
 /// transient failures, reconnect handling) is still marked TODO.
-public enum MeshxBLEUUID {
+public enum BLEUUID {
     public static let service = CBUUID(string: "8f4f1201-6f3d-4f9c-9e3b-7f4a4f0f1000")
     public static let rx      = CBUUID(string: "8f4f1202-6f3d-4f9c-9e3b-7f4a4f0f1000")
     public static let tx      = CBUUID(string: "8f4f1203-6f3d-4f9c-9e3b-7f4a4f0f1000")
@@ -19,7 +19,7 @@ public enum MeshxBLEUUID {
     public static let directMxService = CBUUID(string: "8f4f1201-6f3d-4f9c-9e3b-7f4a4f0f1001")
 }
 
-public struct MeshxLegacyBeaconAdvertisement: Sendable, Equatable {
+public struct LegacyBeaconAdvertisement: Sendable, Equatable {
     public static let manufacturerCompanyIdentifier: UInt16 = 0xFFFF
     public static let manufacturerDataAdType: UInt8 = 0xFF
     public static let payloadSize = 22
@@ -33,7 +33,7 @@ public struct MeshxLegacyBeaconAdvertisement: Sendable, Equatable {
     public var manufacturerData: Data
     public var advertisement: Data
 
-    public static func parse(manufacturerData: Data) -> MeshxLegacyBeaconAdvertisement? {
+    public static func parse(manufacturerData: Data) -> LegacyBeaconAdvertisement? {
         guard manufacturerData.count >= 2 + payloadSize else { return nil }
         let companyIdentifier = UInt16(manufacturerData[0]) | (UInt16(manufacturerData[1]) << 8)
         guard companyIdentifier == manufacturerCompanyIdentifier else { return nil }
@@ -52,7 +52,7 @@ public struct MeshxLegacyBeaconAdvertisement: Sendable, Equatable {
         advertisement.append(manufacturerDataAdType)
         advertisement.append(manufacturerData)
 
-        return MeshxLegacyBeaconAdvertisement(
+        return LegacyBeaconAdvertisement(
             beaconVersion: payload[payload.startIndex + 2],
             envelopeVersion: payload[payload.startIndex + 3],
             payloadKind: payloadKind,
@@ -83,7 +83,7 @@ public struct MeshxLegacyBeaconAdvertisement: Sendable, Equatable {
         payloadKind: String = "TX",
         envelopeVersion: UInt8 = 1,
         beaconVersion: UInt8 = 1
-    ) -> MeshxLegacyBeaconAdvertisement {
+    ) -> LegacyBeaconAdvertisement {
         let messageHash = Data(SHA256.hash(data: messageId)).prefix(8)
         let senderHash = Data(SHA256.hash(data: Data(senderPeerId.utf8))).prefix(8)
         let kindCode: UInt8 = payloadKind.uppercased() == "TX" ? 1 : 0
@@ -117,7 +117,7 @@ public struct MeshxLegacyBeaconAdvertisement: Sendable, Equatable {
 
         let resolvedKind = kindCode == 1 ? "TX" : payloadKind
 
-        return MeshxLegacyBeaconAdvertisement(
+        return LegacyBeaconAdvertisement(
             beaconVersion: beaconVersion,
             envelopeVersion: envelopeVersion,
             payloadKind: resolvedKind,
@@ -130,35 +130,35 @@ public struct MeshxLegacyBeaconAdvertisement: Sendable, Equatable {
     }
 }
 
-public protocol MeshxBLEClientDelegate: AnyObject {
-    func meshxDidConnect(peerId: String)
-    func meshxDidDisconnect(peerId: String)
-    func meshxDidReceive(frame: Data, from peerId: String)
-    func meshxDidObserveLegacyBeacon(
-        _ beacon: MeshxLegacyBeaconAdvertisement,
+public protocol BLEClientDelegate: AnyObject {
+    func didConnect(peerId: String)
+    func didDisconnect(peerId: String)
+    func didReceive(frame: Data, from peerId: String)
+    func didObserveLegacyBeacon(
+        _ beacon: LegacyBeaconAdvertisement,
         deviceId: String,
         rssi: Int
     )
-    func meshxDidError(_ error: Error)
+    func didError(_ error: Error)
 }
 
-public extension MeshxBLEClientDelegate {
-    func meshxDidObserveLegacyBeacon(
-        _ beacon: MeshxLegacyBeaconAdvertisement,
+public extension BLEClientDelegate {
+    func didObserveLegacyBeacon(
+        _ beacon: LegacyBeaconAdvertisement,
         deviceId: String,
         rssi: Int
     ) {}
 }
 
-public final class MeshxBLEClient: NSObject {
-    public weak var delegate: MeshxBLEClientDelegate?
+public final class BLEClient: NSObject {
+    public weak var delegate: BLEClientDelegate?
 
     private let central: CBCentralManager
     private let reassembler = ChunkReassembler()
     private var peripherals: [UUID: CBPeripheral] = [:]
     private var rxCharacteristics: [UUID: CBCharacteristic] = [:]
     private var txCharacteristics: [UUID: CBCharacteristic] = [:]
-    private var secureSessions: [UUID: MeshxSecureSession] = [:]
+    private var secureSessions: [UUID: SecureSession] = [:]
     private var establishedPeers: Set<UUID> = []
     private var streamCounter: UInt32 = 1
     private var shouldScan = false
@@ -177,7 +177,7 @@ public final class MeshxBLEClient: NSObject {
         shouldScan = true
         guard central.state == .poweredOn else {
             if central.state != .unknown && central.state != .resetting {
-                delegate?.meshxDidError(BLEError.stateNotPoweredOn(central.state))
+                delegate?.didError(BLEError.stateNotPoweredOn(central.state))
             }
             return
         }
@@ -231,7 +231,7 @@ public final class MeshxBLEClient: NSObject {
         guard txCharacteristics[uuid]?.isNotifying == true else { return }
         guard secureSessions[uuid] == nil else { return }
 
-        let session = MeshxSecureSession(role: .initiator)
+        let session = SecureSession(role: .initiator)
         secureSessions[uuid] = session
 
         do {
@@ -240,14 +240,14 @@ public final class MeshxBLEClient: NSObject {
             }
         } catch {
             secureSessions.removeValue(forKey: uuid)
-            delegate?.meshxDidError(error)
+            delegate?.didError(error)
         }
     }
 
     private func handleAssembledFrame(_ frame: Data, from peripheral: CBPeripheral) {
         let uuid = peripheral.identifier
         let session = secureSessions[uuid] ?? {
-            let responder = MeshxSecureSession(role: .responder)
+            let responder = SecureSession(role: .responder)
             secureSessions[uuid] = responder
             return responder
         }()
@@ -261,15 +261,15 @@ public final class MeshxBLEClient: NSObject {
 
                 case .established:
                     if establishedPeers.insert(uuid).inserted {
-                        delegate?.meshxDidConnect(peerId: uuid.uuidString)
+                        delegate?.didConnect(peerId: uuid.uuidString)
                     }
 
                 case .applicationFrame(let frame):
-                    delegate?.meshxDidReceive(frame: frame, from: uuid.uuidString)
+                    delegate?.didReceive(frame: frame, from: uuid.uuidString)
                 }
             }
         } catch {
-            delegate?.meshxDidError(error)
+            delegate?.didError(error)
         }
     }
 
@@ -285,7 +285,7 @@ public final class MeshxBLEClient: NSObject {
     }
 }
 
-extension MeshxBLEClient: CBCentralManagerDelegate {
+extension BLEClient: CBCentralManagerDelegate {
     public func centralManagerDidUpdateState(_ central: CBCentralManager) {
         // TODO: surface state transitions to the delegate; production iOS
         // apps must handle .unauthorized (info.plist usage description
@@ -293,7 +293,7 @@ extension MeshxBLEClient: CBCentralManagerDelegate {
         if central.state == .poweredOn, shouldScan {
             startScan()
         } else if shouldScan && central.state != .poweredOn && central.state != .unknown && central.state != .resetting {
-            delegate?.meshxDidError(BLEError.stateNotPoweredOn(central.state))
+            delegate?.didError(BLEError.stateNotPoweredOn(central.state))
         }
     }
 
@@ -304,8 +304,8 @@ extension MeshxBLEClient: CBCentralManagerDelegate {
         rssi RSSI: NSNumber
     ) {
         if let manufacturerData = advertisementData[CBAdvertisementDataManufacturerDataKey] as? Data,
-           let beacon = MeshxLegacyBeaconAdvertisement.parse(manufacturerData: manufacturerData) {
-            delegate?.meshxDidObserveLegacyBeacon(
+           let beacon = LegacyBeaconAdvertisement.parse(manufacturerData: manufacturerData) {
+            delegate?.didObserveLegacyBeacon(
                 beacon,
                 deviceId: peripheral.identifier.uuidString,
                 rssi: RSSI.intValue
@@ -313,20 +313,20 @@ extension MeshxBLEClient: CBCentralManagerDelegate {
             return
         }
 
-        guard advertisesMeshxService(advertisementData) else { return }
+        guard advertisesService(advertisementData) else { return }
         peripherals[peripheral.identifier] = peripheral
         peripheral.delegate = self
         central.connect(peripheral, options: nil)
     }
 
-    private func advertisesMeshxService(_ advertisementData: [String : Any]) -> Bool {
+    private func advertisesService(_ advertisementData: [String : Any]) -> Bool {
         let serviceUUIDs = advertisementData[CBAdvertisementDataServiceUUIDsKey] as? [CBUUID] ?? []
         let overflowUUIDs = advertisementData[CBAdvertisementDataOverflowServiceUUIDsKey] as? [CBUUID] ?? []
-        return serviceUUIDs.contains(MeshxBLEUUID.service) || overflowUUIDs.contains(MeshxBLEUUID.service)
+        return serviceUUIDs.contains(BLEUUID.service) || overflowUUIDs.contains(BLEUUID.service)
     }
 
     public func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
-        peripheral.discoverServices([MeshxBLEUUID.service])
+        peripheral.discoverServices([BLEUUID.service])
     }
 
     public func centralManager(
@@ -340,17 +340,17 @@ extension MeshxBLEClient: CBCentralManagerDelegate {
         secureSessions.removeValue(forKey: peripheral.identifier)
         establishedPeers.remove(peripheral.identifier)
         reassembler.forget(peerId: peerId)
-        delegate?.meshxDidDisconnect(peerId: peerId)
+        delegate?.didDisconnect(peerId: peerId)
         // TODO: reconnect strategy. For mesh, we usually want to retry
         // unless the user explicitly forgot the peer.
     }
 }
 
-extension MeshxBLEClient: CBPeripheralDelegate {
+extension BLEClient: CBPeripheralDelegate {
     public func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
-        if let error = error { delegate?.meshxDidError(error); return }
-        guard let service = peripheral.services?.first(where: { $0.uuid == MeshxBLEUUID.service }) else { return }
-        peripheral.discoverCharacteristics([MeshxBLEUUID.rx, MeshxBLEUUID.tx], for: service)
+        if let error = error { delegate?.didError(error); return }
+        guard let service = peripheral.services?.first(where: { $0.uuid == BLEUUID.service }) else { return }
+        peripheral.discoverCharacteristics([BLEUUID.rx, BLEUUID.tx], for: service)
     }
 
     public func peripheral(
@@ -358,12 +358,12 @@ extension MeshxBLEClient: CBPeripheralDelegate {
         didDiscoverCharacteristicsFor service: CBService,
         error: Error?
     ) {
-        if let error = error { delegate?.meshxDidError(error); return }
+        if let error = error { delegate?.didError(error); return }
         for char in service.characteristics ?? [] {
-            if char.uuid == MeshxBLEUUID.rx {
+            if char.uuid == BLEUUID.rx {
                 rxCharacteristics[peripheral.identifier] = char
             }
-            if char.uuid == MeshxBLEUUID.tx {
+            if char.uuid == BLEUUID.tx {
                 txCharacteristics[peripheral.identifier] = char
                 peripheral.setNotifyValue(true, for: char)
             }
@@ -376,8 +376,8 @@ extension MeshxBLEClient: CBPeripheralDelegate {
         didUpdateNotificationStateFor characteristic: CBCharacteristic,
         error: Error?
     ) {
-        if let error = error { delegate?.meshxDidError(error); return }
-        guard characteristic.uuid == MeshxBLEUUID.tx else { return }
+        if let error = error { delegate?.didError(error); return }
+        guard characteristic.uuid == BLEUUID.tx else { return }
         txCharacteristics[peripheral.identifier] = characteristic
         beginHandshake(with: peripheral)
     }
@@ -387,8 +387,8 @@ extension MeshxBLEClient: CBPeripheralDelegate {
         didUpdateValueFor characteristic: CBCharacteristic,
         error: Error?
     ) {
-        if let error = error { delegate?.meshxDidError(error); return }
-        guard characteristic.uuid == MeshxBLEUUID.tx,
+        if let error = error { delegate?.didError(error); return }
+        guard characteristic.uuid == BLEUUID.tx,
               let chunk = characteristic.value else { return }
         let peerId = peripheral.identifier.uuidString
         if let assembled = reassembler.push(peerId: peerId, chunk: chunk) {
@@ -397,24 +397,24 @@ extension MeshxBLEClient: CBPeripheralDelegate {
     }
 }
 
-public protocol MeshxBLEPeripheralDelegate: AnyObject {
-    func meshxPeripheralDidStartAdvertising()
-    func meshxPeripheralDidStopAdvertising()
-    func meshxPeripheralDidConnect(peerId: String)
-    func meshxPeripheralDidDisconnect(peerId: String)
-    func meshxPeripheralDidReceive(frame: Data, from peerId: String)
-    func meshxPeripheralDidError(_ error: Error)
+public protocol BLEPeripheralDelegate: AnyObject {
+    func peripheralDidStartAdvertising()
+    func peripheralDidStopAdvertising()
+    func peripheralDidConnect(peerId: String)
+    func peripheralDidDisconnect(peerId: String)
+    func peripheralDidReceive(frame: Data, from peerId: String)
+    func peripheralDidError(_ error: Error)
 }
 
-public final class MeshxBLEPeripheral: NSObject {
-    public weak var delegate: MeshxBLEPeripheralDelegate?
+public final class BLEPeripheral: NSObject {
+    public weak var delegate: BLEPeripheralDelegate?
 
     private let manager: CBPeripheralManager
     private let reassembler = ChunkReassembler()
     private var rxCharacteristic: CBMutableCharacteristic?
     private var txCharacteristic: CBMutableCharacteristic?
     private var centrals: [UUID: CBCentral] = [:]
-    private var secureSessions: [UUID: MeshxSecureSession] = [:]
+    private var secureSessions: [UUID: SecureSession] = [:]
     private var establishedPeers: Set<UUID> = []
     private var pendingNotifications: [(central: CBCentral, chunk: Data)] = []
     private var requestedLocalName: String?
@@ -428,13 +428,13 @@ public final class MeshxBLEPeripheral: NSObject {
         self.manager.delegate = self
     }
 
-    public func startAdvertising(localName: String = "meshx-mobile") {
+    public func startAdvertising(localName: String = "mobile") {
         requestedLocalName = localName
         shouldAdvertise = true
 
         guard manager.state == .poweredOn else {
             if manager.state != .unknown && manager.state != .resetting {
-                delegate?.meshxPeripheralDidError(PeripheralError.stateNotPoweredOn(manager.state))
+                delegate?.peripheralDidError(PeripheralError.stateNotPoweredOn(manager.state))
             }
             return
         }
@@ -450,7 +450,7 @@ public final class MeshxBLEPeripheral: NSObject {
         shouldAdvertise = false
         manager.stopAdvertising()
         if wasActive {
-            delegate?.meshxPeripheralDidStopAdvertising()
+            delegate?.peripheralDidStopAdvertising()
         }
     }
 
@@ -470,18 +470,18 @@ public final class MeshxBLEPeripheral: NSObject {
         guard !serviceConfigured, rxCharacteristic == nil, txCharacteristic == nil else { return }
 
         let rx = CBMutableCharacteristic(
-            type: MeshxBLEUUID.rx,
+            type: BLEUUID.rx,
             properties: [.write, .writeWithoutResponse],
             value: nil,
             permissions: [.writeable]
         )
         let tx = CBMutableCharacteristic(
-            type: MeshxBLEUUID.tx,
+            type: BLEUUID.tx,
             properties: [.notify],
             value: nil,
             permissions: []
         )
-        let service = CBMutableService(type: MeshxBLEUUID.service, primary: true)
+        let service = CBMutableService(type: BLEUUID.service, primary: true)
         service.characteristics = [rx, tx]
 
         rxCharacteristic = rx
@@ -492,8 +492,8 @@ public final class MeshxBLEPeripheral: NSObject {
     private func startAdvertisingIfReady() {
         guard shouldAdvertise, serviceConfigured, !manager.isAdvertising else { return }
         manager.startAdvertising([
-            CBAdvertisementDataServiceUUIDsKey: [MeshxBLEUUID.service],
-            CBAdvertisementDataLocalNameKey: requestedLocalName ?? "meshx-mobile"
+            CBAdvertisementDataServiceUUIDsKey: [BLEUUID.service],
+            CBAdvertisementDataLocalNameKey: requestedLocalName ?? "mobile"
         ])
     }
 
@@ -511,18 +511,18 @@ public final class MeshxBLEPeripheral: NSObject {
     /// in the service data. This is the iOS-side "different advertising strategy" emit path
     /// (service-data carrier for full-MX delivery, symmetric to the Android experiments).
     ///
-    /// The `payload` should be a complete `MeshxMessageEnvelope` v1 (starting with the
+    /// The `payload` should be a complete `MessageEnvelope` v1 (starting with the
     /// FF FF 4D 58 magic in the experiments). The peripheral will advertise the
     /// `directMxService` UUID with that payload in `CBAdvertisementDataServiceDataKey`.
     ///
     /// Replaces any currently-running advertisement.
-    public func startDirectMxServiceDataAdvertising(localName: String = "meshx-direct", payload: Data) {
+    public func startDirectMxServiceDataAdvertising(localName: String = "direct", payload: Data) {
         requestedLocalName = localName
         shouldAdvertise = true
 
         guard manager.state == .poweredOn else {
             if manager.state != .unknown && manager.state != .resetting {
-                delegate?.meshxPeripheralDidError(PeripheralError.stateNotPoweredOn(manager.state))
+                delegate?.peripheralDidError(PeripheralError.stateNotPoweredOn(manager.state))
             }
             return
         }
@@ -530,12 +530,12 @@ public final class MeshxBLEPeripheral: NSObject {
         // We don't need the full GATT service for a pure service-data emit experiment.
         // Just advertise the direct service UUID + the payload in service data.
         manager.startAdvertising([
-            CBAdvertisementDataServiceUUIDsKey: [MeshxBLEUUID.directMxService],
-            CBAdvertisementDataServiceDataKey: [MeshxBLEUUID.directMxService: payload],
+            CBAdvertisementDataServiceUUIDsKey: [BLEUUID.directMxService],
+            CBAdvertisementDataServiceDataKey: [BLEUUID.directMxService: payload],
             CBAdvertisementDataLocalNameKey: localName
         ])
 
-        delegate?.meshxPeripheralDidStartAdvertising()
+        delegate?.peripheralDidStartAdvertising()
     }
     /// Manufacturer data is the only field set; `CoreBluetooth`
     /// silently drops `CBAdvertisementDataManufacturerDataKey` when
@@ -547,10 +547,10 @@ public final class MeshxBLEPeripheral: NSObject {
     /// at the caller).
     @discardableResult
     public func startBeaconAdvertising(
-        _ beacon: MeshxLegacyBeaconAdvertisement
-    ) -> MeshxLegacyBeaconAdvertisement {
+        _ beacon: LegacyBeaconAdvertisement
+    ) -> LegacyBeaconAdvertisement {
         guard manager.state == .poweredOn else {
-            delegate?.meshxPeripheralDidError(PeripheralError.stateNotPoweredOn(manager.state))
+            delegate?.peripheralDidError(PeripheralError.stateNotPoweredOn(manager.state))
             return beacon
         }
 
@@ -567,14 +567,14 @@ public final class MeshxBLEPeripheral: NSObject {
 
     /// Advertise a legacy beacon (`MB` cue) for a bounded duration then auto-stop.
     ///
-    /// This supports the hybrid direct-MX emit experiment (`--meshx-auto-direct-mx-hybrid-advertise`):
+    /// This supports the hybrid direct-MX emit experiment (auto-direct-mx-hybrid-advertise):
     /// emit the short fleet-compatible MB legacy beacon cue, then (after a brief delay in the
     /// caller) switch to advertising the full MX envelope in service data under the dedicated
     /// `directMxService` UUID. Mirrors the Android hybrid emit sequencing.
     ///
     /// The duration is typically 4s for the cue window. The caller is responsible for sequencing
     /// the subsequent direct-MX service-data advertisement (which will replace the active advert).
-    public func startLegacyBeaconAdvertising(beacon: MeshxLegacyBeaconAdvertisement, duration: TimeInterval) {
+    public func startLegacyBeaconAdvertising(beacon: LegacyBeaconAdvertisement, duration: TimeInterval) {
         _ = startBeaconAdvertising(beacon)
         // Schedule stop for the cue window. Safe to call stop even if a later advert (e.g. direct-MX)
         // has already replaced this one; CoreBluetooth tolerates it.
@@ -582,14 +582,14 @@ public final class MeshxBLEPeripheral: NSObject {
             guard let self else { return }
             if self.manager.isAdvertising {
                 self.manager.stopAdvertising()
-                self.delegate?.meshxPeripheralDidStopAdvertising()
+                self.delegate?.peripheralDidStopAdvertising()
             }
         }
     }
 
     /// Build + advertise a legacy beacon in one call.
     ///
-    /// The send-side equivalent of `MeshxBLEClient.meshxDidObserveLegacyBeacon`:
+    /// The send-side equivalent of `BLEClient.didObserveLegacyBeacon`:
     /// derive a beacon from envelope coordinates and put it on the air.
     /// Both ends agree on the byte layout per `WIRE_FORMAT.md §10`, so
     /// an iOS-sent beacon decodes cleanly on an Android scanner and
@@ -599,8 +599,8 @@ public final class MeshxBLEPeripheral: NSObject {
         messageId: Data,
         senderPeerId: String,
         payloadKind: String = "TX"
-    ) -> MeshxLegacyBeaconAdvertisement {
-        let beacon = MeshxLegacyBeaconAdvertisement.build(
+    ) -> LegacyBeaconAdvertisement {
+        let beacon = LegacyBeaconAdvertisement.build(
             messageId: messageId,
             senderPeerId: senderPeerId,
             payloadKind: payloadKind
@@ -618,7 +618,7 @@ public final class MeshxBLEPeripheral: NSObject {
     private func handleAssembledFrame(_ frame: Data, from central: CBCentral) {
         let uuid = central.identifier
         let session = secureSessions[uuid] ?? {
-            let responder = MeshxSecureSession(role: .responder)
+            let responder = SecureSession(role: .responder)
             secureSessions[uuid] = responder
             return responder
         }()
@@ -632,15 +632,15 @@ public final class MeshxBLEPeripheral: NSObject {
 
                 case .established:
                     if establishedPeers.insert(uuid).inserted {
-                        delegate?.meshxPeripheralDidConnect(peerId: uuid.uuidString)
+                        delegate?.peripheralDidConnect(peerId: uuid.uuidString)
                     }
 
                 case .applicationFrame(let frame):
-                    delegate?.meshxPeripheralDidReceive(frame: frame, from: uuid.uuidString)
+                    delegate?.peripheralDidReceive(frame: frame, from: uuid.uuidString)
                 }
             }
         } catch {
-            delegate?.meshxPeripheralDidError(error)
+            delegate?.peripheralDidError(error)
         }
     }
 
@@ -676,19 +676,19 @@ public final class MeshxBLEPeripheral: NSObject {
     }
 }
 
-extension MeshxBLEPeripheral: CBPeripheralManagerDelegate {
+extension BLEPeripheral: CBPeripheralManagerDelegate {
     public func peripheralManagerDidUpdateState(_ peripheral: CBPeripheralManager) {
         if peripheral.state == .poweredOn {
             configureServiceIfNeeded()
             startAdvertisingIfReady()
         } else if shouldAdvertise && peripheral.state != .unknown && peripheral.state != .resetting {
-            delegate?.meshxPeripheralDidError(PeripheralError.stateNotPoweredOn(peripheral.state))
+            delegate?.peripheralDidError(PeripheralError.stateNotPoweredOn(peripheral.state))
         }
     }
 
     public func peripheralManager(_ peripheral: CBPeripheralManager, didAdd service: CBService, error: Error?) {
         if let error {
-            delegate?.meshxPeripheralDidError(error)
+            delegate?.peripheralDidError(error)
             return
         }
 
@@ -698,9 +698,9 @@ extension MeshxBLEPeripheral: CBPeripheralManagerDelegate {
 
     public func peripheralManagerDidStartAdvertising(_ peripheral: CBPeripheralManager, error: Error?) {
         if let error {
-            delegate?.meshxPeripheralDidError(error)
+            delegate?.peripheralDidError(error)
         } else {
-            delegate?.meshxPeripheralDidStartAdvertising()
+            delegate?.peripheralDidStartAdvertising()
         }
     }
 
@@ -709,7 +709,7 @@ extension MeshxBLEPeripheral: CBPeripheralManagerDelegate {
         central: CBCentral,
         didSubscribeTo characteristic: CBCharacteristic
     ) {
-        guard characteristic.uuid == MeshxBLEUUID.tx else { return }
+        guard characteristic.uuid == BLEUUID.tx else { return }
         centrals[central.identifier] = central
     }
 
@@ -718,18 +718,18 @@ extension MeshxBLEPeripheral: CBPeripheralManagerDelegate {
         central: CBCentral,
         didUnsubscribeFrom characteristic: CBCharacteristic
     ) {
-        guard characteristic.uuid == MeshxBLEUUID.tx else { return }
+        guard characteristic.uuid == BLEUUID.tx else { return }
         let peerId = central.identifier.uuidString
         centrals.removeValue(forKey: central.identifier)
         secureSessions.removeValue(forKey: central.identifier)
         establishedPeers.remove(central.identifier)
         reassembler.forget(peerId: peerId)
-        delegate?.meshxPeripheralDidDisconnect(peerId: peerId)
+        delegate?.peripheralDidDisconnect(peerId: peerId)
     }
 
     public func peripheralManager(_ peripheral: CBPeripheralManager, didReceiveWrite requests: [CBATTRequest]) {
         for request in requests {
-            guard request.characteristic.uuid == MeshxBLEUUID.rx else {
+            guard request.characteristic.uuid == BLEUUID.rx else {
                 peripheral.respond(to: request, withResult: .requestNotSupported)
                 continue
             }

@@ -1,6 +1,8 @@
 # Upstreaming mob_dev / mob patches
 
-MeshX currently carries two temporary project-local patches for iOS
+**Historical context (pre-2026-05-21 migration PR).** The two temporary downstream patches have been removed. Upstream extension points are now in use (see `docs/upstream_mob_migration_checklist.md` for the as-built record and `patches/README.md` tombstone). This document preserves the original upstreaming rationale + pre-migration audit.
+
+MeshX previously carried two temporary project-local patches for iOS
 native builds:
 
 - `patches/01-mob_dev-meshx-build-additions.patch` targets
@@ -128,8 +130,7 @@ The downstream patch path has been verified by:
   2026-05-17T12:12:03-0700 and reported both local patch files as already
   patched for the locked dependency versions.
 
-Until upstream extension points land, keep `mix meshx.patch_deps` and
-the two patch files in place.
+(The downstream patch path was retired in the post-merge migration PR; see `docs/upstream_mob_migration_checklist.md` and patches/README.md.)
 
 ## PR Status Recheck, 2026-05-17
 
@@ -244,43 +245,8 @@ the changes, then follow the post-merge MeshX migration checklist below.
 
 ## Post-Merge MeshX Migration Checklist
 
-Once both upstream PRs are merged and released, migrate MeshX in this order:
+**EXECUTED in the 2026-05-21 migration PR.**
 
-1. Update the locked dependency versions:
-   - bump `mob_dev` in root `mix.lock` and
-     `apps/meshx_mobile_app/mix.lock` from `0.4.0` to a release that
-     contains `GenericJam/mob_dev#6`;
-   - regenerate the `mob` dependency to a release generated from
-     `GenericJam/mob_new#5` or newer generated templates.
-2. Move local Swift source configuration out of
-   `patches/01-mob_dev-meshx-build-additions.patch` and into
-   `apps/meshx_mobile_app/mob.exs` using the upstream
-   `:ios_swift_sources` extension point:
-   - `../../meshx_mobile/Sources/MeshxMobile/*.swift`;
-   - `ios/MeshxBLEBridge.swift`.
-3. Replace the local static-table patch with upstream static NIF
-   configuration:
-   - configure `:meshx_ble_nif` through `mob.exs :static_nifs`;
-   - regenerate driver tables with upstream `mob_dev` tooling;
-   - keep `apps/meshx_mobile_app/c_src/meshx_ble_nif.c` as the project
-     NIF source unless the upstream-supported layout changes.
-4. Remove the downstream patch system only after the new build is
-   verified:
-   - delete `patches/01-mob_dev-meshx-build-additions.patch`;
-   - delete `patches/02-mob-static-nif-table.patch`;
-   - remove `apps/meshx_mobile_app/lib/mix/tasks/meshx.patch_deps.ex`;
-   - remove `meshx.patch_deps` aliases from
-     `apps/meshx_mobile_app/mix.exs`;
-   - update `patches/README.md` and `apps/meshx_mobile_app/README.md`.
-5. Required verification before accepting the migration:
-   - `mix deps.get`;
-   - `mix deps.compile`;
-   - iOS harness device build with project Swift sources included;
-   - Android-to-iOS responder smoke on SM-T577U -> iPad12,1 or a
-     replacement attached hardware pair;
-   - root `mix test` without `--no-start`;
-   - `git diff --check`.
+Detailed runbook + evidence + commands: see `docs/upstream_mob_migration_checklist.md` (supersedes the abbreviated list that followed).
 
-Do not start this migration while the PRs are merely open. Until the
-released dependency versions include both extension points, the local
-patches remain the known-good build path.
+The Post-Merge steps (dep bump to 0.6.18/0.5.11, mob.exs config for :ios_swift_sources + :static_nifs, deletion of the two patches + task + aliases, README/patches/README hygiene, audit flip, iOS device verification) are complete. This section retained only as historical reference for the shape of the upstreaming.

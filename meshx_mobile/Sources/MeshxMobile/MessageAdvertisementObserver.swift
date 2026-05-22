@@ -3,70 +3,70 @@ import Foundation
 import CoreBluetooth
 
 public protocol MessageAdvertisementObserverDelegate: AnyObject {
-    func meshxDidObserveReceivedMessage(_ event: ReceivedMessageEvent)
-    func meshxDidObserveMessageDecodeError(_ reason: String, deviceId: String, rssi: Int)
-    func meshxMessageObserverDidObserveLegacyBeacon(
-        _ beacon: MeshxLegacyBeaconAdvertisement,
+    func didObserveReceivedMessage(_ event: ReceivedMessageEvent)
+    func didObserveMessageDecodeError(_ reason: String, deviceId: String, rssi: Int)
+    func messageObserverDidObserveLegacyBeacon(
+        _ beacon: LegacyBeaconAdvertisement,
         deviceId: String,
         rssi: Int
     )
-    func meshxMessageObserverDidObserveAdvertisement(
+    func messageObserverDidObserveAdvertisement(
         deviceId: String,
         rssi: Int,
         localName: String?,
         serviceUUIDs: [String],
         manufacturerDataLength: Int
     )
-    func meshxMessageObserverDidStartScan()
-    func meshxMessageObserverDidUpdateState(_ state: String)
-    func meshxMessageObserverDidError(_ error: Error)
+    func messageObserverDidStartScan()
+    func messageObserverDidUpdateState(_ state: String)
+    func messageObserverDidError(_ error: Error)
 
     /// Optional. Called when the observer's GATT-fetch coordinator
     /// successfully pulled a full MX envelope from a peer that earlier
     /// advertised an MB legacy beacon. The full envelope bytes start
     /// with the "MX" magic and can be parsed via
     /// `MessageEnvelope.parse`.
-    func meshxMessageObserverDidFetchEnvelope(
+    func messageObserverDidFetchEnvelope(
         envelope: Data,
         fromDeviceId: String,
-        beacon: MeshxLegacyBeaconAdvertisement,
+        beacon: LegacyBeaconAdvertisement,
         rssi: Int
     )
 
     /// Optional. Called when a fetch attempt fails. `reason` is the
     /// phase string ("connect_failed", "service_discovery_failed", ...).
-    func meshxMessageObserverDidFailFetch(
+    func messageObserverDidFailFetch(
         reason: String,
         detail: String?,
         fromDeviceId: String,
-        beacon: MeshxLegacyBeaconAdvertisement
+        beacon: LegacyBeaconAdvertisement
     )
 }
 
 public extension MessageAdvertisementObserverDelegate {
-    func meshxMessageObserverDidObserveAdvertisement(
+    func messageObserverDidObserveAdvertisement(
         deviceId: String,
         rssi: Int,
         localName: String?,
         serviceUUIDs: [String],
         manufacturerDataLength: Int
     ) {}
-    func meshxMessageObserverDidObserveLegacyBeacon(
-        _ beacon: MeshxLegacyBeaconAdvertisement,
+    func messageObserverDidObserveLegacyBeacon(
+        _ beacon: LegacyBeaconAdvertisement,
         deviceId: String,
         rssi: Int
     ) {}
-    func meshxMessageObserverDidFetchEnvelope(
+    func messageObserverDidFetchEnvelope(
         envelope: Data,
         fromDeviceId: String,
-        beacon: MeshxLegacyBeaconAdvertisement,
+        beacon: LegacyBeaconAdvertisement,
         rssi: Int
     ) {}
-    func meshxMessageObserverDidFailFetch(
+    func messageObserverDidFailFetch(
         reason: String,
         detail: String?,
         fromDeviceId: String,
-        beacon: MeshxLegacyBeaconAdvertisement
+        beacon: LegacyBeaconAdvertisement
     ) {}
 }
 
@@ -95,15 +95,15 @@ public final class MessageAdvertisementObserver: NSObject {
     /// IDs is being filtered by CoreBluetooth).
     public var debugLogRawAdvertisementData = false
 
-    private var fetchInFlight: [UUID: MeshxFetchGattClient] = [:]
+    private var fetchInFlight: [UUID: FetchGattClient] = [:]
     private var fetchedHashes: [Data: Date] = [:]
-    private var pendingBeacons: [UUID: (beacon: MeshxLegacyBeaconAdvertisement, rssi: Int)] = [:]
+    private var pendingBeacons: [UUID: (beacon: LegacyBeaconAdvertisement, rssi: Int)] = [:]
     /// Recent MB legacy beacons keyed by messageIdHash. Used when we
     /// later see a connectable fetch-service advert from a DIFFERENT
     /// MAC than the MB beacon (Android uses two private resolvable
     /// addresses, one per advertise call). We pick the most recent
     /// beacon's hash to populate the MFQ Request.
-    private var recentBeacons: [(beacon: MeshxLegacyBeaconAdvertisement, rssi: Int, at: Date)] = []
+    private var recentBeacons: [(beacon: LegacyBeaconAdvertisement, rssi: Int, at: Date)] = []
 
     public override init() {
         self.central = CBCentralManager(delegate: nil, queue: nil)
@@ -115,7 +115,7 @@ public final class MessageAdvertisementObserver: NSObject {
         shouldScan = true
         guard central.state == .poweredOn else {
             if central.state != .unknown && central.state != .resetting {
-                delegate?.meshxMessageObserverDidError(ObserverError.stateNotPoweredOn(central.state))
+                delegate?.messageObserverDidError(ObserverError.stateNotPoweredOn(central.state))
             }
             return
         }
@@ -130,7 +130,7 @@ public final class MessageAdvertisementObserver: NSObject {
             withServices: nil,
             options: [CBCentralManagerScanOptionAllowDuplicatesKey: true]
         )
-        delegate?.meshxMessageObserverDidStartScan()
+        delegate?.messageObserverDidStartScan()
     }
 
     public func stopScan() {
@@ -145,12 +145,12 @@ public final class MessageAdvertisementObserver: NSObject {
 
 extension MessageAdvertisementObserver: CBCentralManagerDelegate {
     public func centralManagerDidUpdateState(_ central: CBCentralManager) {
-        delegate?.meshxMessageObserverDidUpdateState(String(describing: central.state))
+        delegate?.messageObserverDidUpdateState(String(describing: central.state))
 
         if central.state == .poweredOn, shouldScan {
             startScan()
         } else if shouldScan && central.state != .poweredOn && central.state != .unknown && central.state != .resetting {
-            delegate?.meshxMessageObserverDidError(ObserverError.stateNotPoweredOn(central.state))
+            delegate?.messageObserverDidError(ObserverError.stateNotPoweredOn(central.state))
         }
     }
 
@@ -217,14 +217,14 @@ extension MessageAdvertisementObserver: CBCentralManagerDelegate {
             }
             let magicSummary = anyMxMagic ? " mx_magic_seen=true" : ""
 
-            print("MeshxMessageObserver: raw_advert keys=[\(keys)] types={\(types)}\(dataPart)\(magicSummary) device_id=\(peripheral.identifier.uuidString)")
+            print("MessageObserver: raw_advert keys=[\(keys)] types={\(types)}\(dataPart)\(magicSummary) device_id=\(peripheral.identifier.uuidString)")
 
             // Special prominent signal for the hybrid / service-data strategy experiments.
             // When we see the dedicated direct-MX service data UUID carrying the MX magic,
             // print an unmistakable line so it's obvious the hybrid experiment produced a positive signal.
             if let svcData = advertisementData[CBAdvertisementDataServiceDataKey as String] as? [CBUUID: Data] {
                 for (uuid, data) in svcData {
-                    if uuid == MeshxBLEUUID.directMxService,
+                    if uuid == BLEUUID.directMxService,
                        data.range(of: Data(mxMagic)) != nil {
                         let messageIdHex = data.prefix(16).map { String(format: "%02x", $0) }.joined()
 
@@ -232,15 +232,15 @@ extension MessageAdvertisementObserver: CBCentralManagerDelegate {
                         let recentMBCount = recentBeacons.filter { Date().timeIntervalSince($0.at) < 15 }.count
                         let correlationNote = recentMBCount > 0 ? " recent_legacy_mb_cues=\(recentMBCount)" : ""
 
-                        print("MeshxMessageObserver: DIRECT_MX_SERVICE_DATA_WITH_MAGIC uuid=\(uuid.uuidString) messageId=\(messageIdHex)\(correlationNote) — hybrid/service-data experiment positive signal (see raw dump above for full hex)")
+                        print("MessageObserver: DIRECT_MX_SERVICE_DATA_WITH_MAGIC uuid=\(uuid.uuidString) messageId=\(messageIdHex)\(correlationNote) — hybrid/service-data experiment positive signal (see raw dump above for full hex)")
 
                         if recentMBCount > 0 {
-                            print("MeshxMessageObserver: possible_hybrid_correlation — direct MX magic arrived shortly after recent MB beacon(s). Check messageId match on the emitter side.")
+                            print("MessageObserver: possible_hybrid_correlation — direct MX magic arrived shortly after recent MB beacon(s). Check messageId match on the emitter side.")
                         }
 
                         // Prominent success signal for the hybrid strategy when both parts are observed close together.
                         if recentMBCount > 0 {
-                            print("MeshxMessageObserver: HYBRID_CORRELATED messageId=\(messageIdHex) recent_legacy_mb_cues=\(recentMBCount) — legacy MB cue + direct MX service data both observed. This is the expected positive outcome for the hybrid advertising strategy.")
+                            print("MessageObserver: HYBRID_CORRELATED messageId=\(messageIdHex) recent_legacy_mb_cues=\(recentMBCount) — legacy MB cue + direct MX service data both observed. This is the expected positive outcome for the hybrid advertising strategy.")
                         }
                     }
                 }
@@ -254,7 +254,7 @@ extension MessageAdvertisementObserver: CBCentralManagerDelegate {
             .map(\.uuidString)
         let localName = advertisementData[CBAdvertisementDataLocalNameKey] as? String
 
-        delegate?.meshxMessageObserverDidObserveAdvertisement(
+        delegate?.messageObserverDidObserveAdvertisement(
             deviceId: peripheral.identifier.uuidString,
             rssi: RSSI.intValue,
             localName: localName,
@@ -270,10 +270,10 @@ extension MessageAdvertisementObserver: CBCentralManagerDelegate {
             receivedAt: receivedAt
         ) {
         case .received(let event):
-            delegate?.meshxDidObserveReceivedMessage(event)
+            delegate?.didObserveReceivedMessage(event)
 
         case .decodeError(let reason):
-            delegate?.meshxDidObserveMessageDecodeError(
+            delegate?.didObserveMessageDecodeError(
                 reason,
                 deviceId: peripheral.identifier.uuidString,
                 rssi: RSSI.intValue
@@ -281,8 +281,8 @@ extension MessageAdvertisementObserver: CBCentralManagerDelegate {
 
         case .notMessageAdvertisement:
             if let manufacturerData,
-               let beacon = MeshxLegacyBeaconAdvertisement.parse(manufacturerData: manufacturerData) {
-                delegate?.meshxMessageObserverDidObserveLegacyBeacon(
+               let beacon = LegacyBeaconAdvertisement.parse(manufacturerData: manufacturerData) {
+                delegate?.messageObserverDidObserveLegacyBeacon(
                     beacon,
                     deviceId: peripheral.identifier.uuidString,
                     rssi: RSSI.intValue
@@ -294,7 +294,7 @@ extension MessageAdvertisementObserver: CBCentralManagerDelegate {
             // peripheral (different MAC, non-connectable) is just the
             // "I have a message" cue.
             if let serviceUUIDs = advertisementData[CBAdvertisementDataServiceUUIDsKey] as? [CBUUID],
-               serviceUUIDs.contains(MeshxFetchGattUUID.service) {
+               serviceUUIDs.contains(FetchGattUUID.service) {
                 maybeStartFetchOnFetchService(
                     for: peripheral,
                     rssi: RSSI.intValue
@@ -325,15 +325,15 @@ extension MessageAdvertisementObserver: CBCentralManagerDelegate {
     }
 }
 
-extension MessageAdvertisementObserver: MeshxFetchGattClientDelegate {
-    public func meshxFetchDidComplete(
+extension MessageAdvertisementObserver: FetchGattClientDelegate {
+    public func fetchDidComplete(
         envelope: Data,
         peripheral: CBPeripheral,
-        request: MeshxFetchProtocol.Request
+        request: FetchProtocol.Request
     ) {
         guard let pending = pendingBeacons.removeValue(forKey: peripheral.identifier) else { return }
         fetchInFlight.removeValue(forKey: peripheral.identifier)
-        delegate?.meshxMessageObserverDidFetchEnvelope(
+        delegate?.messageObserverDidFetchEnvelope(
             envelope: envelope,
             fromDeviceId: peripheral.identifier.uuidString,
             beacon: pending.beacon,
@@ -341,10 +341,10 @@ extension MessageAdvertisementObserver: MeshxFetchGattClientDelegate {
         )
     }
 
-    public func meshxFetchDidFail(
+    public func fetchDidFail(
         reason: String,
         detail: String?,
-        request: MeshxFetchProtocol.Request
+        request: FetchProtocol.Request
     ) {
         // Find the peripheral whose in-flight client matched this request.
         // We key by peripheral.identifier on the dictionary; iterate to find.
@@ -352,7 +352,7 @@ extension MessageAdvertisementObserver: MeshxFetchGattClientDelegate {
         if let (id, _) = entry {
             fetchInFlight.removeValue(forKey: id)
             if let pending = pendingBeacons.removeValue(forKey: id) {
-                delegate?.meshxMessageObserverDidFailFetch(
+                delegate?.messageObserverDidFailFetch(
                     reason: reason,
                     detail: detail,
                     fromDeviceId: id.uuidString,
@@ -364,7 +364,7 @@ extension MessageAdvertisementObserver: MeshxFetchGattClientDelegate {
 }
 
 extension MessageAdvertisementObserver {
-    fileprivate func rememberBeacon(_ beacon: MeshxLegacyBeaconAdvertisement, rssi: Int) {
+    fileprivate func rememberBeacon(_ beacon: LegacyBeaconAdvertisement, rssi: Int) {
         let now = Date()
         recentBeacons.append((beacon, rssi, now))
         // Cheap GC: drop entries older than dedup TTL.
@@ -387,12 +387,12 @@ extension MessageAdvertisementObserver {
         }
         fetchedHashes[recent.beacon.messageIdHash] = now
 
-        let request = MeshxFetchProtocol.Request(
+        let request = FetchProtocol.Request(
             requestId: UUID().uuidString,
             messageIdHash: recent.beacon.messageIdHash,
             requesterPeerId: requesterPeerId
         )
-        let client = MeshxFetchGattClient(
+        let client = FetchGattClient(
             central: central,
             peripheral: peripheral,
             request: request
@@ -406,11 +406,11 @@ extension MessageAdvertisementObserver {
     }
 }
 
-extension MeshxFetchGattClient {
+extension FetchGattClient {
     /// Used by the observer to find which in-flight client a delegate
     /// callback belongs to. Exposed via this extension so we don't have
     /// to add a `request` accessor to the public API.
-    fileprivate func matches(request other: MeshxFetchProtocol.Request) -> Bool {
+    fileprivate func matches(request other: FetchProtocol.Request) -> Bool {
         return request.requestId == other.requestId
     }
 }

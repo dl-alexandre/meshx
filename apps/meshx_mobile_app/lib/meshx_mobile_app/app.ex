@@ -4,7 +4,18 @@ defmodule MeshxMobileApp.App do
 
   The app shell is Mob-first: UI and session state live in Elixir on the
   device, while platform BLE is provided by a native bridge behind
-  `MeshxMobileApp.NativeBridge`.
+  `MeshxMobileApp.NativeBridge` (legacy) or the recommended `mob_ble`
+  plugin path.
+
+  ## Recommended production BLE path (Phase 2 default)
+  The `mob_ble` transport wiring (via `Mob.Ble.Bridge` / `Mob.Ble.MobileBridge`
+  + `MeshxTransportBLE`) is now the default. It is enabled unless
+  `MOB_BLE_TRANSPORT=0` is set (for legacy transition). See
+  `maybe_start_mob_ble_transport/0`, `Mob.Ble.bridge_module/0`, and
+  `docs/mob_ble_bridge_migration.md`.
+
+  The legacy `NativeBridge` flow remains available for backward compatibility
+  during the cutover window.
   """
 
   use Mob.App
@@ -23,7 +34,49 @@ defmodule MeshxMobileApp.App do
     start_ble_observability()
     maybe_start_distribution()
     maybe_start_ble_self_test()
+    maybe_start_mob_ble_transport()
+    maybe_start_mob_ble_self_test()
     Mob.Screen.start_root(MeshxMobileApp.HomeScreen)
+  end
+
+  # Wiring of the recommended `mob_ble` plugin into the runtime BLE transport
+  # (via the canonical `Mob.Ble.Bridge` behaviour).
+  #
+  # Default: ON (strongly recommended production path post-Phase 2).
+  # The `mob_ble` path starts `MeshxTransportBLE` with `Mob.Ble.bridge_module()`
+  # (i.e. `Mob.Ble.MobileBridge`). This routes native events (decoded via
+  # `Mob.Ble.Internal.BridgeProtocol`) as canonical `{:meshx_transport, :ble, _}`
+  # tuples into the MeshX runtime.
+  #
+  # NIF ownership: `MobileBridge` registers as the `:mob_ble_nif` callback owner.
+  # Only one owner may be active; the legacy NativeBridge self-test/dispatch
+  # paths must not contend for the same NIF when this path is active.
+  #
+  # Opt-out (legacy transition): set `MOB_BLE_TRANSPORT=0` to skip this and
+  # fall back to pre-migration NativeBridge wiring.
+  #
+  # See: `Mob.Ble.bridge_module/0`, `docs/mob_ble_bridge_migration.md`,
+  # `apps/mob_ble/lib/mob/ble/mobile_bridge.ex`, wiring test.
+  defp maybe_start_mob_ble_transport do
+    if System.get_env("MOB_BLE_TRANSPORT") == "0" do
+      Logger.info("meshx_mobile_app: mob_ble transport skipped (MOB_BLE_TRANSPORT=0; legacy path active)")
+      :ok
+    else
+      local_name = System.get_env("MOB_BLE_LOCAL_NAME") || "meshx-mobile"
+
+      case MeshxTransportBLE.start_link(
+             bridge: Mob.Ble.bridge_module(),
+             bridge_opts: [local_name: local_name]
+           ) do
+        {:ok, _pid} ->
+          Logger.info(
+            "meshx_mobile_app: mob_ble transport up (bridge=#{inspect(Mob.Ble.bridge_module())})"
+          )
+
+        other ->
+          Logger.warning("meshx_mobile_app: mob_ble transport not started: #{inspect(other)}")
+      end
+    end
   end
 
   # Best-effort in-process BLE observability surface. Started before any
@@ -43,17 +96,54 @@ defmodule MeshxMobileApp.App do
     end
   end
 
-  # Headless BLE bring-up probe — only when MESHX_BLE_SELFTEST is set
+  # Headless BLE bring-up probe (legacy path) — only when MESHX_BLE_SELFTEST is set
   # (Android launcher derives it from the `meshx_ble_selftest` intent
-  # extra). Drives the real meshx_ble_nif scan+advertise path so two
+  # extra). Drives the real mob_ble_nif scan+advertise path so two
   # devices can be checked for mutual discovery from `adb logcat`.
+  #
+  # When the default `mob_ble` transport is active, prefer `MOB_BLE_SELFTEST=1`
+  # + `Mob.Ble.SelfTest` (see `maybe_start_mob_ble_self_test/0`) to avoid
+  # NIF owner contention.
   defp maybe_start_ble_self_test do
     if System.get_env("MESHX_BLE_SELFTEST") in [nil, ""] do
       :ok
     else
-      case MeshxMobileApp.BleSelfTest.start_link([]) do
-        {:ok, _pid} -> Logger.info("meshx_mobile_app: BLE self-test started")
+      # When the new mob_ble path is the default (MOB_BLE_TRANSPORT != "0"),
+      # start the legacy heavy selftest in passive mode. This activates the
+      # native?: false guard, avoids NIF contention with MobileBridge, and
+      # lets the tuple handlers receive events if the selftest is later wired
+      # as an extra event_target. The lean Mob.Ble.SelfTest remains preferred
+      # for routine mob-default validation.
+      mob_default = System.get_env("MOB_BLE_TRANSPORT") != "0"
+      opts = if mob_default, do: [native?: false], else: []
+      case MeshxMobileApp.BleSelfTest.start_link(opts) do
+        {:ok, _pid} -> Logger.info("meshx_mobile_app: BLE self-test started (native?=#{not mob_default})")
         other -> Logger.warning("meshx_mobile_app: BLE self-test not started: #{inspect(other)}")
+      end
+    end
+  end
+
+  # Headless on-device BLE bring-up probe for the *recommended* `mob_ble`
+  # path. Started when `MOB_BLE_SELFTEST=1` (or `MOB_BLE_SELFTEST` truthy).
+  #
+  # Uses `Mob.Ble.SelfTest` (the plugin-owned probe) which registers
+  # directly with `:mob_ble_nif` via `Mob.Ble.MobileBridge` semantics and
+  # logs under `MobBleSelfTest`. This is the companion to the transport
+  # wiring and is the primary self-test when `mob_ble` is the active path
+  # (the default).
+  #
+  # See `apps/mob_ble/lib/mob/ble/self_test.ex` and its moduledoc for the
+  # exact contract and when to use vs. the legacy `MESHX_BLE_SELFTEST` probe.
+  defp maybe_start_mob_ble_self_test do
+    if System.get_env("MOB_BLE_SELFTEST") in [nil, ""] do
+      :ok
+    else
+      case Mob.Ble.SelfTest.start_link([]) do
+        {:ok, _pid} ->
+          Logger.info("meshx_mobile_app: Mob.Ble.SelfTest started (mob_ble path)")
+
+        other ->
+          Logger.warning("meshx_mobile_app: Mob.Ble.SelfTest not started: #{inspect(other)}")
       end
     end
   end
@@ -78,12 +168,12 @@ defmodule MeshxMobileApp.App do
   defp configure_native_bridge do
     case :mob_nif.platform() do
       :ios ->
-        if ble_nif_available?() do
+        if ble_nif_available?(:meshx_ble_nif) do
           Application.put_env(:meshx_mobile_app, :native_bridge, MeshxMobileApp.NativeBridge.IOS)
         end
 
       :android ->
-        if ble_nif_available?() do
+        if ble_nif_available?(:mob_ble_nif) do
           Application.put_env(
             :meshx_mobile_app,
             :native_bridge,
@@ -96,11 +186,8 @@ defmodule MeshxMobileApp.App do
     end
   end
 
-  # Both platform bridges sit behind the same `:meshx_ble_nif` Erlang
-  # surface — statically linked on iOS, JNI-backed on Android — so the
-  # availability probe is shared.
-  defp ble_nif_available? do
-    match?({:module, :meshx_ble_nif}, Code.ensure_loaded(:meshx_ble_nif))
+  defp ble_nif_available?(module) do
+    match?({:module, ^module}, Code.ensure_loaded(module))
   end
 
   defp start_meshx_runtime do

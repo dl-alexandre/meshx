@@ -1,5 +1,42 @@
 # BLE Native Bridge Guide
 
+> **Production mobile path (recommended).** Depend on `mob_ble` and use
+> `Mob.Ble.Bridge` / `Mob.Ble.MobileBridge` (canonical behaviour owned by
+> the `mob_ble` Hex package). See the `mob_ble` README, `Mob.Ble` moduledoc,
+> and `Mob.Ble.Bridge` moduledoc for the full contract, carrier policy,
+> and plugin activation.
+>
+> The `MeshxTransportBLE.Bridge` behaviour documented below is the
+> equivalent contract for the MeshX transport adapter and for writing
+> custom (e.g. desktop BlueZ) bridges. It is kept in sync with `Mob.Ble.Bridge`
+> (see CONTRACT SYNC markers in both behaviour files and
+> `docs/mob_ble_bridge_migration.md`).
+>
+> Quick wire from a Mob app (using the canonical mobile implementation):
+>
+> ```elixir
+> # config
+> config :mob, :plugins, [:mob_ble]
+> config :mob_ble, config: [evidence_mode: :production]
+>
+> # at boot (see MeshxMobileApp.App.maybe_start_mob_ble_transport/0)
+> {:ok, _} =
+>   MeshxTransportBLE.start_link(
+>     bridge: Mob.Ble.bridge_module(),
+>     bridge_opts: [local_name: "my-device"]
+>   )
+> ```
+>
+> Carrier policy is opaque: only `:mb_gatt` is accepted; anything else
+> raises `Mob.Ble.CarrierRejectedError` at `start_link`. See
+> `Mob.Ble.Diagnostics.rejected_carriers/0` for the evidence trail.
+>
+> > The rest of this document describes the `MeshxTransportBLE` adapter
+> > and `MeshxTransportBLE.Bridge` contract in detail. Read it when writing
+> > a *different* native backend (e.g. desktop BlueZ) or debugging a
+> > custom MeshX transport — not when integrating BLE into a pure `mob`
+> > mobile app.
+
 `meshx_transport_ble` is the supported integration path for platform BLE code.
 The Elixir side owns normalization into MeshX transport events; platform code
 owns BLE scanning, advertising, GATT, MTU, background behavior, and OS
@@ -280,34 +317,21 @@ through the full-MX path, lift `sendFullMxEnvelope` to a JNI method and
 add a matching NIF entry point (`meshx_ble_send_full_mx_envelope`).
 Until then, the JNI surface stays MB-only for backwards compatibility.
 
-### Build system note: vendored-dep patches
+### Build system note: vendored-dep patches (historical)
 
-The iOS production app's Swift package (`meshx_mobile/Sources/MeshxMobile/*.swift`,
-including `MessageAdvertisementObserver`, `MeshxFetchGatt*`, etc.) and the
-`meshx_ble_nif` statically-linked NIF require additions to two vendored
-deps that `mix mob.deploy --native` consumes:
+These iOS additions (MeshxMobile Swift protocol sources + `meshx_ble_nif` /
+`mob_ble_nif` static NIF registration) were previously carried as downstream
+patches applied by `mix meshx.patch_deps` (wired into `deps.*` aliases).
 
-- `deps/mob_dev/lib/mob_dev/native_build.ex` — the `build_device.sh` heredoc
-  template needs the extra Swift files in the `swiftc` arg list, a
-  `meshx_ble_nif.m` compile step, and a `meshx_ble_nif.o` entry in the link
-  step.
-- `deps/mob/ios/driver_tab_ios.c` — the `erts_static_nif_tab[]` needs an
-  entry for `meshx_ble_nif_nif_init`, otherwise `erlang:load_nif/2` cannot
-  find the statically-linked init function and the NIF silently fails to load.
+Post-`GenericJam/mob_dev#6` + `mob_new#5` migration, use the official upstream
+keys in `apps/meshx_mobile_app/mob.exs` under `config :mob_dev`:
 
-These additions are carried as standard unified-diff `.patch` files in
-`patches/` at the repo root and applied automatically by
-`mix meshx.patch_deps`, which is wired into the `deps.get` /
-`deps.update` / `deps.compile` aliases in
-`apps/meshx_mobile_app/mix.exs`. The task uses `git apply` and is
-idempotent (skips patches whose reverse-apply succeeds, i.e.
-already-applied). See `apps/meshx_mobile_app/CONTRIBUTING.md` for the
-developer workflow and `patches/README.md` for the patch authoring
-convention.
+- `:ios_swift_sources` (the 14 project `.swift` paths)
+- `:static_nifs` (for `:mob_ble_nif`, etc.)
 
-If the upstream `mob_dev` / `mob` ever accept these additions (or grow proper
-extension points so projects can register their own Swift sources / NIFs),
-the task, the patches, and the aliases can be removed.
+See `docs/upstream_mob_migration_checklist.md` for the removal of the patches,
+task, and aliases, plus verification steps. Historical patch diffs and the
+prior version of this note remain in git.
 
 ### Extended-advertising AUX delivery limitation
 

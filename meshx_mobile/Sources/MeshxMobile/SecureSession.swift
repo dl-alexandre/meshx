@@ -1,10 +1,10 @@
 import Foundation
 
-public enum MeshxSecureSessionError: Error, Equatable {
+public enum SecureSessionError: Error, Equatable {
     case trailingBytes
 }
 
-public enum MeshxSecureSessionEvent: Equatable {
+public enum SecureSessionEvent: Equatable {
     case outgoingFrame(Data)
     case established(remoteStaticKey: Data?)
     case applicationFrame(Data)
@@ -15,7 +15,7 @@ public enum MeshxSecureSessionEvent: Equatable {
 /// Handshake messages travel as `MXN1`-wrapped `control` packets. Once Noise is
 /// established, encrypted `data` packet payloads are decrypted and re-emitted as
 /// normal MeshX frames with the `.encrypted` flag cleared.
-public final class MeshxSecureSession {
+public final class SecureSession {
     public let noiseSession: NoiseSession
 
     public var isEstablished: Bool {
@@ -41,9 +41,9 @@ public final class MeshxSecureSession {
         return try Self.handshakeFrame(message, msgId: msgId, ttl: ttl)
     }
 
-    public func receive(frame: Data, replyMsgId: UInt32, replyTTL: UInt8 = 64) throws -> [MeshxSecureSessionEvent] {
+    public func receive(frame: Data, replyMsgId: UInt32, replyTTL: UInt8 = 64) throws -> [SecureSessionEvent] {
         let (packet, rest) = try Frame.decode(frame)
-        guard rest.isEmpty else { throw MeshxSecureSessionError.trailingBytes }
+        guard rest.isEmpty else { throw SecureSessionError.trailingBytes }
 
         if packet.type == .control, let handshakeMessage = try? unwrapHandshakePayload(packet.payload) {
             return try receiveHandshake(handshakeMessage, replyMsgId: replyMsgId, replyTTL: replyTTL)
@@ -68,10 +68,10 @@ public final class MeshxSecureSession {
         return try Frame.encode(encryptedPacket)
     }
 
-    private func receiveHandshake(_ message: Data, replyMsgId: UInt32, replyTTL: UInt8) throws -> [MeshxSecureSessionEvent] {
+    private func receiveHandshake(_ message: Data, replyMsgId: UInt32, replyTTL: UInt8) throws -> [SecureSessionEvent] {
         try noiseSession.handshakeReceive(message)
 
-        var events: [MeshxSecureSessionEvent] = []
+        var events: [SecureSessionEvent] = []
         if let reply = try noiseSession.handshakeSend() {
             events.append(.outgoingFrame(try Self.handshakeFrame(reply, msgId: replyMsgId, ttl: replyTTL)))
         }

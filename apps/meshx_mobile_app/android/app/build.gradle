@@ -13,26 +13,11 @@ if (localPropsFile.exists()) localProps.load(localPropsFile.newDataInputStream()
 def mobOtpRelease     = localProps.getProperty('mob.otp_release',      System.getenv('MOB_ANDROID_OTP_RELEASE')      ?: '')
 def mobOtpReleaseArm32 = localProps.getProperty('mob.otp_release_arm32', System.getenv('MOB_ANDROID_OTP_RELEASE_ARM32') ?: mobOtpRelease)
 def mobDir             = localProps.getProperty('mob.mob_dir',           System.getenv('MOB_DIR')                       ?: '')
-
-// ── Dev opt-in: full MX envelope send path ───────────────────────────────────
-// Default false (shipping behavior = 22-byte MB legacy beacon, fleet-safe
-// for API 28 hardware). Flip to true to make MeshxBleNative.sendToPeer
-// route through MeshxFetchGatt (full MX envelope + connectable GATT
-// fetch responder). Intended for development & cross-platform iOS
-// integration testing only; the BuildConfig constant lets R8 strip the
-// MX branch from release builds.
-//
-// Set via either:
-//   - android/local.properties:  meshx.mx.send=true
-//   - environment variable:      MESHX_MX_SEND=true ./gradlew assembleDebug
-//
-// Hard-gated below: enabling for a release build type is a build-time
-// error, so the flag cannot accidentally leak into shipping artifacts.
-def useFullMxEnvelopes = (
-    localProps.getProperty('meshx.mx.send')
-        ?: System.getenv('MESHX_MX_SEND')
-        ?: 'false'
-).toLowerCase() in ['true', '1', 'yes', 'on']
+def generatedPluginNativeLinkFile = file("${projectDir}/../../priv/generated/android_plugins/native_link.properties")
+def mobAndroidPluginNativeLinkFile = localProps.getProperty(
+    'mob.android_plugin_native_link_file',
+    System.getenv('MOB_ANDROID_PLUGIN_NATIVE_LINK_FILE') ?: generatedPluginNativeLinkFile.absolutePath
+)
 
 // Auto-detect ERTS version from the OTP release directory (arm64 is canonical).
 def ertsVsn = new File(mobOtpRelease).listFiles()
@@ -60,7 +45,7 @@ android {
         // advert smoke test (app/src/androidTest/.../MXFullEnvelopeSmokeTest.kt).
         // Drive via:
         //   adb shell am instrument -w \
-        //     -e class dev.meshx.mob.ble.MXFullEnvelopeSmokeTest \
+        //     -e class mob.ble.MXFullEnvelopeSmokeTest \
         //     dev.meshx.mob.test/androidx.test.runner.AndroidJUnitRunner
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
@@ -72,7 +57,8 @@ android {
                           "-DOTP_RELEASE=${mobOtpRelease}",
                           "-DOTP_RELEASE_ARM32=${mobOtpReleaseArm32}",
                           "-DERTS_VSN=${ertsVsn}",
-                          "-DMOB_DIR=${mobDir}"
+                          "-DMOB_DIR=${mobDir}",
+                          "-DMOB_ANDROID_PLUGIN_NATIVE_LINK_FILE=${mobAndroidPluginNativeLinkFile}"
             }
         }
     }
@@ -86,10 +72,6 @@ android {
 
     buildFeatures {
         compose true
-        // Generates BuildConfig.java with the fields injected per build
-        // type below (USE_FULL_MX_ENVELOPES). Compile-time constants let
-        // R8 dead-strip the unused branch from release builds.
-        buildConfig true
     }
 
     composeOptions {
@@ -103,18 +85,9 @@ android {
     buildTypes {
         release {
             minifyEnabled false
-            // Release builds never carry the dev MX flag. The
-            // buildConfigField is hard-coded false here regardless of
-            // local.properties / env var. The release-task guard
-            // below additionally rejects an attempt to assemble a
-            // release while the flag is set, so a forgotten flag fails
-            // loudly at build time rather than ending up as confusing
-            // shipped behavior.
-            buildConfigField "boolean", "USE_FULL_MX_ENVELOPES", "false"
         }
         debug {
             jniDebuggable true
-            buildConfigField "boolean", "USE_FULL_MX_ENVELOPES", "${useFullMxEnvelopes}"
         }
     }
 
@@ -130,27 +103,14 @@ android {
     }
 }
 
-// Release-build guard for the dev MX flag. Hooks into any task whose
-// name starts with `assembleRelease` (or bundles), executing the check
-// at task-run time rather than configuration time so unrelated
-// commands like `assembleDebug` aren't blocked when the flag is set.
-tasks.matching { it.name.startsWith('assembleRelease') || it.name.startsWith('bundleRelease') }.configureEach {
-    doFirst {
-        if (useFullMxEnvelopes) {
-            throw new GradleException(
-                "meshx.mx.send=true is incompatible with the release build. " +
-                "Remove the flag from android/local.properties (or unset MESHX_MX_SEND) " +
-                "before building release. See apps/meshx_mobile_app/CONTRIBUTING.md."
-            )
-        }
-    }
-}
-
 dependencies {
+    implementation project(':mob_ble_android')
+
     // The BLE Kotlin layer ships unit tests (FakeBleBridge, BleScanner,
-    // MeshxMessageEnvelope, etc.) on JUnit 4 — the mix mob.new template
+    // MobMessageEnvelope, etc.) on JUnit 4 — the mix mob.new template
     // doesn't carry these testImplementation deps so wire them explicitly.
     testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.json:json:20240303'
 
     // Instrumented tests (app/src/androidTest/). Used by
     // MXFullEnvelopeSmokeTest to drive a real MX-envelope advert from

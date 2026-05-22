@@ -5,13 +5,10 @@
 hardware_artifact_manifests =
   "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/focused-remaining-items-audit.json"
 
-repo_root =
-  case File.cwd!() do
-    cwd ->
-      if String.ends_with?(cwd, "/apps/meshx_mobile_app"),
-        do: Path.expand("../..", cwd),
-        else: cwd
-  end
+# Robust repo root detection via __DIR__ (test/ is 3 levels under repo root).
+# This works regardless of current working directory (mix test from root vs. app dir,
+# symlinks, CI, unusual shells, etc.) unlike the previous cwd-ends-with heuristic.
+repo_root = Path.expand("../../../", __DIR__)
 
 exclude =
   if File.exists?(Path.join(repo_root, hardware_artifact_manifests)) do

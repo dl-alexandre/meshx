@@ -70,6 +70,18 @@ SM=R52W90AW7EN  # or 5200f354f4fb277f
 adb -s $SM shell am start -n dev.meshx.mob/.MainActivity \
   --ez meshx_ble_selftest true --es mob_node_suffix lab
 
+# Receive-side MB+GATT selftest (clean positive-evidence mode)
+adb -s $SM shell am start -n dev.meshx.mob/.MainActivity \
+  --ez meshx_ble_selftest true \
+  --ez meshx_ble_selftest_send false \
+  --ez meshx_ble_fetch_on_beacon true \
+  --es mob_node_suffix lab
+
+# T390 bench pre-flight: keep API 28 device awake or scans can register
+# while selftest receives zero callbacks.
+adb -s 5200f354f4fb277f shell input keyevent WAKEUP
+adb -s 5200f354f4fb277f shell svc power stayon true
+
 # Instrumented hybrid receive test (direct)
 adb -s $SM shell am instrument -w \
   -e class dev.meshx.mob.ble.IOSHybridDirectMxReceiveTest \
@@ -153,9 +165,20 @@ grep -cE "kCBAdvDataManufacturerData=ffff" $ROOT/ios/*.log
 
 ## Gotchas
 
-- **SM-T390 (Android 9):** `GrantPermissionRule` fails on API 28; the
-  Hybrid receive test never reaches BLE logic. Run instrumented tests
-  on SM-T577U only; use main-app selftest path for T390 fleet coverage.
+- **SM-T390 (Android 9 / API 28):** Previously `GrantPermissionRule` failed
+  for post-31 Bluetooth perms and instrumented tests (IOSHybrid*, AUX, Responder,
+  MXEnvelope) never reached BLE. Fixed by version-aware permission shim in the
+  four `*Test.kt` files (conditional legacy BT + FINE_LOCATION for <31). The
+  tests now run on the full minSdk=28 fleet. Still prefer the main-app
+  `meshx_ble_selftest` path (see "Main app with selftest" recipe) for T390
+  production scanner confidence and positive MB+GATT evidence runs, as it
+  exercises the exact shipping `BleScanner` + bridge code.
+- **T390 awake requirement:** For API 28 bench captures, run
+  `adb -s 5200f354f4fb277f shell input keyevent WAKEUP` and
+  `adb -s 5200f354f4fb277f shell svc power stayon true` before starting
+  selftest. A dozing T390 diagnostic registered the scan but delivered
+  no selftest callbacks; the awake run produced the positive MB+GATT
+  evidence in `artifacts/local-ble/2026-05-18-recapture-18-android-mb-gatt-t390-awake/`.
 - **iOS scan-side restriction:** `scanForPeripherals(withServices: nil)`
   excludes extended adverts on custom 128-bit UUIDs. iPhone will never
   see the direct-MX `…1001` envelope; only the MB cue. This is by design
@@ -181,3 +204,77 @@ grep -cE "kCBAdvDataManufacturerData=ffff" $ROOT/ios/*.log
   template, e.g. `recapture-4-reverse/evidence/...`).
 - `git status` — only stage non-artifact changes outside `local-ble/`.
 - (Cleanup done: no more DIAG/setLegacy bits to strip from test or BleScanner hybrid path.)
+
+## Quick focused T390 (SM-T390 / API 28) MB+GATT positive evidence capture
+
+For clean release-bundle evidence of the supported production path on
+the older device. The archived positive run used Android-only hardware:
+SM-T577U emitted MB legacy cues and served the full envelope over GATT;
+SM-T390 observed and fetched via the main-app production path.
+
+1. Fresh full-MX debug build + install on both Androids:
+   ```sh
+   cd apps/meshx_mobile_app/android
+   MESHX_MX_SEND=true ./gradlew :app:assembleDebug
+   adb -s R52W90AW7EN install -r app/build/outputs/apk/debug/app-debug.apk
+   adb -s 5200f354f4fb277f install -r app/build/outputs/apk/debug/app-debug.apk
+   ```
+2. Create dated capture dir + copy the canonical helper:
+   ```sh
+   RUN_TS=$(date +%Y%m%d-%H%M%S)
+   ROOT=artifacts/local-ble/$(date +%Y-%m-%d)-t390-android-mb-gatt
+   mkdir -p $ROOT/{t390-rx,t577u-tx}
+   cp scripts/capture-hybrid-run.sh scripts/verify-t390-gatt-capture.sh $ROOT/t390-rx/
+   cp scripts/capture-hybrid-run.sh scripts/verify-t390-gatt-capture.sh $ROOT/t577u-tx/
+   ```
+3. Keep T390 awake:
+   ```sh
+   adb -s 5200f354f4fb277f shell input keyevent WAKEUP
+   adb -s 5200f354f4fb277f shell svc power stayon true
+   ```
+4. Start the T390 receiver capture (terminal A):
+   ```sh
+   cd $ROOT/t390-rx
+   ./capture-hybrid-run.sh --serial 5200f354f4fb277f --run-ts $RUN_TS \
+     --selftest --duration 120 --selftest-send false --node-suffix t390
+   ```
+5. Start the T577U sender capture (terminal B):
+   ```sh
+   cd $ROOT/t577u-tx
+   ./capture-hybrid-run.sh --serial R52W90AW7EN --run-ts $RUN_TS \
+     --selftest --duration 120 --selftest-send true --node-suffix t577u
+   ```
+
+6. Success looks like (in `t390-rx/android/*-logcat.log`):
+   - `BleSelfTest: HEARTBEAT events=... devices=1 ... beacon_callbacks=NN ...`
+   - `BleSelfTest: DISTINCT MESH MESSAGE kind=beacon ...`
+   - `MeshxBeaconFetch: fetch_start device_id=... message_id_hash=...`
+   - `MeshxBleFetch {"v":1,"event":"fetch_connect_result"...}`
+   - `MeshxBleFetch {"v":1,"event":"fetch_service_discovery_result"... "service_found":true}`
+   - `MeshxBleFetch {"v":1,"event":"fetch_response_received"... "status":"ok", "envelope_parse":"ok"}`
+   - `BleSelfTest: DISTINCT MESH MESSAGE kind=envelope ... from=meshx-t577u`
+
+7. Validate:
+   ```sh
+   cd $ROOT/t390-rx
+   ./verify-t390-gatt-capture.sh $RUN_TS .
+   ```
+   The known-good archive is
+   `artifacts/local-ble/2026-05-18-recapture-18-android-mb-gatt-t390-awake/`.
+
+The Android app seeds `TMPDIR` to an app-writable cache directory before BEAM
+startup, so `MeshxStore.DB` should not fail through `System.tmp_dir!/0` on
+API 28. If that error appears in logcat, rebuild and reinstall before rerunning.
+
+This is the minimal lab block for T390; prefers the exact shipping
+BleScanner + fetch coordinator path over instrumented tests (which
+still exercise the shim on API 28).
+
+### One-shot post-run validation
+
+After the run, validate key signals quickly:
+
+```sh
+./scripts/verify-t390-gatt-capture.sh 20260518-164256 \
+  artifacts/local-ble/2026-05-18-recapture-7-t390-gatt
+```

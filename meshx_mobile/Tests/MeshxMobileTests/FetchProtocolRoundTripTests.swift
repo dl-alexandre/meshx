@@ -4,10 +4,10 @@ import XCTest
 /// Pure-protocol round-trip tests for the MFQ/MFR wire format —
 /// no CoreBluetooth, no devices required.
 ///
-/// These prove the encode/decode pairs in `MeshxFetchProtocol` are
+/// These prove the encode/decode pairs in `FetchProtocol` are
 /// inverses of each other and that the responder's
 /// `MeshxFetchGattResponder` (when given a parsed request) prepares
-/// bytes the client's `MeshxFetchGattClient` can correctly decode.
+/// bytes the client's `FetchGattClient` can correctly decode.
 ///
 /// Hardware-level GATT delivery is exercised by the Android
 /// `MXFullEnvelopeSmokeTest`; these JVM-free unit tests catch
@@ -41,79 +41,79 @@ final class FetchProtocolRoundTripTests: XCTestCase {
     }
 
     func testRequestEncodeDecodeRoundTrip() {
-        let original = MeshxFetchProtocol.Request(
+        let original = FetchProtocol.Request(
             requestId: "abc-123",
             messageIdHash: Data([0xA1, 0xB2, 0xC3, 0xD4, 0xE5, 0xF6, 0x07, 0x18]),
             requesterPeerId: "meshx-ios-test"
         )
 
-        let encoded = MeshxFetchProtocol.encodeRequest(original)
+        let encoded = FetchProtocol.encodeRequest(original)
         XCTAssertNotNil(encoded)
-        let decoded = MeshxFetchProtocol.decodeRequest(encoded!)
+        let decoded = FetchProtocol.decodeRequest(encoded!)
         XCTAssertEqual(decoded, original)
     }
 
     func testRequestEncodeRoundTripWithNoRequesterPeerId() {
-        let original = MeshxFetchProtocol.Request(
+        let original = FetchProtocol.Request(
             requestId: "x",
             messageIdHash: Data(repeating: 0, count: 8),
             requesterPeerId: nil
         )
 
-        let encoded = MeshxFetchProtocol.encodeRequest(original)
+        let encoded = FetchProtocol.encodeRequest(original)
         XCTAssertNotNil(encoded)
-        let decoded = MeshxFetchProtocol.decodeRequest(encoded!)
+        let decoded = FetchProtocol.decodeRequest(encoded!)
         XCTAssertEqual(decoded, original)
     }
 
     func testResponseOkEncodeDecodeRoundTrip() {
         let envelope = Data(repeating: 0xEE, count: 82)
-        let original = MeshxFetchProtocol.Response(
+        let original = FetchProtocol.Response(
             requestId: "req-1",
             messageIdHash: Data([0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08]),
-            status: MeshxFetchProtocol.statusOK,
+            status: FetchProtocol.statusOK,
             envelope: envelope,
             reason: nil
         )
 
-        let encoded = MeshxFetchProtocol.encodeResponse(original)
-        let decoded = MeshxFetchProtocol.decodeResponse(encoded)
+        let encoded = FetchProtocol.encodeResponse(original)
+        let decoded = FetchProtocol.decodeResponse(encoded)
         XCTAssertEqual(decoded?.requestId, original.requestId)
         XCTAssertEqual(decoded?.messageIdHash, original.messageIdHash)
-        XCTAssertEqual(decoded?.status, MeshxFetchProtocol.statusOK)
+        XCTAssertEqual(decoded?.status, FetchProtocol.statusOK)
         XCTAssertEqual(decoded?.envelope, envelope)
     }
 
     func testResponseNotFoundEncodeDecodeRoundTrip() {
-        let original = MeshxFetchProtocol.Response(
+        let original = FetchProtocol.Response(
             requestId: "req-2",
             messageIdHash: Data(repeating: 0xAA, count: 8),
-            status: MeshxFetchProtocol.statusNotFound,
+            status: FetchProtocol.statusNotFound,
             envelope: nil,
             reason: "not_found"
         )
 
-        let encoded = MeshxFetchProtocol.encodeResponse(original)
-        let decoded = MeshxFetchProtocol.decodeResponse(encoded)
+        let encoded = FetchProtocol.encodeResponse(original)
+        let decoded = FetchProtocol.decodeResponse(encoded)
         XCTAssertEqual(decoded?.requestId, original.requestId)
         XCTAssertEqual(decoded?.messageIdHash, original.messageIdHash)
-        XCTAssertEqual(decoded?.status, MeshxFetchProtocol.statusNotFound)
+        XCTAssertEqual(decoded?.status, FetchProtocol.statusNotFound)
         XCTAssertNil(decoded?.envelope)
         XCTAssertEqual(decoded?.reason, "not_found")
     }
 
     func testDecodeRequestRejectsTruncatedInput() {
-        XCTAssertNil(MeshxFetchProtocol.decodeRequest(Data()))
-        XCTAssertNil(MeshxFetchProtocol.decodeRequest(Data([0x4D, 0x46])))
+        XCTAssertNil(FetchProtocol.decodeRequest(Data()))
+        XCTAssertNil(FetchProtocol.decodeRequest(Data([0x4D, 0x46])))
         // Wrong magic
-        XCTAssertNil(MeshxFetchProtocol.decodeRequest(
+        XCTAssertNil(FetchProtocol.decodeRequest(
             Data([0xFF, 0xFF, 0xFF, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])
         ))
     }
 
     func testDecodeResponseRejectsTruncatedInput() {
-        XCTAssertNil(MeshxFetchProtocol.decodeResponse(Data()))
-        XCTAssertNil(MeshxFetchProtocol.decodeResponse(Data([0x4D, 0x46, 0x52])))
+        XCTAssertNil(FetchProtocol.decodeResponse(Data()))
+        XCTAssertNil(FetchProtocol.decodeResponse(Data([0x4D, 0x46, 0x52])))
     }
 
     func testResponderRefusesInvalidEnvelopeAtInit() {
@@ -146,18 +146,18 @@ final class FetchProtocolRoundTripTests: XCTestCase {
             envelope: envelope,
             responderPeerId: "ios-responder"
         )
-        let request = MeshxFetchProtocol.Request(
+        let request = FetchProtocol.Request(
             requestId: "req-ok",
             messageIdHash: beacon.messageIdHash,
             requesterPeerId: "android-client"
         )
 
-        let prepared = responder.prepareResponse(for: try XCTUnwrap(MeshxFetchProtocol.encodeRequest(request)))
-        let decoded = MeshxFetchProtocol.decodeResponse(prepared.encoded)
+        let prepared = responder.prepareResponse(for: try XCTUnwrap(FetchProtocol.encodeRequest(request)))
+        let decoded = FetchProtocol.decodeResponse(prepared.encoded)
 
         XCTAssertEqual(prepared.request, request)
-        XCTAssertEqual(prepared.response.status, MeshxFetchProtocol.statusOK)
-        XCTAssertEqual(decoded?.status, MeshxFetchProtocol.statusOK)
+        XCTAssertEqual(prepared.response.status, FetchProtocol.statusOK)
+        XCTAssertEqual(decoded?.status, FetchProtocol.statusOK)
         XCTAssertEqual(decoded?.envelope, envelope)
     }
 
@@ -173,19 +173,19 @@ final class FetchProtocolRoundTripTests: XCTestCase {
             envelope: envelope,
             responderPeerId: "ios-responder"
         )
-        let missing = MeshxFetchProtocol.Request(
+        let missing = FetchProtocol.Request(
             requestId: "req-missing",
             messageIdHash: Data(repeating: 0xAA, count: 8),
             requesterPeerId: nil
         )
 
-        let notFound = responder.prepareResponse(for: try XCTUnwrap(MeshxFetchProtocol.encodeRequest(missing)))
-        XCTAssertEqual(notFound.response.status, MeshxFetchProtocol.statusNotFound)
-        XCTAssertEqual(MeshxFetchProtocol.decodeResponse(notFound.encoded)?.reason, "not_found")
+        let notFound = responder.prepareResponse(for: try XCTUnwrap(FetchProtocol.encodeRequest(missing)))
+        XCTAssertEqual(notFound.response.status, FetchProtocol.statusNotFound)
+        XCTAssertEqual(FetchProtocol.decodeResponse(notFound.encoded)?.reason, "not_found")
 
         let invalid = responder.prepareResponse(for: Data([0x00, 0x01]))
-        XCTAssertEqual(invalid.response.status, MeshxFetchProtocol.statusInvalidRequest)
+        XCTAssertEqual(invalid.response.status, FetchProtocol.statusInvalidRequest)
         XCTAssertEqual(invalid.response.requestId, "invalid")
-        XCTAssertEqual(MeshxFetchProtocol.decodeResponse(invalid.encoded)?.reason, "invalid_request")
+        XCTAssertEqual(FetchProtocol.decodeResponse(invalid.encoded)?.reason, "invalid_request")
     }
 }

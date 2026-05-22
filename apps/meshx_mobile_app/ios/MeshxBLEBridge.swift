@@ -1,7 +1,7 @@
 import Foundation
 import CoreBluetooth
 import Security
-// MeshxLegacyBeaconAdvertisement, MeshxBLEClient, MeshxBLEPeripheral,
+// LegacyBeaconAdvertisement, BLEClient, BLEPeripheral,
 // Packet, Frame live in the local meshx_mobile Swift package.
 // Under `xcodebuild`, the Xcode project pulls them in via the
 // MeshxMobile package product (so `import MeshxMobile` is needed).
@@ -15,10 +15,10 @@ import MeshxMobile
 final class MeshxNativeBLEBridge: NSObject {
     static let shared = MeshxNativeBLEBridge()
 
-    private var client: MeshxBLEClient?
-    private var peripheral: MeshxBLEPeripheral?
+    private var client: BLEClient?
+    private var peripheral: BLEPeripheral?
     private var messageObserver: MessageAdvertisementObserver?
-    private var fetchResponder: MeshxFetchGattResponder?
+    private var fetchResponder: FetchGattResponder?
     private var centralPeers = Set<String>()
     private var peripheralPeers = Set<String>()
     private var messageId: UInt32 = 1
@@ -62,7 +62,7 @@ final class MeshxNativeBLEBridge: NSObject {
             }
 
             // No secure GATT-connected peer: publish a full MX envelope
-            // through MeshxFetchGattResponder and advertise an MB beacon
+            // through FetchGattResponder and advertise an MB beacon
             // cue carrying the envelope's messageId hash. This is the
             // iOS counterpart to Android MeshxBleNative.sendFullMxEnvelope.
             dispatchFullEnvelopeBeacon(payload: payload)
@@ -96,14 +96,14 @@ final class MeshxNativeBLEBridge: NSObject {
                 payloadType: "TX",
                 payload: payload
             )
-            let beacon = MeshxLegacyBeaconAdvertisement.build(
+            let beacon = LegacyBeaconAdvertisement.build(
                 messageId: messageId,
                 senderPeerId: localPeerId,
                 payloadKind: "TX"
             )
 
             fetchResponder?.stop()
-            let responder = try MeshxFetchGattResponder(
+            let responder = try FetchGattResponder(
                 envelope: envelope,
                 responderPeerId: localPeerId
             )
@@ -118,10 +118,10 @@ final class MeshxNativeBLEBridge: NSObject {
         }
     }
 
-    private func ensureClient() -> MeshxBLEClient {
+    private func ensureClient() -> BLEClient {
         if let client { return client }
 
-        let client = MeshxBLEClient()
+        let client = BLEClient()
         client.delegate = self
         self.client = client
         return client
@@ -136,10 +136,10 @@ final class MeshxNativeBLEBridge: NSObject {
         return observer
     }
 
-    private func ensurePeripheral() -> MeshxBLEPeripheral {
+    private func ensurePeripheral() -> BLEPeripheral {
         if let peripheral { return peripheral }
 
-        let peripheral = MeshxBLEPeripheral()
+        let peripheral = BLEPeripheral()
         peripheral.delegate = self
         self.peripheral = peripheral
         return peripheral
@@ -175,23 +175,23 @@ final class MeshxNativeBLEBridge: NSObject {
     }
 }
 
-extension MeshxNativeBLEBridge: MeshxBLEClientDelegate {
-    func meshxDidConnect(peerId: String) {
+extension MeshxNativeBLEBridge: BLEClientDelegate {
+    func didConnect(peerId: String) {
         centralPeers.insert(peerId)
         peerId.withCString { meshx_ble_emit_connected($0) }
     }
 
-    func meshxDidDisconnect(peerId: String) {
+    func didDisconnect(peerId: String) {
         centralPeers.remove(peerId)
         peerId.withCString { meshx_ble_emit_disconnected($0) }
     }
 
-    func meshxDidReceive(frame: Data, from peerId: String) {
+    func didReceive(frame: Data, from peerId: String) {
         emitReceived(frame: frame, peerId: peerId)
     }
 
-    func meshxDidObserveLegacyBeacon(
-        _ beacon: MeshxLegacyBeaconAdvertisement,
+    func didObserveLegacyBeacon(
+        _ beacon: LegacyBeaconAdvertisement,
         deviceId: String,
         rssi: Int
     ) {
@@ -216,7 +216,7 @@ extension MeshxNativeBLEBridge: MeshxBLEClientDelegate {
                                         UInt32(beacon.beaconPayload.count),
                                         manufacturerBuffer.bindMemory(to: UInt8.self).baseAddress,
                                         UInt32(beacon.manufacturerData.count),
-                                        UInt32(MeshxLegacyBeaconAdvertisement.manufacturerCompanyIdentifier)
+                                        UInt32(LegacyBeaconAdvertisement.manufacturerCompanyIdentifier)
                                     )
                                 }
                             }
@@ -227,50 +227,50 @@ extension MeshxNativeBLEBridge: MeshxBLEClientDelegate {
         }
     }
 
-    func meshxDidError(_ error: Error) {
+    func didError(_ error: Error) {
         emitError(String(describing: error))
     }
 }
 
-extension MeshxNativeBLEBridge: MeshxBLEPeripheralDelegate {
-    func meshxPeripheralDidStartAdvertising() {
+extension MeshxNativeBLEBridge: BLEPeripheralDelegate {
+    func peripheralDidStartAdvertising() {
         emitStatus("Advertising")
     }
 
-    func meshxPeripheralDidStopAdvertising() {
+    func peripheralDidStopAdvertising() {
         emitStatus("Stopped")
     }
 
-    func meshxPeripheralDidConnect(peerId: String) {
+    func peripheralDidConnect(peerId: String) {
         peripheralPeers.insert(peerId)
         peerId.withCString { meshx_ble_emit_connected($0) }
     }
 
-    func meshxPeripheralDidDisconnect(peerId: String) {
+    func peripheralDidDisconnect(peerId: String) {
         peripheralPeers.remove(peerId)
         peerId.withCString { meshx_ble_emit_disconnected($0) }
     }
 
-    func meshxPeripheralDidReceive(frame: Data, from peerId: String) {
+    func peripheralDidReceive(frame: Data, from peerId: String) {
         emitReceived(frame: frame, peerId: peerId)
     }
 
-    func meshxPeripheralDidError(_ error: Error) {
+    func peripheralDidError(_ error: Error) {
         emitError(String(describing: error))
     }
 }
 
-extension MeshxNativeBLEBridge: MeshxFetchGattResponderDelegate {
-    func meshxFetchResponderDidStart() {
+extension MeshxNativeBLEBridge: FetchGattResponderDelegate {
+    func fetchResponderDidStart() {
         emitStatus("Full envelope responder advertising")
     }
 
-    func meshxFetchResponderDidFail(reason: String) {
+    func fetchResponderDidFail(reason: String) {
         emitError("full envelope responder failed: \(reason)")
     }
 
-    func meshxFetchResponderDidServeRequest(
-        request: MeshxFetchProtocol.Request,
+    func fetchResponderDidServeRequest(
+        request: FetchProtocol.Request,
         status: UInt8
     ) {
         emitStatus("Fetch served \(request.requestId) status=\(status)")
@@ -278,7 +278,7 @@ extension MeshxNativeBLEBridge: MeshxFetchGattResponderDelegate {
 }
 
 extension MeshxNativeBLEBridge: MessageAdvertisementObserverDelegate {
-    func meshxDidObserveReceivedMessage(_ event: ReceivedMessageEvent) {
+    func didObserveReceivedMessage(_ event: ReceivedMessageEvent) {
         let metadata = event.rawTransportMetadata
 
         event.receivedDeviceId.withCString { deviceIdPtr in
@@ -317,24 +317,24 @@ extension MeshxNativeBLEBridge: MessageAdvertisementObserverDelegate {
         }
     }
 
-    func meshxDidObserveMessageDecodeError(_ reason: String, deviceId: String, rssi: Int) {
+    func didObserveMessageDecodeError(_ reason: String, deviceId: String, rssi: Int) {
         emitError("message_advertisement_decode_error[\(deviceId)@\(rssi)]: \(reason)")
     }
 
-    func meshxMessageObserverDidStartScan() {}
+    func messageObserverDidStartScan() {}
 
-    func meshxMessageObserverDidUpdateState(_ state: String) {
+    func messageObserverDidUpdateState(_ state: String) {
         emitStatus("MessageObserver state: \(state)")
     }
 
-    func meshxMessageObserverDidError(_ error: Error) {
+    func messageObserverDidError(_ error: Error) {
         emitError(String(describing: error))
     }
 
-    func meshxMessageObserverDidFetchEnvelope(
+    func messageObserverDidFetchEnvelope(
         envelope: Data,
         fromDeviceId: String,
-        beacon: MeshxLegacyBeaconAdvertisement,
+        beacon: LegacyBeaconAdvertisement,
         rssi: Int
     ) {
         // Synthesize a ReceivedMessageEvent from the fetched MX bytes so
@@ -360,8 +360,8 @@ extension MeshxNativeBLEBridge: MessageAdvertisementObserverDelegate {
                     advertisement: beacon.advertisement,
                     messagePayload: envelope,
                     manufacturerData: beacon.manufacturerData,
-                    companyIdentifier: MeshxLegacyBeaconAdvertisement.manufacturerCompanyIdentifier,
-                    adType: MeshxLegacyBeaconAdvertisement.manufacturerDataAdType
+                    companyIdentifier: LegacyBeaconAdvertisement.manufacturerCompanyIdentifier,
+                    adType: LegacyBeaconAdvertisement.manufacturerDataAdType
                 )
             )
             meshxDidObserveReceivedMessage(event)
@@ -370,11 +370,11 @@ extension MeshxNativeBLEBridge: MessageAdvertisementObserverDelegate {
         }
     }
 
-    func meshxMessageObserverDidFailFetch(
+    func messageObserverDidFailFetch(
         reason: String,
         detail: String?,
         fromDeviceId: String,
-        beacon: MeshxLegacyBeaconAdvertisement
+        beacon: LegacyBeaconAdvertisement
     ) {
         emitStatus("Fetch failed [\(fromDeviceId)]: \(reason)\(detail.map { " (\($0))" } ?? "")")
     }

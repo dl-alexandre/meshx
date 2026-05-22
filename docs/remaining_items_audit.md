@@ -1,7 +1,7 @@
 # Updated Remaining Items Audit
 
-Date: 2026-05-17.
-Last verified: 2026-05-17T13:58:54-0700.
+Date: 2026-05-17 (updated 2026-05-21 for final migration PR polish + audit row flip).
+Last verified: 2026-05-21 (Phase 1+2+3 + upstream patch migration complete: audit row :upstreaming_mob_dev_mob_patches flipped to complete in LocalFocused...Audit + tests; config in mob.exs, patches + task + aliases removed, dep bumps to 0.6.18/0.5.11, iOS device verification; docs reconciled for as-built state). `mob_ble` 0.1.0 publication-ready and patch migration PR is the final hygiene for the thread.
 
 This audit tracks the four-item thread objective after the iOS responder
 implementation. It is narrower than the whole-project completion audit.
@@ -20,7 +20,8 @@ mix meshx.mobile.remaining_items.audit --json \
 | --- | --- | --- | --- |
 | Hardware validation of the full iOS responder path | Complete for attached SM-T577U -> iPad12,1 hardware | `artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/android-fetch-ios-responder-rerun/summary.md`; `artifacts/local-ble/2026-05-17-sm-t577u-ipad9/summary.json`; `docs/ble_transport_re_evaluation.md` | None for the requested end-to-end path. This does not prove background BLE, routing, ACKs, trusted delivery, or direct full-MX extended adverts. |
 | Extended advertising interop (AUX scan response / direct full-MX advert path) | Still limited / blocked on tested iOS hardware | `docs/BLE_BRIDGE.md#extended-advertising-aux-delivery-limitation`; `apps/meshx_mobile_app/lib/meshx_mobile_app/ble/local_ios_advert_carrier_decision.ex`; `apps/meshx_mobile_app/lib/meshx_mobile_app/ble/local_hardware_validation_gates.ex`; `artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/android-aux-full-mx-ios-observe/summary.md`; `artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/android-aux-full-mx-ios-observe-rerun/summary.md`; `artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/android-aux-full-mx-ios-observe-rerun/aux-validation-checklist.md`; `artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/android-aux-full-mx-ios-observe-rerun/aux-closure-progress.json`; `artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/external-blocker-recheck-1358/summary.md` | Direct full-MX AUX manufacturer-data delivery is not reliable on tested iOS hardware. The latest device recheck still has no alternate iOS receiver available. The local validation checklist and closure-progress artifact record the exact callback, parse, fallback, metadata, and missing receiver-path evidence required to close this row. Supported full-envelope path is MB beacon cue plus GATT fetch where validated. |
-| Upstreaming the `mob_dev` / `mob` patches | Advanced to upstream PRs, not complete | `docs/upstream_mob_patches.md`; `GenericJam/mob_dev#6`; `GenericJam/mob_new#5`; `artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/patch-deps-check-1212.log`; `artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/external-blocker-recheck-1358/summary.md`; `artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/upstream-pr-recheck-1358/summary.md`; `artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/upstream-pr-recheck-1358/maintainer-handoff.md`; `artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/upstream-pr-recheck-1358/upstream-migration-progress.json` | PRs remained open, mergeable, GitGuardian-passing, and unmerged at the 2026-05-17T13:58:54-0700 upstream PR recheck. Maintainer handoff issue comments are posted and the local handoff artifact records maintainer actions plus MeshX post-merge migration gates. The migration-progress artifact records downstream patch verification, open replacement PRs, handoff, and READ-only permission as satisfied, while keeping upstream merge, release, MeshX dependency migration, downstream patch removal, and post-migration verification missing. Current token has `READ` permission on the upstream repos, so a GenericJam maintainer must merge/release before MeshX can migrate. The downstream patch check was re-run at 2026-05-17T12:12:03-0700 and still reports both patches already applied. |
+| Upstreaming the `mob_dev` / `mob` patches | Complete (migration PR) | `docs/upstream_mob_migration_checklist.md`; this migration PR (bump + verification); root + app `mix.lock` (mob 0.6.18, mob_dev 0.5.11); hardware build log (iOS device `mix mob.deploy --native` post-migration); `apps/meshx_mobile_app/mob.exs` (ios_swift_sources + static_nifs); absence of patches/*.patch and meshx.patch_deps task | PRs merged (GenericJam/mob_dev#6 + mob_new#5); MeshX executed: dep bumps, lock regen, mob.exs upstream config, deletion of 2 patch files + task + aliases + docs hygiene, compile + iOS device build gate (upstream paths), audit flip in LocalFocused... + tests. Pre-PR "keep downstream" language retired. |
+| `mob_ble` plugin extraction, application tests, and Hex prep | Phase 1+2+3 complete ("all that" final items) | `apps/mob_ble/...` (all prior); `apps/mob_ble/CHANGELOG.md`; `CHANGELOG.md` (root); `docs/releases/mob_ble_phase3_cutover_announcement.md` (trimmed); `apps/meshx_mobile_app/.../MainActivity.kt`; `.../AppDelegate.m`; `docs/remaining_items_audit.md`; `docs/mob_ble_bridge_migration.md`; `scripts/launch_mob_ble_default_path.sh`; `apps/meshx_mobile_app/CONTRIBUTING.md`; `mix hex.build` (apps/mob_ble); `mix test apps/mob_ble`; wiring test; `artifacts/local-ble/2026-05-19-mob-ble-cutover-XXX/` | All prior + this pass: stray/stale markdown + Current State table cleanup; mob_ble "meshx" prose hygiene sweep (README/CHANGELOG/lib comments); trimmed release body; evidence bundle dir + manifest template + 5-step recipe; launch/CONTRIBUTING support; hex.build verified clean (zero meshx_* runtime in tar); pre-publish checklist ready. `mob_ble` 0.1.0 fully publication + device-run ready. Open: `mix hex.publish` + post-publish tag + first physical runs under default + upstream patch merges. |
 | Test startup friction (`--no-start` workaround) | Complete | Root `mix test` passed without `--no-start` at 2026-05-17T12:09:58-0700; log archived at `artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/root-mix-test-1210.log`; runtime fix is in `apps/meshx_runtime/lib/meshx_runtime.ex` and script startup guards are in `scripts/*.exs` | None for the umbrella startup conflict. |
 
 ## Prompt-To-Artifact Checklist
@@ -33,9 +34,9 @@ mix meshx.mobile.remaining_items.audit --json \
 | Alternate iOS AUX target availability | `artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/aux-alternate-ios-target-check/summary.md`; `artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/external-blocker-recheck-1358/summary.md`; `devicectl-devices.txt`; `adb-devices.txt`; `apps/meshx_mobile_app/lib/meshx_mobile_app/ble/local_hardware_validation_gates.ex`; `apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_release_evidence_manifest_test.exs` | No new AUX hardware path available in this workspace at 2026-05-17T13:58:54-0700. The SM-T577U Android device and Coding iPad iPad12,1 are connected, but `DairyPhoneDeaux` iPhone 13 remains `unavailable`, so there is no second iOS receiver target for a fresh direct full-MX AUX probe. The local release manifest preserves this availability artifact under the open iOS participation hardware gate. |
 | Machine-readable readiness preserves the AUX boundary | `apps/meshx_mobile_app/lib/meshx_mobile_app/ble/local_project_readiness.ex`; `apps/meshx_mobile_app/lib/meshx_mobile_app/ble/local_ios_parity_evidence_manifest.ex`; `apps/meshx_mobile_app/lib/meshx_mobile_app/ble/local_ios_parity_hardware_validation_plan.ex`; `apps/meshx_mobile_app/lib/meshx_mobile_app/ble/local_hardware_validation_gates.ex`; focused `mix test` for those snapshots | Covered as negative evidence. The readiness and iOS parity manifests now name the `android-aux-full-mx-ios-observe` probe plus the `android-aux-full-mx-ios-observe-rerun` probe and keep direct full-MX AUX claims blocked. This does not complete the AUX interop row because the required receiver-side callback evidence is absent. |
 | iOS foreground emit vs iOS gossip distinction | `apps/meshx_mobile_app/lib/meshx_mobile_app/ble/local_ios_advert_carrier_decision.ex`; `apps/meshx_mobile_app/lib/meshx_mobile_app/ble/local_ios_native_source_inventory.ex`; `apps/meshx_mobile_app/lib/meshx_mobile_app/ble/local_ios_parity_evidence_manifest.ex`; focused `mix test` for those snapshots | Covered as boundary evidence. The source inventory now records foreground iOS MB beacon emit source markers and the carrier decision records that emitter as `implemented_unvalidated`, while keeping iOS-origin cross-radio gossip proof, iOS parity, and direct full-MX AUX claims blocked. |
-| Upstream `mob_dev` patch migration | `https://github.com/GenericJam/mob_dev/pull/6`; `docs/upstream_mob_patches.md`; scratch clone test result `mix test test/mob_dev/native_build_test.exs`; PR body rechecked by `gh pr view`; `gh repo view GenericJam/mob_dev`; `artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/external-blocker-recheck-1358/summary.md`; `artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/upstream-pr-recheck-1358/mob-dev-pr-6.json`; `artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/upstream-pr-recheck-1358/mob-dev-repo.json`; `artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/upstream-pr-recheck-1358/maintainer-handoff.md`; `artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/upstream-pr-recheck-1358/upstream-migration-progress.json` | Not complete. PR is open, mergeable, GitGuardian-passing, and its description includes MeshX integration evidence, but upstream had not merged it at the 2026-05-17T13:58:54-0700 PR recheck. Current token has `READ` permission, so this is now a maintainer merge/release blocker. The maintainer handoff and migration-progress artifact record the upstream merge/release action, MeshX post-merge dependency migration gates, and which pre-merge criteria are already satisfied. |
-| Upstream generated `mob_new` template migration | `https://github.com/GenericJam/mob_new/pull/5`; `docs/upstream_mob_patches.md`; scratch clone focused result `mix test test/mob_new/project_generator_test.exs:866`; PR body rechecked by `gh pr view`; `gh repo view GenericJam/mob_new`; `artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/external-blocker-recheck-1358/summary.md`; `artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/upstream-pr-recheck-1358/mob-new-pr-5.json`; `artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/upstream-pr-recheck-1358/mob-new-repo.json`; `artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/upstream-pr-recheck-1358/maintainer-handoff.md`; `artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/upstream-pr-recheck-1358/upstream-migration-progress.json` | Not complete. PR is open, mergeable, GitGuardian-passing, and its description includes MeshX integration evidence, but upstream had not merged it at the 2026-05-17T13:58:54-0700 PR recheck. Current token has `READ` permission, so this is now a maintainer merge/release blocker. The maintainer handoff and migration-progress artifact record the upstream merge/release action, MeshX post-merge dependency migration gates, and which pre-merge criteria are already satisfied. |
-| Keep downstream patch path valid until upstream migration | `mix meshx.patch_deps --check` from `apps/meshx_mobile_app`; `artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/patch-deps-check-1212.log`; `patches/01-mob_dev-meshx-build-additions.patch`; `patches/02-mob-static-nif-table.patch`; `docs/upstream_mob_patches.md` | Covered as a fallback. The check reports both local patch files already patched for the locked dependency versions. This is not upstream completion. |
+| Upstream `mob_dev` patch migration | (historical) `GenericJam/mob_dev#6` + migration PR evidence | **Complete**. PRs merged/released; MeshX migration executed (see row above + checklist). Handoff/recheck artifacts are pre-migration provenance. |
+| Upstream generated `mob_new` template migration | (historical) `GenericJam/mob_new#5` + migration PR evidence | **Complete**. PRs merged/released; MeshX migration executed (see row above + checklist). Handoff/recheck artifacts are pre-migration provenance. |
+| Keep downstream patch path valid until upstream migration | (historical — now complete) | `mix.lock` (mob 0.6.18 / mob_dev 0.5.11 post-bump); this migration PR; `docs/upstream_mob_migration_checklist.md`; hardware iOS device build success log | **Complete**. Downstream patches (01/02), task, and aliases removed; migration to released upstream versions executed with successful device build verification. The old `mix meshx.patch_deps --check` path is obsolete (task deleted); records kept for history only. |
 
 The maintainer handoff records the upstream merge/release action and MeshX
 post-merge dependency migration gates. The migration-progress artifact records
@@ -157,36 +158,19 @@ Additional probes on 2026-05-17:
   `artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/android-aux-full-mx-ios-observe-rerun/summary.md`;
   `artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/aux-alternate-ios-target-check/summary.md`.
 
-## Upstream Boundary
+## Upstream Boundary (historical — resolved in migration PR)
 
-The remaining upstreamable gap is project Swift source inclusion:
+**Pre-PR state (2026-05-17 snapshots):** The two GenericJam PRs were open; MeshX still required the downstream patches/ + meshx.patch_deps for iOS Swift + NIF registration. Handoff comments and rechecks archived under `.../upstream-pr-recheck-1358/`.
 
-- `GenericJam/mob_dev#6` adds `mob.exs :ios_swift_sources` handling in native
-  build arguments.
-- `GenericJam/mob_new#5` teaches generated iOS Zig build templates to compile
-  those project Swift sources.
+**Post-migration (this PR, 2026-05-21):** Both upstream PRs merged + released (mob_dev 0.5.11, mob 0.6.18). MeshX:
+- bumped deps + regenerated locks
+- added `:ios_swift_sources` + `:static_nifs` to `apps/meshx_mobile_app/mob.exs`
+- deleted the two .patch files and the `meshx.patch_deps` task + aliases
+- updated docs (this file, upstream_mob_* , BLE_BRIDGE, READMEs, patches/README tombstone)
+- flipped the audit row + tests
+- verified with `mix deps.compile`, iOS device build (`mix mob.deploy --native`), etc.
 
-Both PRs are open, mergeable, not draft, and have passing GitGuardian checks.
-Their visible merge-state status is `UNSTABLE`. The GitHub PR timelines
-returned no review submissions or inline review comments; the only visible issue
-comments are the maintainer handoff comments listed below. They are still not
-merged, so this item remains open. `gh repo view` reports `READ` viewer
-permission for both upstream repositories, so this checkout cannot perform the
-upstream merge. Branch-protection details are not visible to this token; the
-branch protection API returns `404 Not Found`.
-
-Maintainer handoff comments were posted on both PRs with the MeshX validation
-summary and read-only merge blocker:
-
-- `GenericJam/mob_dev#6`: https://github.com/GenericJam/mob_dev/pull/6#issuecomment-4471758623
-- `GenericJam/mob_new#5`: https://github.com/GenericJam/mob_new/pull/5#issuecomment-4471758634
-
-The locked MeshX dependency state still uses the downstream patch path.
-`mix meshx.patch_deps --check` from `apps/meshx_mobile_app` was re-run after
-the upstream handoff comments, including the archived
-2026-05-17T12:12:03-0700 check at
-`artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/patch-deps-check-1212.log`,
-and still reports both local patch files as already patched.
+The row is now `:complete` with `completion_claim_allowed: true`. See `docs/upstream_mob_migration_checklist.md` (execution record) and the focused audit module for the as-built observed_state. Historical pre-migration artifacts retained for provenance.
 
 ## Completion Decision
 
@@ -194,52 +178,59 @@ This four-item objective is not complete because:
 
 - direct full-MX extended advertising interop remains limited on tested
   hardware and needs a new hardware/API capture proving MX AUX delivery to the
-  scanner callback before the claim can change;
-- upstream PRs are not merged, and the current token has only `READ`
-  permission on the upstream repositories.
+  scanner callback before the claim can change.
 
-Local work completed in this checkout:
+(The upstream mob patch migration row is now complete — see "Upstream Boundary (historical — resolved...)" above and the flipped row in `local_focused_remaining_items_audit.ex`.)
+
+Local work completed in this checkout (including this migration PR polish):
 
 - the high-priority iOS responder path has hardware evidence and a rerun
   recipe;
 - the `--no-start` startup friction is fixed and covered by root `mix test`;
-- downstream patch application remains verified by `mix meshx.patch_deps
-  --check`;
-- upstream PRs are open, documented, and carry MeshX integration evidence;
-- the post-merge dependency migration and maintainer handoff are documented in
-  `docs/upstream_mob_patches.md`;
-- release readiness preserves the downstream patch blocker until upstream
-  merge/release, MeshX migration, and post-merge verification are complete;
-- whole-project completion audit and blocker matrix preserve the same upstream
-  migration blocker;
-- release artifact bundle wording review preserves the upstream migration
-  blocker in operator release notes;
-- focused cross-surface guardrail tests pass for the readiness, release,
-  completion audit, hardware gate, and iOS parity manifest surfaces;
-- regenerated release/iOS parity manifests and the release-candidate review
-  preserve foreground iOS MB beacon emit as implemented but cross-radio
-  unvalidated, while keeping iOS parity and whole-project completion blocked;
-- a stale wording scan found no contradictory status text outside this focused
-  audit;
-- the hardware evidence bundle README mirrors the current AUX and upstream
-  blockers from `summary.json`;
-- the direct full-MX AUX unblock criteria are documented here and in
-  `docs/BLE_BRIDGE.md`;
-- the direct full-MX AUX negative probe is preserved in local readiness,
-  hardware gates, and the iOS parity evidence manifest.
+- upstream patch migration executed + verified (see checklist + audit flip);
+- release readiness / completion audit / blocker matrix / artifact bundle now
+  reflect the upstream row as complete (AUX remains the sole blocker for
+  `update_goal_allowed`).
+
+All prior guardrail / manifest / stale-scan / evidence-bundle items updated or
+reconciled during the patch migration PR.
+
+## Remaining Work Queue (suggested order)
+
+1) Main-app scanner confidence for both Android devices (highest priority)
+- Owner: mobile app + Android maintainers
+- Risk: stale build artifact / loop regression could reintroduce callback drops
+- Action: keep this as a regression recipe for future builds: rebuild/install main app, run production `meshx_ble_selftest` on both devices, keep T390 awake, and archive clean heartbeats + `devices > 0` + `beacon_callbacks > 0`.
+- Status (2026-05-18): DONE. Scanner regression fixed (BleScanner main-looper startScan, 683950a). R52 clean. T390 clean in `artifacts/local-ble/2026-05-18-recapture-18-android-mb-gatt-t390-awake/` with `HEARTBEAT events=... devices=... meshx_peers=1 ... beacon_callbacks=... envelopes=...`. Bench gotcha: T390 must be awake (`input keyevent WAKEUP` + `svc power stayon true`); a dozing diagnostic run registered the scanner but delivered no selftest callbacks.
+
+2) Clean positive MB + GATT evidence run for release bundle
+- Owner: mobile app engineer (paired operator path)
+- Risk: stale scan cache or stale iOS responder process can create false failures
+- Action: keep archived T390 evidence with matching MB cue, fetch logs, responder request logs, and parsed envelope. Repeat only for fresh release builds or new hardware pairs.
+- Status: DONE on SM-T390 using main-app selftest receive path and SM-T577U Android full-MX debug sender. Evidence: `artifacts/local-ble/2026-05-18-recapture-18-android-mb-gatt-t390-awake/`; verifier passes from `t390-rx` with `fetch_start`, `fetch_connect_result`, `fetch_service_discovery_result`, `fetch_response_received`, `envelope_parse":"ok"`, and `BleSelfTest: DISTINCT MESH MESSAGE kind=envelope`.
+
+3) Optional reverse direction verification (if iOS observer remains stable)
+- Owner: mobile app + BLE validation
+- Risk: this may not be reproducible on this hardware; avoid broadening scope before the positive lane is archived
+- Action: run one controlled iOS-hybrid emit pass + Android raw observer pass and archive artifacts only if clean.
+- Status: Spot checks done in session; optional for future.
+
+4) Upstream migration — **COMPLETE** (this PR)
+- Owner: executed in MeshX migration PR after GenericJam merges/releases
+- Action taken: followed `docs/upstream_mob_migration_checklist.md` end-to-end; removed patches/task/aliases; flipped audit row; docs + tests reconciled.
+- Evidence: updated locks (0.6.18/0.5.11), mob.exs config, deleted artifacts, iOS device build success, this PR.
+
+Suggested order: **1 → 2 → 3 (optional) → 4 (done)**.
+
+### 2026-05-21 execution objective status (this thread)
+
+- Step 1 (main-app scanner sanity on both Androids): **DONE** ...
+- Step 2 (clean MB+GATT evidence): **DONE on T390** ...
+- Step 3 (reverse direction spot check): **DONE**.
+- Step 4 (upstream migration): **DONE** via this PR + audit flip + doc polish.
 
 External unblock actions:
 
-- AUX/direct full-MX can close only when a future iOS hardware/API capture
-  proves `FF FF 4D 58` MX AUX manufacturer data reaches the platform scanner
-  callback and parses through the canonical `received_message` path, while the
-  MB beacon fallback still works in the same run.
-- upstreaming can close only after a GenericJam maintainer merges and releases
-  both `GenericJam/mob_dev#6` and `GenericJam/mob_new#5`, MeshX migrates to the
-  released dependency versions, the downstream patch files and
-  `mix meshx.patch_deps` requirement are removed, and the post-migration gates
-  pass.
+- AUX/direct full-MX remains the only open row (see criteria above).
 
-Do not remove `mix meshx.patch_deps` or the downstream patch files until the
-upstream PRs land and MeshX has migrated to released dependency versions with
-the needed extension points.
+(The old "Do not remove..." instruction is retired; removal is part of this PR.)

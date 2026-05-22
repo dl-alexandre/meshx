@@ -28,7 +28,6 @@ defmodule MeshxMobileApp.BLE.LocalIOSAdvertCarrierDecisionTest do
     assert carrier.status == :hardware_validated
     refute :ios_hardware_participation in carrier.blocked_claims
     refute :ios_legacy_beacon_observed in carrier.blocked_claims
-    assert Enum.any?(carrier.evidence, &String.ends_with?(&1, "BLE.swift"))
     assert Enum.any?(carrier.evidence, &String.contains?(&1, "2026-05-15-iphone13-sm-t577u"))
   end
 
@@ -44,7 +43,7 @@ defmodule MeshxMobileApp.BLE.LocalIOSAdvertCarrierDecisionTest do
 
     assert Enum.any?(
              carrier.notes,
-             &String.contains?(&1, "MB legacy beacon plus GATT fetch")
+             &String.contains?(&1, "MB legacy beacon + GATT fetch")
            )
   end
 

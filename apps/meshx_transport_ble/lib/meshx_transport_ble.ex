@@ -2,10 +2,27 @@ defmodule MeshxTransportBLE do
   @moduledoc """
   BLE native bridge adapter for the MeshX stack.
 
-  This module wraps a native/mobile BLE bridge and converts bridge messages into
-  the normalized `MeshxTransport` event format consumed by `meshx_runtime`.
+  This is the MeshX-specific transport adapter layer. It wraps any bridge
+  that speaks the small `{:ble_*}` event contract and normalizes those into
+  `MeshxTransport` events for `meshx_runtime`.
 
-  Native bridge modules implement `MeshxTransportBLE.Bridge` and are expected to
+  ## Bridge contract & compatibility
+
+  Bridge modules implement either:
+
+    * `MeshxTransportBLE.Bridge` (the MeshX-named behaviour, kept for
+      desktop/custom MeshX consumers and BlueZ etc.), or
+    * `Mob.Ble.Bridge` (the canonical, plugin-owned behaviour defined in
+      the `mob_ble` Hex package; see `apps/mob_ble/lib/mob/ble/bridge.ex`).
+
+  The three callbacks are identical; `MeshxTransportBLE` uses dynamic dispatch
+  (`module.fun`) so either works. `Mob.Ble.Bridge` is the authoritative
+  contract for mobile production use via the `mob_ble` plugin.
+
+  See `MeshxTransportBLE.Bridge` moduledoc (and its CONTRACT SYNC marker),
+  `docs/mob_ble_bridge_migration.md`, and the `mob_ble` package for details.
+
+  Native bridge modules (or the production `Mob.Ble.MobileBridge`) are expected to
   send the following messages to this process:
 
       {:ble_peer_up, peer_id, metadata}

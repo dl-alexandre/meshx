@@ -16,145 +16,68 @@ endif()
 set(MOB_DEPS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../../../deps")
 
 set(_PROJECT_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../../../../../")
+if(NOT DEFINED MOB_ANDROID_PLUGIN_NATIVE_LINK_FILE OR MOB_ANDROID_PLUGIN_NATIVE_LINK_FILE STREQUAL "")
+    set(MOB_ANDROID_PLUGIN_NATIVE_LINK_FILE "${_PROJECT_ROOT}/priv/generated/android_plugins/native_link.properties")
+endif()
 
-# Phase 2 of the build-system migration: build.zig owns the entire native
-# pipeline for libmeshx_mobile_app.so when Mix runs the build (compile + link
-# both happen in zig). The .so is dropped into jniLibs/<abi>/ where
-# Gradle's default jniLibs.srcDirs scan picks it up — no add_library
-# target needed in that case.
-#
-# Three fallbacks for non-Mix invocations (Android Studio "Sync Project",
-# `./gradlew assembleDebug` standalone, etc.):
-#   1. zig-built lib<app>.so in jniLibs/  →  CMake skips main library
-#   2. zig-built .o files in zig-out/    →  CMake links them via NDK clang
-#   3. .c sources                          →  NDK clang compiles + links
-set(ZIG_OUT_DIR "${_PROJECT_ROOT}/android/app/build/zig-out/${ANDROID_ABI}")
+set(MOB_ANDROID_PLUGIN_GENERATED_DIR "priv/generated/android_plugins")
+set(MOB_ANDROID_PLUGIN_DRIVER_TAB "priv/generated/driver_tab_android.c")
+
+if(EXISTS "${MOB_ANDROID_PLUGIN_NATIVE_LINK_FILE}")
+    file(STRINGS "${MOB_ANDROID_PLUGIN_NATIVE_LINK_FILE}" _ANDROID_PLUGIN_NATIVE_LINK_LINES)
+    foreach(_native_link_line IN LISTS _ANDROID_PLUGIN_NATIVE_LINK_LINES)
+        if(_native_link_line MATCHES "^[ \t]*#" OR _native_link_line MATCHES "^[ \t]*$")
+            continue()
+        endif()
+        if(_native_link_line MATCHES "^([^=]+)=(.*)$")
+            string(STRIP "${CMAKE_MATCH_1}" _native_link_key)
+            string(STRIP "${CMAKE_MATCH_2}" _native_link_value)
+            if(_native_link_key STREQUAL "driver_tab")
+                set(MOB_ANDROID_PLUGIN_DRIVER_TAB "${_native_link_value}")
+            elseif(_native_link_key STREQUAL "android_plugin_generated_dir")
+                set(MOB_ANDROID_PLUGIN_GENERATED_DIR "${_native_link_value}")
+            elseif(_native_link_key STREQUAL "android_plugin_objects")
+                set(MOB_ANDROID_PLUGIN_OBJECTS "${_native_link_value}")
+            elseif(_native_link_key STREQUAL "android_plugin_archives")
+                set(MOB_ANDROID_PLUGIN_ARCHIVES "${_native_link_value}")
+            elseif(_native_link_key STREQUAL "android_plugin_c_sources")
+                set(MOB_ANDROID_PLUGIN_C_SOURCES "${_native_link_value}")
+            endif()
+        endif()
+    endforeach()
+elseif((NOT DEFINED MOB_ANDROID_PLUGIN_C_SOURCES OR MOB_ANDROID_PLUGIN_C_SOURCES STREQUAL "")
+       AND EXISTS "${_PROJECT_ROOT}/priv/generated/android_plugins/c_sources.txt")
+    file(READ "${_PROJECT_ROOT}/priv/generated/android_plugins/c_sources.txt" MOB_ANDROID_PLUGIN_C_SOURCES)
+    string(STRIP "${MOB_ANDROID_PLUGIN_C_SOURCES}" MOB_ANDROID_PLUGIN_C_SOURCES)
+endif()
+
+if(NOT IS_ABSOLUTE "${MOB_ANDROID_PLUGIN_GENERATED_DIR}")
+    get_filename_component(MOB_ANDROID_PLUGIN_GENERATED_DIR "${_PROJECT_ROOT}/${MOB_ANDROID_PLUGIN_GENERATED_DIR}" ABSOLUTE)
+endif()
+if(NOT IS_ABSOLUTE "${MOB_ANDROID_PLUGIN_DRIVER_TAB}")
+    get_filename_component(MOB_ANDROID_PLUGIN_DRIVER_TAB "${_PROJECT_ROOT}/${MOB_ANDROID_PLUGIN_DRIVER_TAB}" ABSOLUTE)
+endif()
+
+string(REPLACE "," ";" MOB_ANDROID_PLUGIN_C_SOURCES "${MOB_ANDROID_PLUGIN_C_SOURCES}")
+string(REPLACE "," ";" MOB_ANDROID_PLUGIN_OBJECTS "${MOB_ANDROID_PLUGIN_OBJECTS}")
+string(REPLACE "," ";" MOB_ANDROID_PLUGIN_ARCHIVES "${MOB_ANDROID_PLUGIN_ARCHIVES}")
+
+# MobDev owns the final native link for libmeshx_mobile_app.so. Gradle/CMake
+# only package/import the prebuilt shared library from jniLibs/<abi>/.
 set(ZIG_LIB_SO "${_PROJECT_ROOT}/android/app/src/main/jniLibs/${ANDROID_ABI}/libmeshx_mobile_app.so")
 
 if(EXISTS "${ZIG_LIB_SO}")
-    # build.zig already produced the .so. Gradle picks it up from jniLibs/.
-    # Declare it as an IMPORTED target so other targets in this CMakeLists
-    # (notably sqlite3_nif's target_link_libraries) can still reference it.
-    # IMPORTED_SONAME pins the DT_NEEDED entry to the SONAME (lib<app>.so);
-    # without it the linker bakes the absolute IMPORTED_LOCATION path into
-    # sqlite3_nif.so's needed-libraries list and Android's dlopen can't find
-    # it at runtime ("library "/.../jniLibs/.../lib<app>.so" not found").
+    # MobDev produced the final app native library before Gradle. CMake only
+    # imports it so dependent CMake targets can reference the SONAME; it does
+    # not compile or link libmeshx_mobile_app.so.
     add_library(meshx_mobile_app SHARED IMPORTED GLOBAL)
     set_target_properties(meshx_mobile_app PROPERTIES
         IMPORTED_LOCATION "${ZIG_LIB_SO}"
         IMPORTED_SONAME "libmeshx_mobile_app.so"
     )
-elseif(EXISTS "${ZIG_OUT_DIR}/driver_tab_android.o")
-    add_library(meshx_mobile_app SHARED
-        ${ZIG_OUT_DIR}/beam_jni.o
-        ${ZIG_OUT_DIR}/mob_nif.o
-        ${ZIG_OUT_DIR}/mob_beam.o
-        ${ZIG_OUT_DIR}/driver_tab_android.o
-    )
-    # CMake can't infer linker language from .o files alone — pin it to C
-    # so it picks clang's C driver.
-    set_target_properties(meshx_mobile_app PROPERTIES LINKER_LANGUAGE C)
 else()
-    if(EXISTS "${_PROJECT_ROOT}/priv/generated/driver_tab_android.c")
-        set(DRIVER_TAB_ANDROID "${_PROJECT_ROOT}/priv/generated/driver_tab_android.c")
-    else()
-        set(DRIVER_TAB_ANDROID "${MOB_DIR}/android/jni/driver_tab_android.c")
-    endif()
-
-    # Project-side C NIFs (auto-wired from mob.exs :static_nifs). Picked
-    # up by GLOB so this CMakeLists doesn't need to be regenerated every
-    # time a NIF is added/removed — `mix mob.add_nif --type c` drops the
-    # source at c_src/<name>.c and that's enough.
-    #
-    # This fallback only fires when neither the zig-built .so nor the
-    # zig-out/<abi>/ .o files exist (Android Studio "Sync Project" or a
-    # standalone `./gradlew assembleDebug` without Mix). The Mix-driven
-    # path (zig build) handles project NIFs via the build.zig template's
-    # `project_c_nifs` flag — see jni/build.zig.
-    file(GLOB PROJECT_NIF_C_SRCS "${_PROJECT_ROOT}/c_src/*.c")
-
-    add_library(meshx_mobile_app SHARED
-        beam_jni.c
-        ${MOB_DIR}/android/jni/mob_nif.c
-        ${MOB_DIR}/android/jni/mob_beam.c
-        ${DRIVER_TAB_ANDROID}
-        ${PROJECT_NIF_C_SRCS}
-    )
-
-    # Per-NIF -DSTATIC_ERLANG_NIF_LIBNAME=<name>. The base STATIC_ERLANG_NIF
-    # define is added below as a target-level compile definition; this
-    # adds the per-source libname so ERL_NIF_INIT emits `<name>_nif_init`
-    # (matching the driver_tab declaration) rather than mangling the BEAM
-    # module name (e.g. `Elixir.App.Nifs.Foo`) into a C identifier.
-    foreach(_nif_src IN LISTS PROJECT_NIF_C_SRCS)
-        get_filename_component(_nif_name "${_nif_src}" NAME_WE)
-        set_property(
-            SOURCE "${_nif_src}"
-            APPEND PROPERTY COMPILE_DEFINITIONS
-            "STATIC_ERLANG_NIF_LIBNAME=${_nif_name}"
-        )
-    endforeach()
+    message(FATAL_ERROR "libmeshx_mobile_app.so is not present at ${ZIG_LIB_SO}. Run mix mob.deploy --native or MobDev.NativeBuild so MobDev performs the Android final native link before Gradle/CMake packaging.")
 endif()
-
-# Everything below applies only to CMake-built main library targets. When
-# build.zig produced libmeshx_mobile_app.so already (Phase 2 iter 10),
-# the target is IMPORTED — skip these blocks since target_compile_options
-# / target_link_libraries can't be applied to imported targets, and the
-# zig-built .so already has them baked in.
-if(NOT EXISTS "${ZIG_LIB_SO}")
-
-    # enif_keepalive.c is generated by `mix mob.deploy --native` when the
-    # project depends on Pythonx (or any other dlopen'd dynamic NIF). The
-    # file references all enif_* symbols so --gc-sections doesn't strip
-    # them from the final binary; dlopen'd NIFs need them at runtime.
-    # No-op when absent (vanilla projects without dynamic NIFs).
-    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/enif_keepalive.c")
-        target_sources(meshx_mobile_app PRIVATE enif_keepalive.c)
-    endif()
-
-    target_include_directories(meshx_mobile_app PRIVATE
-        ${MOB_DIR}/android/jni
-        ${OTP_DIR}/${ERTS_VSN}/include
-    )
-
-    target_compile_definitions(meshx_mobile_app PRIVATE STATIC_ERLANG_NIF)
-
-    # -Os + per-function/data sections — same flags build.zig uses, so the
-    # CMake fallback path produces equivalent code.
-    target_compile_options(meshx_mobile_app PRIVATE
-        -Os -ffunction-sections -fdata-sections
-    )
-
-    target_link_libraries(meshx_mobile_app
-        PRIVATE
-        -Wl,--gc-sections
-        -Wl,--allow-multiple-definition
-        -Wl,--whole-archive
-        ${OTP_DIR}/${ERTS_VSN}/lib/libbeam.a
-        ${OTP_DIR}/${ERTS_VSN}/lib/internal/liberts_internal_r.a
-        ${OTP_DIR}/${ERTS_VSN}/lib/internal/libethread.a
-        ${OTP_DIR}/${ERTS_VSN}/lib/libzstd.a
-        ${OTP_DIR}/${ERTS_VSN}/lib/libepcre.a
-        ${OTP_DIR}/${ERTS_VSN}/lib/libryu.a
-        ${OTP_DIR}/${ERTS_VSN}/lib/asn1rt_nif.a
-        # crypto NIF + OpenSSL, statically linked. crypto_nif_init is exported
-        # by crypto.a and resolved at on_load time via STATIC_ERLANG_NIF (see
-        # mob/android/jni/driver_tab_android.c). libcrypto.a is OpenSSL 3.x
-        # built with no-shared. No separate crypto.so ships in the APK.
-        ${OTP_DIR}/${ERTS_VSN}/lib/crypto.a
-        -Wl,--no-whole-archive
-        ${OTP_DIR}/${ERTS_VSN}/lib/libcrypto.a
-        android
-        log
-        z
-        c++_static
-        # NDK 27 / clang 18 split libc++: __cxa_* and exception/RTTI ABI
-        # symbols moved out of libc++_static.a into libc++abi.a. Without this,
-        # libbeam.a's C++ exception code fails to link.
-        c++abi
-    )
-
-endif()  # NOT EXISTS ZIG_LIB_SO
 
 # ── exqlite / SQLite NIF ──────────────────────────────────────────────────────
 # As of Phase 2 iter 11, build.zig owns sqlite3_nif's compile + link

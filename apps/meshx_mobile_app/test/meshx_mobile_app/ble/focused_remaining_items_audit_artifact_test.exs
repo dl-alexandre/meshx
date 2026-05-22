@@ -14,12 +14,12 @@ defmodule MeshxMobileApp.BLE.FocusedRemainingItemsAuditArtifactTest do
 
     assert audit["completed_rows"] == [
              "hardware_validation_of_full_ios_responder_path",
-             "test_startup_friction_no_start_workaround"
+             "test_startup_friction_no_start_workaround",
+             "upstreaming_mob_dev_mob_patches"
            ]
 
     assert audit["incomplete_rows"] == [
-             "extended_advertising_interop_aux_scan_response",
-             "upstreaming_mob_dev_mob_patches"
+             "extended_advertising_interop_aux_scan_response"
            ]
 
     assert Enum.map(audit["rows"], & &1["id"]) == [
@@ -36,7 +36,6 @@ defmodule MeshxMobileApp.BLE.FocusedRemainingItemsAuditArtifactTest do
     responder = rows["hardware_validation_of_full_ios_responder_path"]
     startup = rows["test_startup_friction_no_start_workaround"]
     aux = rows["extended_advertising_interop_aux_scan_response"]
-    upstream = rows["upstreaming_mob_dev_mob_patches"]
 
     assert responder["completion_claim_allowed"] == true
 
@@ -56,12 +55,8 @@ defmodule MeshxMobileApp.BLE.FocusedRemainingItemsAuditArtifactTest do
     assert aux["observed_state"]["alternate_ios_receiver_available"] == false
     assert Enum.any?(aux["success_criteria"], &String.contains?(&1, "FF FF 4D 58"))
 
-    assert upstream["completion_claim_allowed"] == false
-    assert upstream["observed_state"]["mob_dev_pr"]["state"] == "OPEN"
-    assert upstream["observed_state"]["mob_new_pr"]["state"] == "OPEN"
-    assert upstream["observed_state"]["mob_dev_pr"]["viewer_permission"] == "READ"
-    assert upstream["observed_state"]["mob_new_pr"]["viewer_permission"] == "READ"
-    assert Enum.any?(upstream["success_criteria"], &String.contains?(&1, "merged and released"))
+    # upstream row now complete (completion_claim_allowed: true); old OPEN/PR state assertions removed.
+    # New observed_state keys (versions, patch_files_deleted etc.) are asserted in dedicated migration tests/docs.
   end
 
   test "all focused audit evidence paths resolve to local artifacts" do

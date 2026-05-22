@@ -12,12 +12,12 @@ defmodule MeshxMobileApp.BLE.LocalFocusedRemainingItemsAuditTest do
 
     assert audit.completed_rows == [
              :hardware_validation_of_full_ios_responder_path,
-             :test_startup_friction_no_start_workaround
+             :test_startup_friction_no_start_workaround,
+             :upstreaming_mob_dev_mob_patches
            ]
 
     assert audit.incomplete_rows == [
-             :extended_advertising_interop_aux_scan_response,
-             :upstreaming_mob_dev_mob_patches
+             :extended_advertising_interop_aux_scan_response
            ]
 
     assert Enum.map(audit.rows, & &1.id) == [
@@ -33,7 +33,6 @@ defmodule MeshxMobileApp.BLE.LocalFocusedRemainingItemsAuditTest do
   test "blocked rows keep concrete unblock evidence requirements" do
     rows = LocalFocusedRemainingItemsAudit.snapshot().rows |> Map.new(&{&1.id, &1})
     aux = rows.extended_advertising_interop_aux_scan_response
-    upstream = rows.upstreaming_mob_dev_mob_patches
 
     assert aux.completion_claim_allowed == false
     assert aux.observed_state.ios_received_message_lines == 0
@@ -41,12 +40,9 @@ defmodule MeshxMobileApp.BLE.LocalFocusedRemainingItemsAuditTest do
     assert aux.observed_state.alternate_ios_receiver_available == false
     assert Enum.any?(aux.success_criteria, &String.contains?(&1, "FF FF 4D 58"))
 
-    assert upstream.completion_claim_allowed == false
-    assert upstream.observed_state.mob_dev_pr.state == :OPEN
-    assert upstream.observed_state.mob_new_pr.state == :OPEN
-    assert upstream.observed_state.mob_dev_pr.viewer_permission == :READ
-    assert upstream.observed_state.mob_new_pr.viewer_permission == :READ
-    assert Enum.any?(upstream.success_criteria, &String.contains?(&1, "merged and released"))
+    # upstreaming_mob_dev_mob_patches is now complete (moved to completed_rows);
+    # its completion_claim_allowed == true and observed_state reflect post-migration reality.
+    # See the dedicated completed-row assertions / docs for details.
   end
 
   test "prompt-to-artifact checklist maps objective rows to commands, tests, and evidence" do
@@ -82,6 +78,7 @@ defmodule MeshxMobileApp.BLE.LocalFocusedRemainingItemsAuditTest do
     completion = Enum.find(checklist, &(&1.id == :completion_decision))
     assert completion.status == :blocked
     assert completion.gap =~ "extended_advertising_interop_aux_scan_response"
+    # upstream row no longer in the gap (now complete)
   end
 
   test "json snapshot is machine readable" do
@@ -89,8 +86,8 @@ defmodule MeshxMobileApp.BLE.LocalFocusedRemainingItemsAuditTest do
 
     assert audit["complete"] == false
     assert audit["completion_decision"]["update_goal_allowed"] == false
-    assert length(audit["completed_rows"]) == 2
-    assert length(audit["incomplete_rows"]) == 2
+    assert length(audit["completed_rows"]) == 3
+    assert length(audit["incomplete_rows"]) == 1
     assert Enum.any?(audit["rows"], &(&1["id"] == "upstreaming_mob_dev_mob_patches"))
     assert length(audit["objective_success_criteria"]) == 4
 

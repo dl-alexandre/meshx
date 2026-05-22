@@ -8,16 +8,16 @@ defmodule MeshxMobileApp.BLE.LocalFocusedRemainingItemsAudit do
   `mix test` startup-friction row. It does not inspect hardware or GitHub.
   """
 
-  @last_verified_at "2026-05-17T13:58:54-0700"
+  @last_verified_at "2026-05-21T20:00:00-0700"
 
   @completed_rows [
     :hardware_validation_of_full_ios_responder_path,
-    :test_startup_friction_no_start_workaround
+    :test_startup_friction_no_start_workaround,
+    :upstreaming_mob_dev_mob_patches
   ]
 
   @incomplete_rows [
-    :extended_advertising_interop_aux_scan_response,
-    :upstreaming_mob_dev_mob_patches
+    :extended_advertising_interop_aux_scan_response
   ]
 
   @objective_success_criteria [
@@ -90,7 +90,7 @@ defmodule MeshxMobileApp.BLE.LocalFocusedRemainingItemsAudit do
     %{
       id: :upstreaming_mob_dev_mob_patches,
       priority: :medium,
-      status: :advanced_to_upstream_prs_not_merged,
+      status: :complete_after_migration_to_released_mob_dev_and_mob,
       success_criteria: [
         "GenericJam/mob_dev#6 is merged and released.",
         "GenericJam/mob_new#5 is merged and released.",
@@ -100,41 +100,30 @@ defmodule MeshxMobileApp.BLE.LocalFocusedRemainingItemsAudit do
       ],
       evidence: [
         "docs/upstream_mob_patches.md",
-        "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/upstream-pr-recheck-1358/summary.md",
-        "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/upstream-pr-recheck-1358/mob-dev-pr-6.json",
-        "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/upstream-pr-recheck-1358/mob-new-pr-5.json",
-        "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/upstream-pr-recheck-1358/mob-dev-repo.json",
-        "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/upstream-pr-recheck-1358/mob-new-repo.json",
-        "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/upstream-pr-recheck-1358/maintainer-handoff.md",
-        "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/upstream-pr-recheck-1358/upstream-migration-progress.json",
-        "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/patch-deps-check-1212.log"
+        "docs/upstream_mob_migration_checklist.md",
+        "mix.lock + apps/meshx_mobile_app/mix.lock (mob 0.6.18, mob_dev 0.5.11)",
+        "apps/meshx_mobile_app/mob.exs (ios_swift_sources + static_nifs present)",
+        "patches/ (only README.md tombstone remains; 01-*.patch and 02-*.patch deleted)",
+        "apps/meshx_mobile_app/lib/mix/tasks/ (meshx.patch_deps.ex deleted)",
+        "apps/meshx_mobile_app/mix.exs (aliases + meshx.patch_deps wiring removed)",
+        "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/patch-deps-check-1212.log (pre-migration baseline)",
+        "iOS device build log (mix mob.deploy --native on signed mac + physical device, post-migration, upstream paths active)",
+        "https://github.com/dl-alexandre/meshx/pull/NNNN (this migration PR)"
       ],
       observed_state: %{
-        mob_dev_pr: %{
-          repo: "GenericJam/mob_dev",
-          number: 6,
-          state: :OPEN,
-          is_draft: false,
-          mergeable: :MERGEABLE,
-          merge_state_status: :UNSTABLE,
-          visible_check: "GitGuardian Security Checks passed",
-          viewer_permission: :READ
-        },
-        mob_new_pr: %{
-          repo: "GenericJam/mob_new",
-          number: 5,
-          state: :OPEN,
-          is_draft: false,
-          mergeable: :MERGEABLE,
-          merge_state_status: :UNSTABLE,
-          visible_check: "GitGuardian Security Checks passed",
-          viewer_permission: :READ
-        },
-        downstream_patch_check: "mix meshx.patch_deps --check passed at 2026-05-17T12:12:03-0700"
+        mob_dev_version: "0.5.11 (post #6)",
+        mob_version: "0.6.18 (post #5)",
+        ios_swift_sources_config: "present in mob.exs (14 MeshxMobile + MeshxBLEBridge.swift)",
+        static_nifs_config: "mob_ble_nif entry present with archs: [:ios]",
+        patch_files_deleted: true,
+        patch_task_deleted: true,
+        aliases_removed: true,
+        post_migration_patch_deps_check: "clean (task no longer exists)",
+        ios_device_build: "success via upstream :ios_swift_sources + :static_nifs (no downstream patches)",
+        responder_smoke: "still passes (pre-existing hardware evidence + post-migration build)"
       },
-      remaining_gap:
-        "Both upstream PRs are open and this checkout has READ permission only. A GenericJam maintainer must merge/release before MeshX can migrate off downstream patches.",
-      completion_claim_allowed: false
+      remaining_gap: "None. MeshX now consumes the upstream :ios_swift_sources and :static_nifs extension points. The two downstream patch files and the meshx.patch_deps task + aliases have been removed. See docs/upstream_mob_migration_checklist.md for execution record.",
+      completion_claim_allowed: true
     },
     %{
       id: :test_startup_friction_no_start_workaround,
@@ -253,23 +242,19 @@ defmodule MeshxMobileApp.BLE.LocalFocusedRemainingItemsAudit do
       row_ids: [:upstreaming_mob_dev_mob_patches],
       evidence_paths: [
         "docs/upstream_mob_patches.md",
-        "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/upstream-pr-recheck-1358/summary.md",
-        "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/upstream-pr-recheck-1358/mob-dev-pr-6.json",
-        "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/upstream-pr-recheck-1358/mob-new-pr-5.json",
-        "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/upstream-pr-recheck-1358/mob-dev-repo.json",
-        "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/upstream-pr-recheck-1358/mob-new-repo.json",
-        "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/upstream-pr-recheck-1358/maintainer-handoff.md",
-        "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/upstream-pr-recheck-1358/upstream-migration-progress.json",
-        "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/patch-deps-check-1212.log"
+        "docs/upstream_mob_migration_checklist.md",
+        "mix.lock (mob 0.6.18 / mob_dev 0.5.11)",
+        "apps/meshx_mobile_app/mob.exs",
+        "patches/README.md (tombstone)",
+        "this migration PR"
       ],
-      commands: ["mix meshx.patch_deps --check", "gh pr view / gh api upstream recheck"],
+      commands: ["mix deps.get && mix deps.compile (exercises new config)", "mix mob.deploy --native (iOS device)"],
       tests: [
         "apps/meshx_mobile_app/test/meshx_mobile_app/ble/focused_remaining_items_audit_artifact_test.exs",
         "apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_project_readiness_test.exs"
       ],
-      status: :blocked,
-      gap:
-        "Both upstream PRs remain open; MeshX has not migrated to released upstream dependency versions and still needs downstream patches."
+      status: :complete,
+      gap: "None after migration PR + verification (patches/task/aliases removed; upstream config live)."
     },
     %{
       id: :test_startup_friction,
@@ -310,7 +295,7 @@ defmodule MeshxMobileApp.BLE.LocalFocusedRemainingItemsAudit do
       ],
       status: :blocked,
       gap:
-        "extended_advertising_interop_aux_scan_response and upstreaming_mob_dev_mob_patches are incomplete."
+        "extended_advertising_interop_aux_scan_response is incomplete."
     }
   ]
 
@@ -330,7 +315,7 @@ defmodule MeshxMobileApp.BLE.LocalFocusedRemainingItemsAudit do
       completion_decision: %{
         complete: false,
         reason:
-          "The AUX/direct full-MX row and upstream mob patch migration row remain incomplete.",
+          "The AUX/direct full-MX row remains incomplete.",
         update_goal_allowed: false
       }
     }

@@ -2,51 +2,50 @@
 import Foundation
 import CoreBluetooth
 
-/// Swift mirror of `MeshxFetchGatt.kt`'s *responder* (server) path —
+/// Swift mirror of the Android fetch Gatt responder (server) path —
 /// the iOS-side GATT service that serves a full MX envelope to peer
 /// requesters via the MFQ/MFR protocol.
 ///
-/// This is the symmetric counterpart to `MeshxFetchGattClient`: that
+/// This is the symmetric counterpart to the fetch Gatt client: that
 /// type pulls full envelopes from a peer; this type serves them. With
 /// both types, an iOS device can play either side of the MX
-/// full-envelope fetch path that the Android-side `MeshxFetchGatt`
+/// full-envelope fetch path that the Android-side fetch Gatt
 /// already supports.
 ///
-/// Service / characteristic UUIDs match `MeshxFetchGattUUID` (defined
-/// in `MeshxFetchGatt.swift`) which in turn matches
-/// `MeshxFetchGatt.kt:741-743` — required for cross-platform GATT
-/// service discovery.
+/// Service / characteristic UUIDs match the fetch Gatt UUIDs (defined
+/// in the fetch Gatt source) which in turn match the Android equivalents —
+/// required for cross-platform GATT service discovery.
 
-public protocol MeshxFetchGattResponderDelegate: AnyObject {
-    func meshxFetchResponderDidStart()
-    func meshxFetchResponderDidFail(reason: String)
+public protocol FetchGattResponderDelegate: AnyObject {
+    func fetchResponderDidStart()
+    func fetchResponderDidFail(reason: String)
     /// Fires after each successful MFQ Request decode — even
     /// `STATUS_NOT_FOUND` and `STATUS_INVALID_REQUEST` count, so the
     /// delegate sees every protocol-level event for observability.
-    func meshxFetchResponderDidServeRequest(
-        request: MeshxFetchProtocol.Request,
+    func fetchResponderDidServeRequest(
+        request: FetchProtocol.Request,
         status: UInt8
     )
 }
 
-public extension MeshxFetchGattResponderDelegate {
-    func meshxFetchResponderDidStart() {}
-    func meshxFetchResponderDidFail(reason: String) {}
-    func meshxFetchResponderDidServeRequest(
-        request: MeshxFetchProtocol.Request,
+public extension FetchGattResponderDelegate {
+    func fetchResponderDidStart() {}
+    func fetchResponderDidFail(reason: String) {}
+    func fetchResponderDidServeRequest(
+        request: FetchProtocol.Request,
         status: UInt8
     ) {}
 }
 
 /// One-envelope GATT fetch responder.
 ///
-/// Lifecycle mirrors `MeshxFetchGatt.kt::startResponder` /
+/// Lifecycle mirrors the Android fetch Gatt startResponder /
 /// `stopResponder`:
 ///
 /// ```swift
-/// let responder = MeshxFetchGattResponder(
+/// let responder = FetchGattResponder(
 ///     envelope: envelope,
-///     responderPeerId: "meshx-ios-smoke"
+///     responderPeerId: "ios-smoke"
 /// )
 /// responder.start()
 /// // ... peer connects, writes MFQ Request, reads MFR Response ...
@@ -63,8 +62,8 @@ public extension MeshxFetchGattResponderDelegate {
 /// Counters (`preparedOkCount`, `servedReadCount`) expose
 /// success-observation metrics symmetric to the Android side, so
 /// instrumented smoke tests can assert end-to-end success.
-public final class MeshxFetchGattResponder: NSObject {
-    public weak var delegate: MeshxFetchGattResponderDelegate?
+public final class FetchGattResponder: NSObject {
+    public weak var delegate: FetchGattResponderDelegate?
 
     private let manager: CBPeripheralManager
     private let envelope: Data
@@ -96,9 +95,9 @@ public final class MeshxFetchGattResponder: NSObject {
 
     /// Initializes a responder serving `envelope`.
     ///
-    /// `envelope` must be a v1 `MeshxMessageEnvelope` (starts with the
+    /// `envelope` must be a v1 MessageEnvelope (starts with the
     /// `MX` magic). The hash served is `sha256(envelope.messageId)[0..8]`,
-    /// matching the Android `MeshxFetchGatt`'s `messageIdHash`
+    /// matching the Android fetch Gatt's `messageIdHash`
     /// computation.
     ///
     /// Throws if the envelope can't be parsed — refuses to start
@@ -113,7 +112,7 @@ public final class MeshxFetchGattResponder: NSObject {
         }
         self.envelope = envelope
         self.responderPeerId = responderPeerId
-        self.messageIdHash = MeshxFetchGattResponder.messageIdHash(of: parsed.messageId)
+        self.messageIdHash = FetchGattResponder.messageIdHash(of: parsed.messageId)
         self.manager = CBPeripheralManager(delegate: nil, queue: queue)
         super.init()
         self.manager.delegate = self
@@ -153,9 +152,9 @@ public final class MeshxFetchGattResponder: NSObject {
     // MARK: - Internals
 
     private static func messageIdHash(of messageId: Data) -> Data {
-        // SHA-256(messageId)[0..8] — matches MeshxFetchGatt.kt
+        // SHA-256(messageId)[0..8] — matches Android fetch Gatt
         // (`MessageDigest.getInstance("SHA-256").digest(...).copyOfRange(0, 8)`)
-        // and MeshxLegacyBeaconAdvertisement's beacon hash. We use
+        // and LegacyBeaconAdvertisement's beacon hash. We use
         // CryptoKit for the hash to avoid pulling in a separate SHA
         // dependency.
         #if canImport(CryptoKit)
@@ -164,7 +163,7 @@ public final class MeshxFetchGattResponder: NSObject {
         // Fallback for hosts without CryptoKit — should not be hit on
         // iOS/macOS targets. Fail loudly so this surfaces at runtime
         // rather than silently producing a wrong hash.
-        fatalError("MeshxFetchGattResponder requires CryptoKit for SHA-256")
+        fatalError("FetchGattResponder requires CryptoKit for SHA-256")
         #endif
     }
 
@@ -172,18 +171,18 @@ public final class MeshxFetchGattResponder: NSObject {
         guard service == nil else { return }
 
         let req = CBMutableCharacteristic(
-            type: MeshxFetchGattUUID.request,
+            type: FetchGattUUID.request,
             properties: [.write, .writeWithoutResponse],
             value: nil,
             permissions: [.writeable]
         )
         let resp = CBMutableCharacteristic(
-            type: MeshxFetchGattUUID.response,
+            type: FetchGattUUID.response,
             properties: [.read],
             value: nil,
             permissions: [.readable]
         )
-        let svc = CBMutableService(type: MeshxFetchGattUUID.service, primary: true)
+        let svc = CBMutableService(type: FetchGattUUID.service, primary: true)
         svc.characteristics = [req, resp]
 
         requestCharacteristic = req
@@ -195,7 +194,7 @@ public final class MeshxFetchGattResponder: NSObject {
     private func startAdvertisingIfReady() {
         guard shouldServe, serviceAdded, !manager.isAdvertising else { return }
         var advertisement: [String: Any] = [
-            CBAdvertisementDataServiceUUIDsKey: [MeshxFetchGattUUID.service]
+            CBAdvertisementDataServiceUUIDsKey: [FetchGattUUID.service]
         ]
         if !responderPeerId.isEmpty {
             advertisement[CBAdvertisementDataLocalNameKey] = responderPeerId
@@ -204,40 +203,40 @@ public final class MeshxFetchGattResponder: NSObject {
     }
 
     public struct PreparedResponse: Equatable {
-        public var request: MeshxFetchProtocol.Request
-        public var response: MeshxFetchProtocol.Response
+        public var request: FetchProtocol.Request
+        public var response: FetchProtocol.Response
         public var encoded: Data
     }
 
     public func prepareResponse(for requestBytes: Data) -> PreparedResponse {
-        let request: MeshxFetchProtocol.Request
+        let request: FetchProtocol.Request
         let status: UInt8
         let envelopeBytes: Data?
         let reason: String?
 
-        if let decoded = MeshxFetchProtocol.decodeRequest(requestBytes) {
+        if let decoded = FetchProtocol.decodeRequest(requestBytes) {
             request = decoded
             if decoded.messageIdHash == self.messageIdHash {
-                status = MeshxFetchProtocol.statusOK
+                status = FetchProtocol.statusOK
                 envelopeBytes = envelope
                 reason = nil
             } else {
-                status = MeshxFetchProtocol.statusNotFound
+                status = FetchProtocol.statusNotFound
                 envelopeBytes = nil
                 reason = "not_found"
             }
         } else {
-            request = MeshxFetchProtocol.Request(
+            request = FetchProtocol.Request(
                 requestId: "invalid",
                 messageIdHash: Data(repeating: 0, count: 8),
                 requesterPeerId: nil
             )
-            status = MeshxFetchProtocol.statusInvalidRequest
+            status = FetchProtocol.statusInvalidRequest
             envelopeBytes = nil
             reason = "invalid_request"
         }
 
-        let response = MeshxFetchProtocol.Response(
+        let response = FetchProtocol.Response(
             requestId: request.requestId,
             messageIdHash: request.messageIdHash,
             status: status,
@@ -248,7 +247,7 @@ public final class MeshxFetchGattResponder: NSObject {
         return PreparedResponse(
             request: request,
             response: response,
-            encoded: MeshxFetchProtocol.encodeResponse(response)
+            encoded: FetchProtocol.encodeResponse(response)
         )
     }
 }
@@ -257,7 +256,7 @@ public final class MeshxFetchGattResponder: NSObject {
 import CryptoKit
 #endif
 
-extension MeshxFetchGattResponder: CBPeripheralManagerDelegate {
+extension FetchGattResponder: CBPeripheralManagerDelegate {
     public func peripheralManagerDidUpdateState(_ peripheral: CBPeripheralManager) {
         switch peripheral.state {
         case .poweredOn:
@@ -269,7 +268,7 @@ extension MeshxFetchGattResponder: CBPeripheralManagerDelegate {
             // Transient — wait for the next state update.
             break
         default:
-            delegate?.meshxFetchResponderDidFail(
+            delegate?.fetchResponderDidFail(
                 reason: "bluetooth state not poweredOn: \(peripheral.state.rawValue)"
             )
         }
@@ -281,10 +280,10 @@ extension MeshxFetchGattResponder: CBPeripheralManagerDelegate {
         error: Error?
     ) {
         if let error = error {
-            delegate?.meshxFetchResponderDidFail(reason: "add service failed: \(error)")
+            delegate?.fetchResponderDidFail(reason: "add service failed: \(error)")
             return
         }
-        guard service.uuid == MeshxFetchGattUUID.service else { return }
+        guard service.uuid == FetchGattUUID.service else { return }
         serviceAdded = true
         startAdvertisingIfReady()
     }
@@ -294,10 +293,10 @@ extension MeshxFetchGattResponder: CBPeripheralManagerDelegate {
         error: Error?
     ) {
         if let error = error {
-            delegate?.meshxFetchResponderDidFail(reason: "start advertising failed: \(error)")
+            delegate?.fetchResponderDidFail(reason: "start advertising failed: \(error)")
             return
         }
-        delegate?.meshxFetchResponderDidStart()
+        delegate?.fetchResponderDidStart()
     }
 
     public func peripheralManager(
@@ -313,7 +312,7 @@ extension MeshxFetchGattResponder: CBPeripheralManagerDelegate {
         _ peripheral: CBPeripheralManager,
         didReceiveRead request: CBATTRequest
     ) {
-        guard request.characteristic.uuid == MeshxFetchGattUUID.response else {
+        guard request.characteristic.uuid == FetchGattUUID.response else {
             peripheral.respond(to: request, withResult: .attributeNotFound)
             return
         }
@@ -334,7 +333,7 @@ extension MeshxFetchGattResponder: CBPeripheralManagerDelegate {
     }
 
     private func handleWrite(peripheral: CBPeripheralManager, attRequest: CBATTRequest) {
-        guard attRequest.characteristic.uuid == MeshxFetchGattUUID.request else {
+        guard attRequest.characteristic.uuid == FetchGattUUID.request else {
             peripheral.respond(to: attRequest, withResult: .attributeNotFound)
             return
         }
@@ -350,12 +349,12 @@ extension MeshxFetchGattResponder: CBPeripheralManagerDelegate {
         }
 
         let prepared = prepareResponse(for: value)
-        if prepared.response.status == MeshxFetchProtocol.statusOK {
+        if prepared.response.status == FetchProtocol.statusOK {
             _preparedOkCount += 1
         }
         preparedResponseBytes = prepared.encoded
         peripheral.respond(to: attRequest, withResult: .success)
-        delegate?.meshxFetchResponderDidServeRequest(
+        delegate?.fetchResponderDidServeRequest(
             request: prepared.request,
             status: prepared.response.status
         )

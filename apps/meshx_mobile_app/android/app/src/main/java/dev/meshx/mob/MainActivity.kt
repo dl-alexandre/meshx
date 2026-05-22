@@ -29,7 +29,7 @@ import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.core.content.FileProvider
-import dev.meshx.mob.ble.MeshxBleNative
+import mob.ble.MobBleNative
 import java.io.File
 
 class MainActivity : ComponentActivity() {
@@ -126,10 +126,19 @@ class MainActivity : ComponentActivity() {
         MobBridge.init(this)
 
         // Supply the BLE NIF bridge with an application Context before the
-        // BEAM starts — meshx_ble_nif's start_scan/start_advertising calls
-        // route through MeshxBleNative, which builds RealBleBridge lazily.
-        MeshxBleNative.init(this)
+        // BEAM starts — mob_ble_nif's start_scan/start_advertising calls
+        // route through MobBleNative, which builds RealBleBridge lazily.
+        MobBleNative.init(this)
         registerBluetoothStateReceiver()
+
+        // Android does not always provide a process TMPDIR to embedded BEAM
+        // code. MeshxStore.DB falls back through System.tmp_dir!/0 during
+        // runtime startup, so seed it with an app-writable directory before
+        // nativeStartBeam().
+        val beamTmpDir = File(cacheDir, "beam_tmp")
+        beamTmpDir.mkdirs()
+        android.system.Os.setenv("TMPDIR", beamTmpDir.absolutePath, true)
+        Log.i(TAG, "onCreate: TMPDIR=${beamTmpDir.absolutePath}")
 
         // Forward launcher-supplied env vars into the BEAM process. Set BEFORE
         // nativeStartBeam below so the BEAM (and Mob.Dist in particular) sees
@@ -152,25 +161,57 @@ class MainActivity : ComponentActivity() {
 
         // meshx_ble_selftest — when set, MeshxMobileApp.App.on_start runs
         // the headless BLE bring-up probe (MeshxMobileApp.BleSelfTest)
-        // that drives the real meshx_ble_nif scan+advertise path.
+        // that drives the real mob_ble_nif scan+advertise path.
         if (intent?.extras?.getBoolean("meshx_ble_selftest", false) == true) {
             android.system.Os.setenv("MESHX_BLE_SELFTEST", "1", true)
             Log.i(TAG, "onCreate: MESHX_BLE_SELFTEST=1")
         }
 
+        // mob_ble_* extras — support the recommended default path (Phase 2+)
+        // for on-device validation and harness launches. These set the
+        // MOB_BLE_* env vars consumed by MeshxMobileApp.App and
+        // Mob.Ble.* (new canonical path unless MOB_BLE_TRANSPORT=0).
+        if (intent?.extras?.getBoolean("mob_ble_selftest", false) == true) {
+            android.system.Os.setenv("MOB_BLE_SELFTEST", "1", true)
+            Log.i(TAG, "onCreate: MOB_BLE_SELFTEST=1 (recommended mob_ble path)")
+        }
+
+        intent?.extras?.getString("mob_ble_local_name")?.takeIf { it.isNotEmpty() }?.let { name ->
+            android.system.Os.setenv("MOB_BLE_LOCAL_NAME", name, true)
+            Log.i(TAG, "onCreate: MOB_BLE_LOCAL_NAME=$name")
+        }
+
+        intent?.extras?.getString("mob_ble_transport")?.takeIf { it.isNotEmpty() }?.let { v ->
+            android.system.Os.setenv("MOB_BLE_TRANSPORT", v, true)
+            Log.i(TAG, "onCreate: MOB_BLE_TRANSPORT=$v")
+        }
+
+        // Also accept --ez mob_ble_transport_0 true as a convenience for opt-out
+        if (intent?.extras?.getBoolean("mob_ble_transport_0", false) == true) {
+            android.system.Os.setenv("MOB_BLE_TRANSPORT", "0", true)
+            Log.i(TAG, "onCreate: MOB_BLE_TRANSPORT=0 (legacy path forced)")
+        }
+
+        // MOB_BLE_FETCH_ON_BEACON parity (in addition to legacy meshx_ name)
+        // Allows launch scripts / harnesses to use the MOB_BLE_* namespace uniformly
+        // for the new default path while keeping full backward compat.
+        val mobBleFetch = intent?.extras?.getBoolean("mob_ble_fetch_on_beacon", false) == true
+        val fetchOnBeacon = mobBleFetch || (intent?.extras?.getBoolean("meshx_ble_fetch_on_beacon", false) == true)
+        MobBleNative.setFetchOnBeaconEnabled(fetchOnBeacon)
+        if (fetchOnBeacon) {
+            Log.i(TAG, "onCreate: fetch_on_beacon=true (mob_ble or legacy)")
+            if (mobBleFetch) {
+                android.system.Os.setenv("MOB_BLE_FETCH_ON_BEACON", "1", true)
+            }
+        }
+
         if (intent?.extras?.containsKey("meshx_ble_selftest_send") == true) {
             val enabled = intent?.extras?.getBoolean("meshx_ble_selftest_send", true) != false
             android.system.Os.setenv("MESHX_BLE_SELFTEST_SEND", if (enabled) "1" else "0", true)
-            MeshxBleNative.setSelftestSendEnabled(enabled)
+            MobBleNative.setSelftestSendEnabled(enabled)
             Log.i(TAG, "onCreate: MESHX_BLE_SELFTEST_SEND=${if (enabled) "1" else "0"}")
         } else {
-            MeshxBleNative.setSelftestSendEnabled(true)
-        }
-
-        val fetchOnBeacon = intent?.extras?.getBoolean("meshx_ble_fetch_on_beacon", false) == true
-        MeshxBleNative.setFetchOnBeaconEnabled(fetchOnBeacon)
-        if (fetchOnBeacon) {
-            Log.i(TAG, "onCreate: meshx_ble_fetch_on_beacon=true")
+            MobBleNative.setSelftestSendEnabled(true)
         }
 
         // Check if launched from a notification tap
@@ -328,7 +369,7 @@ class MainActivity : ComponentActivity() {
                     BluetoothAdapter.ERROR
                 )
                 Log.i(TAG, "BluetoothAdapter state -> $state")
-                MeshxBleNative.onBluetoothStateChanged(state)
+                MobBleNative.onBluetoothStateChanged(state)
             }
         }
     }

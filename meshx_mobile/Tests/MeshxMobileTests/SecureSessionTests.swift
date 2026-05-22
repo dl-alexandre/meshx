@@ -50,7 +50,7 @@ final class SecureSessionTests: XCTestCase {
     }
 
     func testSecureSessionDoesNotTreatPlainControlPacketAsHandshake() throws {
-        let session = MeshxSecureSession(role: .initiator)
+        let session = SecureSession(role: .initiator)
         let frame = try Frame.encode(Packet(type: .control, msgId: 9, payload: Data([0x00, 0x01])))
 
         let events = try session.receive(frame: frame, replyMsgId: 10)
@@ -59,14 +59,14 @@ final class SecureSessionTests: XCTestCase {
     }
 
     func testSecureSessionRefusesEncryptBeforeHandshake() {
-        let session = MeshxSecureSession(role: .initiator)
+        let session = SecureSession(role: .initiator)
         XCTAssertThrowsError(try session.encrypt(packet: Packet(type: .data, msgId: 1, payload: Data()))) { err in
             XCTAssertEqual(err as? NoiseError, .handshakeIncomplete)
         }
     }
 
-    private static func initiatorSession() throws -> MeshxSecureSession {
-        MeshxSecureSession(
+    private static func initiatorSession() throws -> SecureSession {
+        SecureSession(
             noiseSession: try MeshxNoiseSession(
                 role: .initiator,
                 staticPrivateKey: Data(hex: "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f")!,
@@ -75,8 +75,8 @@ final class SecureSessionTests: XCTestCase {
         )
     }
 
-    private static func responderSession() throws -> MeshxSecureSession {
-        MeshxSecureSession(
+    private static func responderSession() throws -> SecureSession {
+        SecureSession(
             noiseSession: try MeshxNoiseSession(
                 role: .responder,
                 staticPrivateKey: Data(hex: "404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f")!,
@@ -93,7 +93,7 @@ final class SecureSessionTests: XCTestCase {
         try XCTUnwrap((responderSession().noiseSession as? MeshxNoiseSession)?.localStaticKey)
     }
 
-    private static func outgoingFrame(from event: MeshxSecureSessionEvent) throws -> Data {
+    private static func outgoingFrame(from event: SecureSessionEvent) throws -> Data {
         guard case .outgoingFrame(let frame) = event else {
             XCTFail("expected outgoing frame event, got \(event)")
             throw NoiseError.invalidHandshakeState
@@ -101,7 +101,7 @@ final class SecureSessionTests: XCTestCase {
         return frame
     }
 
-    private static func applicationFrame(from event: MeshxSecureSessionEvent) throws -> Data {
+    private static func applicationFrame(from event: SecureSessionEvent) throws -> Data {
         guard case .applicationFrame(let frame) = event else {
             XCTFail("expected application frame event, got \(event)")
             throw NoiseError.invalidHandshakeState
@@ -109,7 +109,7 @@ final class SecureSessionTests: XCTestCase {
         return frame
     }
 
-    private static func assertEstablished(_ event: MeshxSecureSessionEvent, remoteStaticKey: Data) throws {
+    private static func assertEstablished(_ event: SecureSessionEvent, remoteStaticKey: Data) throws {
         guard case .established(let actualRemoteStaticKey) = event else {
             XCTFail("expected established event, got \(event)")
             throw NoiseError.invalidHandshakeState

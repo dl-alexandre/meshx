@@ -7,67 +7,26 @@ cross-compiles the BEAM, links our Swift package + statically-linked
 NIFs (`meshx_ble_nif`), signs, and pushes to a connected iPhone or iPad
 via `xcrun devicectl`.
 
-The locked `mob_dev` / `mob` dependency versions do not expose the
-extension points MeshX needs for project-specific Swift sources and
-static NIF registration, so we carry the required additions as
-unified-diff patches in `patches/` at the repo root. The patches are
-applied automatically by `mix meshx.patch_deps`, which is wired into
-the `deps.get` / `deps.update` / `deps.compile` aliases in `mix.exs`.
-You should not normally need to think about it.
+The iOS build now consumes the upstream extension points introduced
+by `GenericJam/mob_dev#6` and `GenericJam/mob_new#5`:
 
-Upstream PRs now exist for the Swift-source extension point:
+- `mob.exs` under `config :mob_dev`:
+  - `:ios_swift_sources` — list of project Swift files (MeshxMobile +
+    local bridge) to compile into the device .app
+  - `:static_nifs` — declarative registration for `:mob_ble_nif` (and
+    future project NIFs) so they appear in the generated driver tab
 
-- `GenericJam/mob_dev#6`
-- `GenericJam/mob_new#5`
+See `docs/upstream_mob_migration_checklist.md` for the exact migration
+steps, verification commands, and what was removed (`patches/01...`,
+`02...`, the `meshx.patch_deps` task, and its aliases).
 
-Until those PRs are merged, released, and MeshX migrates to released
-dependency versions with the new `mob.exs :ios_swift_sources` support,
-the downstream patch system remains the known-good build path. See
-`docs/upstream_mob_patches.md` for the current PR state, maintainer
-handoff, and post-merge migration checklist.
+## Historical note (patch system)
 
-## When you run into the patches
-
-### `mix deps.get` shows patch activity
-
-Normal — every `deps.get` reapplies the patches (idempotent). Output
-looks like:
-
-```
-  ✓  patches/01-mob_dev-meshx-build-additions.patch: already patched
-  ✓  patches/02-mob-static-nif-table.patch: already patched
-```
-
-### `mix meshx.patch_deps` says "patch does not apply"
-
-The upstream `mob_dev` or `mob` dep changed in a way that breaks one
-of our patches. Recovery:
-
-1. Read the patch file in `patches/` to see what it was trying to do.
-2. Inspect the now-divergent dep file in
-   `apps/meshx_mobile_app/deps/<dep>/...`.
-3. Edit by hand to re-apply the change against the new upstream.
-4. Regenerate the `.patch` file with `diff -u` against an unpatched
-   copy. See `patches/README.md` for the exact incantation.
-5. Bump the `Updated:` and `Authored against:` lines in the patch
-   header.
-6. Commit the regenerated patch and the bumped dep version (if any).
-
-### You're adding a new Swift source or NIF
-
-If your addition needs the iOS build to compile a new `.swift` file
-in `meshx_mobile/Sources/MeshxMobile/` or link a new `.m` NIF, you
-need to update the existing patches (or add a new one). Specifically:
-
-- **New Swift source**: add the path to the `swiftc` arg list inside
-  `patches/01-mob_dev-meshx-build-additions.patch`. Look for the
-  existing `MessageAdvertisementObserver.swift` line and append.
-- **New static NIF**: add a compile step + link step to the same
-  patch, and a registration entry in
-  `patches/02-mob-static-nif-table.patch`.
-
-For each, regenerate the affected `.patch` file (see above) so the
-diff stays clean.
+The downstream patch machinery (`patches/`, `meshx.patch_deps` task,
+aliases in mix.exs) was removed in the migration PR after upstream
+landed support for `:ios_swift_sources` and `:static_nifs`. See the
+checklist in `docs/upstream_mob_migration_checklist.md` and the
+updated `apps/meshx_mobile_app/mob.exs`.
 
 ## Android dev opt-in: full MX envelopes
 
@@ -138,6 +97,32 @@ adb shell am start \
   --ez meshx_ble_fetch_on_beacon true
 ```
 
+**New recommended path (post-Phase 2/3, default)**: use the `mob_ble_*` extras (forwarded by `MainActivity.kt` / `AppDelegate.m` to `MOB_BLE_*` envs consumed by `MeshxMobileApp.App` + `Mob.Ble.SelfTest` / `Mob.Ble.*`). The `mob_ble` path (via `Mob.Ble.Bridge`) is active unless `MOB_BLE_TRANSPORT=0`.
+
+```bash
+adb shell am start \
+  -n dev.meshx.mob/.MainActivity \
+  --ez mob_ble_selftest true \
+  --es mob_ble_local_name "my-val-device" \
+  --ez mob_ble_fetch_on_beacon true
+# Opt-out to legacy (rare, for comparison):
+#   --ez mob_ble_transport_0 true
+```
+
+The legacy `meshx_ble_*` extras continue to work for backward compat (dual handling in MainActivity).
+
+**Convenience launcher script** (preferred for evidence captures):
+
+```bash
+./scripts/launch_mob_ble_default_path.sh --serial <SERIAL> --selftest --local-name cutover-val --fetch-on-beacon
+# Legacy comparison:
+./scripts/launch_mob_ble_default_path.sh --serial <SERIAL> --legacy --selftest
+```
+
+See the script for full flags, evidence tips, and artifact layout (use `artifacts/local-ble/2026-05-19-mob-ble-cutover-XXX/cutover-manifest.json` + 5-step recipe for first post-cutover physical runs). iOS parity: `MOB_BLE_*` keys are also forwarded from launch opts in `AppDelegate.m` (DEBUG autoselftest uses the recommended path; full harness env passing via devicectl --environment or equivalent).
+
+The legacy `meshx_ble_*` extras continue to work for backward compat.
+
 This installs only the scanner-side MB-cue / service-hash-cue ->
 `MeshxFetchGatt` coordinator. It leaves the default `sendToPeer` path on
 MB-only unless `MESHX_MX_SEND=true` or `meshx.mx.send=true` is also used.
@@ -167,23 +152,9 @@ configured.
 
 ## CI
 
-`mix meshx.patch_deps --check` exits non-zero if any patch is
-unapplied or doesn't apply at all. Wire it into CI to catch:
-
-- An untracked dep upgrade that broke a patch.
-- A patch file that was edited locally but not regenerated.
-
-```yaml
-- run: mix meshx.patch_deps --check
-```
-
-## Long-term
-
-The patches are technical debt. The long-term fix is upstream support
-for project-supplied Swift sources and project-registered static NIFs.
-Do not delete `patches/`, `lib/mix/tasks/meshx.patch_deps.ex`, or the
-`meshx.patch_deps` aliases merely because the PRs are open. Remove
-them only after the upstream changes are merged, released, the MeshX
-dependencies are upgraded, and the iOS harness device build plus
-Android-to-iOS responder smoke still pass. The current migration plan
-lives in `docs/upstream_mob_patches.md`.
+Post-migration, the `mix meshx.patch_deps --check` gate is no longer
+present (task and patches removed). Typical CI runs `mix format --check`,
+`mix credo`, `mix test --no-start`, and `mix deps.get && mix compile`
+(which now exercises the `:ios_swift_sources` + `:static_nifs` paths
+directly). See `docs/upstream_mob_migration_checklist.md` §4 for the
+full verification command list used in the migration PR.

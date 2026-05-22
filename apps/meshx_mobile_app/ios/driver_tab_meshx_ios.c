@@ -35,6 +35,7 @@ void *asn1rt_nif_nif_init(void);
 void *crypto_nif_init(void);
 void *mob_nif_nif_init(void);
 void *meshx_ble_nif_nif_init(void);
+void *mob_ble_nif_nif_init(void);
 
 #ifdef MOB_STATIC_SQLITE_NIF
 void *sqlite3_nif_nif_init(void);
@@ -53,6 +54,7 @@ ErtsStaticNif erts_static_nif_tab[] = {
     {crypto_nif_init,         1, THE_NON_VALUE, NULL},
     {mob_nif_nif_init,        0, THE_NON_VALUE, NULL},
     {meshx_ble_nif_nif_init,  0, THE_NON_VALUE, NULL},
+    {mob_ble_nif_nif_init,    0, THE_NON_VALUE, NULL},
 #ifdef MOB_STATIC_SQLITE_NIF
     {sqlite3_nif_nif_init,    0, THE_NON_VALUE, NULL},
 #endif

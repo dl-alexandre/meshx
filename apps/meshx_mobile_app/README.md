@@ -13,9 +13,28 @@ work to `MeshxMobileApp.NativeBridge`.
 | Mob app shell | Done | Generated from Mob and compiled inside the umbrella. |
 | MeshX runtime startup | Done | `MeshxMobileApp.App` starts `meshx_runtime` and sets a mobile store directory when Mob provides one. |
 | Session/UI contract | Done | `MeshxMobileApp.Session` owns scan/advertise/ping state and is covered by ExUnit. |
-| Native BLE bridge | Partial | The iOS simulator build links the Swift CoreBluetooth harness through `NativeBridge.IOS`; hardware validation still needs a bridge-linked physical build and valid development profile. |
+| Native BLE bridge | Phase 3 (mob_ble default + published) | Legacy `NativeBridge` path remains for transition (opt-out `MOB_BLE_TRANSPORT=0`). Recommended/default path: `mob_ble` plugin + `Mob.Ble.Bridge` / `Mob.Ble.MobileBridge` wired via `MeshxTransportBLE` in `MeshxMobileApp.App` (see `maybe_start_mob_ble_transport/0`, `MOB_BLE_*` envs, wiring test, and `docs/mob_ble_bridge_migration.md`). `Mob.Ble.SelfTest` also wired. |
 | Android shell | Debug harness | Gradle project + BLE-permissioned `MainActivity` with explicit debug intents for scan start and M14 test-envelope dispatch. No BEAM boot yet. |
-| Android BLE transport | Message scan + advertise | Kotlin scanner/advertiser emit v1 wire-format events, dispatch a real M14 `MessageEnvelope`, and promote MeshX manufacturer-data adverts into canonical `received_message` JSON. Logcat + on-screen sink today; NIF/BEAM sink lands with BEAM-on-Android. No routing, crypto, retries, reconnect, or guaranteed delivery. |
+
+## BLE Transport Wiring & `mob_ble` Migration (Phase 2/3 cutover)
+
+**Default production path (strongly recommended):** `mob_ble` + `Mob.Ble.Bridge`.
+
+- `MeshxMobileApp.App` calls `maybe_start_mob_ble_transport/0` on boot (unless `MOB_BLE_TRANSPORT=0`).
+- It starts `MeshxTransportBLE` using `bridge: Mob.Ble.bridge_module()` (i.e. `Mob.Ble.MobileBridge`, the canonical impl of `Mob.Ble.Bridge`).
+- Native events flow through `Mob.Ble.Internal.BridgeProtocol.decode/1` → `MobileBridge` → `MeshxTransportBLE` → canonical `{:meshx_transport, :ble, _}` events.
+- `Mob.Ble.SelfTest` (plugin-owned, `native?: true` on device) is started via `MOB_BLE_SELFTEST=1` (preferred when mob_ble path is active to avoid NIF contention).
+- Env gates:
+  - `MOB_BLE_TRANSPORT=0` → opt-out to legacy NativeBridge path (full backward compat during transition).
+  - `MOB_BLE_LOCAL_NAME=...` → custom local name for the bridge.
+  - `MOB_BLE_SELFTEST=1` → start the recommended self-test probe.
+- See `apps/meshx_mobile_app/lib/meshx_mobile_app/app.ex` (the `maybe_*` functions and moduledoc), the primary wiring test `test/meshx_mobile_app/mob_ble_transport_wiring_test.exs`, `Mob.Ble` moduledocs, and `docs/mob_ble_bridge_migration.md` for the full strategy (Phase 1: canonical Bridge in mob_ble + dep drop; Phase 2: explicit dep + docs + default flip + Hex prep).
+
+**Legacy path:** `MOB_BLE_TRANSPORT=0` keeps pre-migration `NativeBridge` (iOS/Android) + `MESHX_BLE_SELFTEST` for the old self-test. This ensures zero breaking changes for any existing on-device flows or CI.
+
+**Migration hygiene:** `meshx_mobile_app/mix.exs` carries an explicit `{:meshx_transport_ble, in_umbrella: true}` dep (required for direct `MeshxTransportBLE` references in App + wiring test). `mob_ble` itself has zero runtime meshx_* deps and is Hex-publishable independently. The `MeshxTransportBLE.Bridge` behaviour is a CONTRACT-SYNC copy of the authoritative `Mob.Ble.Bridge`.
+
+Full details and compatibility guarantees are in `docs/BLE_BRIDGE.md` and the migration strategy doc.
 
 ## Local Setup
 
@@ -34,18 +53,10 @@ mix deps.get
 mix mob.deploy --native
 ```
 
-> The `mix deps.get` step also applies project-local patches to the
-> vendored `mob_dev` / `mob` deps (extra Swift sources for the
-> MeshxMobile package, `meshx_ble_nif` registration in the static NIF
-> table). The patches live in `patches/` at the repo root and are
-> applied by `mix meshx.patch_deps`, wired into the `deps.*` aliases.
-> See [CONTRIBUTING.md](CONTRIBUTING.md) for when you'll run into them
-> and how to handle upstream drift.
-> The upstream replacement path is tracked in
-> [docs/upstream_mob_patches.md](../../docs/upstream_mob_patches.md);
-> keep the patches until `GenericJam/mob_dev#6` and
-> `GenericJam/mob_new#5` are merged, released, and this app has
-> migrated to the released extension points.
+> iOS native builds now use upstream `mob.exs` keys `:ios_swift_sources`
+> and `:static_nifs` (post `GenericJam/mob_dev#6` + `mob_new#5`).
+> See `docs/upstream_mob_migration_checklist.md` for the migration details
+> that removed the temporary downstream patches.
 >
 > For Android dev opt-in (route `sendToPeer` through the full MX
 > envelope + GATT fetch responder and enable Android scanner-side
@@ -65,7 +76,7 @@ mix mob.devices
 mix meshx.mobile.deploy_device --device <device-udid>
 ```
 
-The MeshX device task reuses Mob's physical iOS build script and patches in the
+The MeshX device task reuses Mob's physical iOS build script and (via `mob.exs` `:ios_swift_sources` + `:static_nifs` config) includes the
 MeshX BLE bridge sources before compiling. The M23-M27 delivery ledger includes
 an Android-to-macOS CoreBluetooth proof; exact Android-to-Android logcat proof
 is still blocked on attaching a second Android BLE device. When two Android
