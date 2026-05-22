@@ -1,7 +1,7 @@
 defmodule Mob.Ble.MixProject do
   use Mix.Project
 
-  @github_url "https://github.com/GenericJam/mob_ble"
+  @github_url "https://github.com/dl-alexandre/mob_ble"
   @version "0.1.0"
   @description "Production BLE transport plugin for mob (MB legacy + GATT fetch). Self-contained (zero runtime dependencies on meshx_* packages post migration); owns canonical Mob.Ble.Bridge/MobileBridge, natives, manifest. See README.md + the repo docs/ for migration + contract details."
 
