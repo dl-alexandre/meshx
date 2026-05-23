@@ -1,0 +1,12 @@
+[submodule "apps/mob_cellular"]
+	path = apps/mob_cellular
+	url = https://github.com/dl-alexandre/mob_cellular.git
+	branch = main
+[submodule "apps/mob_mesh"]
+	path = apps/mob_mesh
+	url = https://github.com/dl-alexandre/mob_mesh.git
+	branch = main
+[submodule "apps/mob_wifi"]
+	path = apps/mob_wifi
+	url = https://github.com/dl-alexandre/mob_wifi.git
+	branch = main
