@@ -1,3 +1,0 @@
-// Static NIF declarations contributed by the mob_ble plugin.
-
-void *mob_ble_nif_nif_init(void);

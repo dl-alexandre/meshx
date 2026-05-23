@@ -10,3 +10,11 @@
 	path = apps/mob_wifi
 	url = https://github.com/dl-alexandre/mob_wifi.git
 	branch = main
+[submodule "apps/mob_transport"]
+	path = apps/mob_transport
+	url = https://github.com/dl-alexandre/mob_transport.git
+	branch = main
+[submodule "apps/mob_ble"]
+	path = apps/mob_ble
+	url = https://github.com/dl-alexandre/mob_ble.git
+	branch = main
