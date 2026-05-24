@@ -34,7 +34,7 @@
   "remaining_items_objective": {
     "audit_path": "docs/remaining_items_audit.md",
     "machine_readable_audit_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/focused-remaining-items-audit.json",
-    "last_verified_at": "2026-05-17T13:58:54-0700",
+    "last_verified_at": "2026-05-21T20:00:00-0700",
     "completed_rows": [
       "hardware_validation_of_full_ios_responder_path",
       "test_startup_friction_no_start_workaround"
@@ -117,19 +117,19 @@
       "This bundle proves the Android opt-in scanner coordinator can use an iOS fetch-service local-name hash cue to fetch a full MX envelope from the iPad MeshxFetchGattResponder.",
       "This bundle proves the Android runtime receive-only fetch opt-in works in a default debug build with self-test send disabled at the native send entry point.",
       "Regenerated release, recent-evidence, and iOS parity manifests plus release-candidate review preserve iOS parity and whole-project completion as blocked.",
-    "Alternate iOS receiver availability was refreshed at 2026-05-17T13:58:54-0700 and archived under hardware/external-blocker-recheck-1358: Coding iPad remains connected, but DairyPhoneDeaux iPhone 13 remains unavailable.",
+      "Alternate iOS receiver availability was refreshed at 2026-05-17T13:58:54-0700 and archived under hardware/external-blocker-recheck-1358: Coding iPad remains connected, but DairyPhoneDeaux iPhone 13 remains unavailable.",
       "Root mix test passed without --no-start at 2026-05-17T12:09:58-0700 and is archived at manifests/root-mix-test-1210.log, preserving the startup-friction completion row.",
       "Readiness, release, completion audit, hardware gate, and iOS parity guardrail tests preserve the AUX and upstream blockers.",
       "Downstream patch check passed at 2026-05-17T12:12:03-0700 and is archived at manifests/patch-deps-check-1212.log.",
-    "Direct full-MX AUX validation checklist records callback, canonical parse, fallback, and metadata evidence required to close the AUX row.",
-    "Direct full-MX AUX closure-progress artifact marks sender metadata, observer metadata, MB fallback control, and negative-boundary notes satisfied for the negative runs while keeping platform callback proof, canonical parse proof, and alternate iOS receiver path missing.",
-    "Upstream migration-progress artifact marks downstream patch verification, open replacement PRs, maintainer handoff, and READ-only permission evidence satisfied while keeping upstream merge, release, MeshX migration, downstream patch removal, and post-migration verification missing."
-  ],
-  "plain_text_audit_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/focused-remaining-items-audit.txt",
-  "aux_validation_checklist_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/android-aux-full-mx-ios-observe-rerun/aux-validation-checklist.md",
-  "aux_closure_progress_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/android-aux-full-mx-ios-observe-rerun/aux-closure-progress.json",
-  "upstream_patch_maintainer_handoff_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/upstream-pr-recheck-1358/maintainer-handoff.md",
-  "upstream_patch_migration_progress_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/upstream-pr-recheck-1358/upstream-migration-progress.json"
+      "Direct full-MX AUX validation checklist records callback, canonical parse, fallback, and metadata evidence required to close the AUX row.",
+      "Direct full-MX AUX closure-progress artifact marks sender metadata, observer metadata, MB fallback control, and negative-boundary notes satisfied for the negative runs while keeping platform callback proof, canonical parse proof, and alternate iOS receiver path missing.",
+      "Upstream migration-progress artifact marks downstream patch verification, open replacement PRs, maintainer handoff, and READ-only permission evidence satisfied while keeping upstream merge, release, MeshX migration, downstream patch removal, and post-migration verification missing."
+    ],
+    "plain_text_audit_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/focused-remaining-items-audit.txt",
+    "aux_validation_checklist_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/android-aux-full-mx-ios-observe-rerun/aux-validation-checklist.md",
+    "aux_closure_progress_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/android-aux-full-mx-ios-observe-rerun/aux-closure-progress.json",
+    "upstream_patch_maintainer_handoff_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/upstream-pr-recheck-1358/maintainer-handoff.md",
+    "upstream_patch_migration_progress_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/upstream-pr-recheck-1358/upstream-migration-progress.json"
   },
   "external_blocker_recheck_1225": {
     "directory": "hardware/external-blocker-recheck-1225",

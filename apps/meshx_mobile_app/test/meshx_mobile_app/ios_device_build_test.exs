@@ -3,8 +3,7 @@ defmodule MeshxMobileApp.IOSDeviceBuildTest do
 
   test "patches Mob physical device build with MeshX BLE bridge sources" do
     script =
-      []
-      |> MobDev.NativeBuild.generate_build_device_sh("/tmp/otp")
+      legacy_mob_device_script()
       |> MeshxMobileApp.IOSDeviceBuild.bridge_linked_script()
 
     assert script =~ ~s(MESHX_SWIFT_DIR="../../meshx_mobile/Sources/MeshxMobile")
@@ -21,5 +20,36 @@ defmodule MeshxMobileApp.IOSDeviceBuildTest do
     assert script =~ "-Xlinker -framework -Xlinker CryptoKit"
     assert script =~ ~s(PROFILE_PLIST="$BUILD_DIR/embedded_profile.plist")
     refute script =~ ~s(Print :Entitlements:aps-environment" /dev/stdin)
+  end
+
+  defp legacy_mob_device_script do
+    """
+    BUILD_DIR=$(mktemp -d)
+    SWIFT_BRIDGING="$MOB_DIR/ios/MobDemo-Bridging-Header.h"
+
+    swiftc \\
+        "$MOB_DIR/ios/MobViewModel.swift" \\
+        "$MOB_DIR/ios/MobRootView.swift" \\
+        -c -o "$BUILD_DIR/swift_mob.o"
+
+    $CC -fobjc-arc -fmodules $IFLAGS \\
+        -I "$BUILD_DIR" -DSTATIC_ERLANG_NIF \\
+        -c "$MOB_DIR/ios/mob_nif.m" -o "$BUILD_DIR/mob_nif.o"
+
+    $CC $IFLAGS $SQLITE_FLAG \\
+        -c "$MOB_DIR/ios/driver_tab_ios.c" -o "$BUILD_DIR/driver_tab_ios.o"
+
+    $CC \\
+        "$BUILD_DIR/swift_mob.o" \\
+        "$BUILD_DIR/mob_nif.o" \\
+        "$BUILD_DIR/mob_beam.o" \\
+        -Xlinker -framework -Xlinker QuartzCore \\
+        -Xlinker -framework -Xlinker SwiftUI \\
+        -o "$BUILD_DIR/$APP_NAME"
+
+        APS_ENV=$(security cms -D -i "$APP/embedded.mobileprovision" 2>/dev/null \\
+            | /usr/libexec/PlistBuddy -c "Print :Entitlements:aps-environment" /dev/stdin 2>/dev/null \\
+            || true)
+    """
   end
 end

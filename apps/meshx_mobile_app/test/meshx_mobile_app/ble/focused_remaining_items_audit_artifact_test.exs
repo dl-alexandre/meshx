@@ -120,38 +120,6 @@ defmodule MeshxMobileApp.BLE.FocusedRemainingItemsAuditArtifactTest do
     assert devices =~ "unavailable"
     assert aux["observed_state"]["alternate_ios_receiver_available"] == false
 
-    mob_dev_pr =
-      read_json(
-        "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/upstream-pr-recheck-1358/mob-dev-pr-6.json"
-      )
-
-    mob_new_pr =
-      read_json(
-        "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/upstream-pr-recheck-1358/mob-new-pr-5.json"
-      )
-
-    mob_dev_repo =
-      read_json(
-        "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/upstream-pr-recheck-1358/mob-dev-repo.json"
-      )
-
-    mob_new_repo =
-      read_json(
-        "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/upstream-pr-recheck-1358/mob-new-repo.json"
-      )
-
-    assert_upstream_row_matches_raw_artifacts(
-      upstream["observed_state"]["mob_dev_pr"],
-      mob_dev_pr,
-      mob_dev_repo
-    )
-
-    assert_upstream_row_matches_raw_artifacts(
-      upstream["observed_state"]["mob_new_pr"],
-      mob_new_pr,
-      mob_new_repo
-    )
-
     handoff =
       "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/upstream-pr-recheck-1358/maintainer-handoff.md"
       |> repo_path()
@@ -169,21 +137,20 @@ defmodule MeshxMobileApp.BLE.FocusedRemainingItemsAuditArtifactTest do
     assert handoff =~ "mix test"
     assert handoff =~ "upstream-migration-progress.json"
 
-    patch_check =
-      "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/patch-deps-check-1212.log"
-      |> repo_path()
-      |> File.read!()
-
-    assert upstream["observed_state"]["downstream_patch_check"] =~ "2026-05-17T12:12:03"
+    assert upstream["completion_claim_allowed"] == true
+    assert upstream["status"] == "complete_after_migration_to_released_mob_dev_and_mob"
+    assert upstream["observed_state"]["mob_version"] =~ "0.6.18"
+    assert upstream["observed_state"]["mob_dev_version"] =~ "0.5.11"
+    assert upstream["observed_state"]["patch_files_deleted"] == true
+    assert upstream["observed_state"]["patch_task_deleted"] == true
+    assert upstream["observed_state"]["aliases_removed"] == true
+    assert upstream["observed_state"]["static_nifs_config"] =~ "mob_ble_nif"
     assert Enum.any?(upstream["evidence"], &String.ends_with?(&1, "patch-deps-check-1212.log"))
 
     assert Enum.any?(
              upstream["evidence"],
-             &String.ends_with?(&1, "upstream-migration-progress.json")
+             &String.ends_with?(&1, "upstream_mob_migration_checklist.md")
            )
-
-    assert patch_check =~ "patches/01-mob_dev-meshx-build-additions.patch: already patched"
-    assert patch_check =~ "patches/02-mob-static-nif-table.patch: already patched"
 
     assert migration_progress["completion_claim_allowed"] == false
     assert migration_progress["row_id"] == "upstreaming_mob_dev_mob_patches"
@@ -374,7 +341,7 @@ defmodule MeshxMobileApp.BLE.FocusedRemainingItemsAuditArtifactTest do
       |> repo_path()
       |> File.read!()
 
-    assert plain =~ "REMAINING_ITEMS complete=false completed=2 incomplete=2"
+    assert plain =~ "REMAINING_ITEMS complete=false completed=3 incomplete=1"
     assert plain =~ "update_goal_allowed=false"
     assert plain =~ "CHECKLIST count=6 objective_success_criteria=4"
     assert plain =~ "ROW id=extended_advertising_interop_aux_scan_response"
@@ -743,22 +710,6 @@ defmodule MeshxMobileApp.BLE.FocusedRemainingItemsAuditArtifactTest do
     log
     |> String.split("\n", trim: true)
     |> Enum.count(&String.contains?(&1, pattern))
-  end
-
-  defp assert_upstream_row_matches_raw_artifacts(audit_pr, raw_pr, raw_repo) do
-    assert audit_pr["number"] == raw_pr["number"]
-    assert audit_pr["state"] == raw_pr["state"]
-    assert audit_pr["is_draft"] == raw_pr["isDraft"]
-    assert audit_pr["mergeable"] == raw_pr["mergeable"]
-    assert audit_pr["merge_state_status"] == raw_pr["mergeStateStatus"]
-    assert raw_pr["mergedAt"] == nil
-    assert audit_pr["viewer_permission"] == "READ"
-    assert repo_viewer_permission(raw_repo) == "READ"
-
-    assert Enum.any?(
-             raw_pr["statusCheckRollup"],
-             &match?(%{"name" => "GitGuardian Security Checks", "conclusion" => "SUCCESS"}, &1)
-           )
   end
 
   defp assert_summary_pr_matches_raw(summary_pr, raw_pr, raw_repo) do

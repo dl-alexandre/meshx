@@ -24,7 +24,7 @@ defmodule Mix.Tasks.Meshx.Mobile.DeployDevice do
          {:ok, python_bundle} <- maybe_ensure_python_bundle() do
       script =
         cfg
-        |> MobDev.NativeBuild.generate_build_device_sh(otp_root)
+        |> generate_build_device_sh(otp_root)
         |> MeshxMobileApp.IOSDeviceBuild.bridge_linked_script()
 
       script_path = Path.join(["ios", "build_device_meshx.sh"])
@@ -149,6 +149,20 @@ defmodule Mix.Tasks.Meshx.Mobile.DeployDevice do
       MobDev.PythonAppleSupport.ensure()
     else
       {:ok, nil}
+    end
+  end
+
+  defp generate_build_device_sh(cfg, otp_root) do
+    with {:module, module} <- Code.ensure_loaded(MobDev.NativeBuild),
+         true <- function_exported?(module, :generate_build_device_sh, 2) do
+      apply(module, :generate_build_device_sh, [cfg, otp_root])
+    else
+      _ ->
+        Mix.raise("""
+        MobDev.NativeBuild.generate_build_device_sh/2 is not available in this mob_dev version.
+        Use `mix mob.deploy --native --platform ios --device <udid>` or migrate
+        meshx.mobile.deploy_device to the current Mob native build pipeline.
+        """)
     end
   end
 

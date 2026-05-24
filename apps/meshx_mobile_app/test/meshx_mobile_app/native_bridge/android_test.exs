@@ -30,15 +30,14 @@ defmodule MeshxMobileApp.NativeBridge.AndroidTest do
     end
   end
 
-  test "calls fail closed when the JNI NIF is absent (host environment)" do
-    # No native `:mob_ble_nif` library on the host VM, so every delegated call raises
-    # rather than silently succeeding — a misconfigured runtime that
-    # selected the Android bridge without the NIF fails loudly.
-    refute match?({:module, :mob_ble_nif}, Code.ensure_loaded(:mob_ble_nif))
+  test "host stub calls fail closed when native BLE is unavailable" do
+    # `mob_ble` now ships the Erlang-facing :mob_ble_nif module in host tests.
+    # Without the Android JNI runtime, the stub must still fail closed.
+    assert {:module, :mob_ble_nif} = Code.ensure_loaded(:mob_ble_nif)
 
-    assert_raise UndefinedFunctionError, fn -> Android.start_scan(self()) end
-    assert_raise UndefinedFunctionError, fn -> Android.start_advertising(self(), "meshx-mob") end
-    assert_raise UndefinedFunctionError, fn -> Android.stop(self()) end
-    assert_raise UndefinedFunctionError, fn -> Android.send_to_peer(self(), "peer", "ping") end
+    assert {:error, :native_not_available} = Android.start_scan(self())
+    assert {:error, :native_not_available} = Android.start_advertising(self(), "meshx-mob")
+    assert {:error, :native_not_available} = Android.stop(self())
+    assert {:error, :native_not_available} = Android.send_to_peer(self(), "peer", "ping")
   end
 end

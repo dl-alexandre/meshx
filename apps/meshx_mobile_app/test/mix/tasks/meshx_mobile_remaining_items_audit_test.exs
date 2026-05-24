@@ -17,7 +17,7 @@ defmodule Mix.Tasks.MeshxMobileRemainingItemsAuditTest do
         Audit.run([])
       end)
 
-    assert output =~ "REMAINING_ITEMS complete=false completed=2 incomplete=2"
+    assert output =~ "REMAINING_ITEMS complete=false completed=3 incomplete=1"
     assert output =~ "update_goal_allowed=false"
     assert output =~ "ROW id=extended_advertising_interop_aux_scan_response"
     assert output =~ "claim_allowed=false"
@@ -37,8 +37,8 @@ defmodule Mix.Tasks.MeshxMobileRemainingItemsAuditTest do
     assert {:ok, decoded} = JSON.decode(output)
     assert decoded["complete"] == false
     assert decoded["completion_decision"]["update_goal_allowed"] == false
-    assert length(decoded["completed_rows"]) == 2
-    assert length(decoded["incomplete_rows"]) == 2
+    assert length(decoded["completed_rows"]) == 3
+    assert length(decoded["incomplete_rows"]) == 1
     assert File.exists?(path)
   end
 

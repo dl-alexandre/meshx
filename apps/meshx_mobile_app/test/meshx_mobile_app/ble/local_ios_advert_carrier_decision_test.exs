@@ -28,7 +28,8 @@ defmodule MeshxMobileApp.BLE.LocalIOSAdvertCarrierDecisionTest do
     assert carrier.status == :hardware_validated
     refute :ios_hardware_participation in carrier.blocked_claims
     refute :ios_legacy_beacon_observed in carrier.blocked_claims
-    assert Enum.any?(carrier.evidence, &String.contains?(&1, "2026-05-15-iphone13-sm-t577u"))
+    assert Enum.any?(carrier.evidence, &String.contains?(&1, "2026-05-15 hardware summary"))
+    assert Enum.any?(carrier.evidence, &String.contains?(&1, "SM-T577U to iPhone 13"))
   end
 
   test "full MX extended-advert observe remains PHY-blocked on iOS" do

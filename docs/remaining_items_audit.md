@@ -39,8 +39,7 @@ mix meshx.mobile.remaining_items.audit --json \
 | Keep downstream patch path valid until upstream migration | (historical — now complete) | `mix.lock` (mob 0.6.18 / mob_dev 0.5.11 post-bump); this migration PR; `docs/upstream_mob_migration_checklist.md`; hardware iOS device build success log | **Complete**. Downstream patches (01/02), task, and aliases removed; migration to released upstream versions executed with successful device build verification. The old `mix meshx.patch_deps --check` path is obsolete (task deleted); records kept for history only. |
 
 The maintainer handoff records the upstream merge/release action and MeshX
-post-merge dependency migration gates. The migration-progress artifact records
-downstream patch verification, open replacement PRs, handoff, and READ-only
+post-merge dependency migration gates. The migration-progress artifact records downstream patch verification, open replacement PRs, handoff, and READ-only
 permission as satisfied while keeping upstream merge, release, MeshX dependency
 migration, downstream patch removal, and post-migration verification missing.
 | Release readiness preserves downstream patch blocker | `apps/meshx_mobile_app/lib/meshx_mobile_app/ble/local_project_readiness.ex`; `apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_project_readiness_test.exs` | Covered as release-hardening evidence. Local readiness now explicitly keeps `patches/`, `mix meshx.patch_deps`, and the locked downstream patch path until `GenericJam/mob_dev#6` and `GenericJam/mob_new#5` are merged, released, MeshX migrates, and post-merge gates pass. This is not upstream completion. |
@@ -160,7 +159,7 @@ Additional probes on 2026-05-17:
 
 ## Upstream Boundary (historical — resolved in migration PR)
 
-**Pre-PR state (2026-05-17 snapshots):** The two GenericJam PRs were open; MeshX still required the downstream patches/ + meshx.patch_deps for iOS Swift + NIF registration. Handoff comments and rechecks archived under `.../upstream-pr-recheck-1358/`.
+**Pre-PR state (2026-05-17 snapshots):** The two GenericJam PRs were open; MeshX still required the downstream patches/ + meshx.patch_deps for iOS Swift + NIF registration. Handoff comments and rechecks archived under `.../upstream-pr-recheck-1358/`, including `artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/upstream-pr-recheck-1358/upstream-migration-progress.json`.
 
 **Post-migration (this PR, 2026-05-21):** Both upstream PRs merged + released (mob_dev 0.5.11, mob 0.6.18). MeshX:
 - bumped deps + regenerated locks

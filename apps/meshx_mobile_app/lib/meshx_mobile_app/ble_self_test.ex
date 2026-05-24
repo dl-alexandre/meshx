@@ -240,18 +240,20 @@ defmodule MeshxMobileApp.BleSelfTest do
            (metadata[:message_id_hash] || metadata["message_id_hash"]) and
            (metadata[:sender_peer_id_hash] || metadata["sender_peer_id_hash"]) do
         mid_h = normalize_b64_hash(metadata[:message_id_hash] || metadata["message_id_hash"])
-        sid_h = normalize_b64_hash(metadata[:sender_peer_id_hash] || metadata["sender_peer_id_hash"])
+
+        sid_h =
+          normalize_b64_hash(metadata[:sender_peer_id_hash] || metadata["sender_peer_id_hash"])
+
         key = {sid_h, mid_h}
         state = %{state | beacon_callbacks: state.beacon_callbacks + 1}
 
-        state =
-          record_distinct_message(
-            state,
-            key,
-            :beacon,
-            "sender_hash=#{Base.encode16(sid_h, case: :lower)}",
-            device_id
-          )
+        record_distinct_message(
+          state,
+          key,
+          :beacon,
+          "sender_hash=#{Base.encode16(sid_h, case: :lower)}",
+          device_id
+        )
       else
         state
       end
@@ -264,7 +266,12 @@ defmodule MeshxMobileApp.BleSelfTest do
   end
 
   def handle_info({:ble_frame, peer_id, frame}, state) do
-    state = %{state | event_count: state.event_count + 1, full_envelopes_received: state.full_envelopes_received + 1}
+    state = %{
+      state
+      | event_count: state.event_count + 1,
+        full_envelopes_received: state.full_envelopes_received + 1
+    }
+
     # Best-effort for tuple path (frames carry envelope bytes post-internal decode).
     # Use {peer, size} proxy key so distinct_msgs and DISTINCT logs move;
     # full message_id-based dedup + GATT only possible on the rich json+Adapter path.

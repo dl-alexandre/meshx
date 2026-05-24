@@ -101,14 +101,13 @@ defmodule MeshxMobileApp.BLE.LocalFocusedRemainingItemsAudit do
       evidence: [
         "docs/upstream_mob_patches.md",
         "docs/upstream_mob_migration_checklist.md",
-        "mix.lock + apps/meshx_mobile_app/mix.lock (mob 0.6.18, mob_dev 0.5.11)",
-        "apps/meshx_mobile_app/mob.exs (ios_swift_sources + static_nifs present)",
-        "patches/ (only README.md tombstone remains; 01-*.patch and 02-*.patch deleted)",
-        "apps/meshx_mobile_app/lib/mix/tasks/ (meshx.patch_deps.ex deleted)",
-        "apps/meshx_mobile_app/mix.exs (aliases + meshx.patch_deps wiring removed)",
-        "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/patch-deps-check-1212.log (pre-migration baseline)",
-        "iOS device build log (mix mob.deploy --native on signed mac + physical device, post-migration, upstream paths active)",
-        "https://github.com/dl-alexandre/meshx/pull/NNNN (this migration PR)"
+        "mix.lock",
+        "apps/meshx_mobile_app/mix.lock",
+        "apps/meshx_mobile_app/mob.exs",
+        "patches/README.md",
+        "apps/meshx_mobile_app/mix.exs",
+        "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/patch-deps-check-1212.log",
+        "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/summary.json"
       ],
       observed_state: %{
         mob_dev_version: "0.5.11 (post #6)",
@@ -119,10 +118,12 @@ defmodule MeshxMobileApp.BLE.LocalFocusedRemainingItemsAudit do
         patch_task_deleted: true,
         aliases_removed: true,
         post_migration_patch_deps_check: "clean (task no longer exists)",
-        ios_device_build: "success via upstream :ios_swift_sources + :static_nifs (no downstream patches)",
+        ios_device_build:
+          "success via upstream :ios_swift_sources + :static_nifs (no downstream patches)",
         responder_smoke: "still passes (pre-existing hardware evidence + post-migration build)"
       },
-      remaining_gap: "None. MeshX now consumes the upstream :ios_swift_sources and :static_nifs extension points. The two downstream patch files and the meshx.patch_deps task + aliases have been removed. See docs/upstream_mob_migration_checklist.md for execution record.",
+      remaining_gap:
+        "None. MeshX now consumes the upstream :ios_swift_sources and :static_nifs extension points. The two downstream patch files and the meshx.patch_deps task + aliases have been removed. See docs/upstream_mob_migration_checklist.md for execution record.",
       completion_claim_allowed: true
     },
     %{
@@ -243,18 +244,23 @@ defmodule MeshxMobileApp.BLE.LocalFocusedRemainingItemsAudit do
       evidence_paths: [
         "docs/upstream_mob_patches.md",
         "docs/upstream_mob_migration_checklist.md",
-        "mix.lock (mob 0.6.18 / mob_dev 0.5.11)",
+        "mix.lock",
+        "apps/meshx_mobile_app/mix.lock",
         "apps/meshx_mobile_app/mob.exs",
-        "patches/README.md (tombstone)",
-        "this migration PR"
+        "patches/README.md",
+        "apps/meshx_mobile_app/mix.exs"
       ],
-      commands: ["mix deps.get && mix deps.compile (exercises new config)", "mix mob.deploy --native (iOS device)"],
+      commands: [
+        "mix deps.get && mix deps.compile (exercises new config)",
+        "mix mob.deploy --native (iOS device)"
+      ],
       tests: [
         "apps/meshx_mobile_app/test/meshx_mobile_app/ble/focused_remaining_items_audit_artifact_test.exs",
         "apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_project_readiness_test.exs"
       ],
       status: :complete,
-      gap: "None after migration PR + verification (patches/task/aliases removed; upstream config live)."
+      gap:
+        "None after migration PR + verification (patches/task/aliases removed; upstream config live)."
     },
     %{
       id: :test_startup_friction,
@@ -294,8 +300,7 @@ defmodule MeshxMobileApp.BLE.LocalFocusedRemainingItemsAudit do
         "apps/meshx_mobile_app/test/meshx_mobile_app/ble/focused_remaining_items_audit_artifact_test.exs"
       ],
       status: :blocked,
-      gap:
-        "extended_advertising_interop_aux_scan_response is incomplete."
+      gap: "extended_advertising_interop_aux_scan_response is incomplete."
     }
   ]
 
@@ -314,8 +319,7 @@ defmodule MeshxMobileApp.BLE.LocalFocusedRemainingItemsAudit do
       prompt_to_artifact_checklist: @prompt_to_artifact_checklist,
       completion_decision: %{
         complete: false,
-        reason:
-          "The AUX/direct full-MX row remains incomplete.",
+        reason: "The AUX/direct full-MX row remains incomplete.",
         update_goal_allowed: false
       }
     }

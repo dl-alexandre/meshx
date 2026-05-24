@@ -14,7 +14,7 @@ defmodule MeshxMobileApp.BLE.LocalIOSNativeSourceInventory do
       id: :swift_bridge,
       path: "apps/meshx_mobile_app/ios/MeshxBLEBridge.swift",
       markers: [
-        "MeshxLegacyBeaconAdvertisement",
+        "LegacyBeaconAdvertisement",
         "meshx_ble_emit_received_message_beacon",
         "dispatchFullEnvelopeBeacon"
       ]
@@ -134,7 +134,7 @@ defmodule MeshxMobileApp.BLE.LocalIOSNativeSourceInventory do
     Enum.any?(
       files,
       &(&1.id == :swift_bridge and &1.present? and
-          "MeshxLegacyBeaconAdvertisement" in &1.markers and &1.missing_markers == [])
+          "LegacyBeaconAdvertisement" in &1.markers and &1.missing_markers == [])
     ) and
       Enum.any?(
         files,
