@@ -167,6 +167,20 @@ class MainActivity : ComponentActivity() {
             Log.i(TAG, "onCreate: MESHX_BLE_SELFTEST=1")
         }
 
+        // RT-01 reliability event logging — enables MeshxMobileApp.BLE.Observability
+        // to emit "MeshxAppEvent:" timeline lines consumed by
+        // mix meshx.mobile.rt01.analyze. Off unless explicitly launched with the
+        // extra, so normal runs stay quiet.
+        if (intent?.extras?.getBoolean("meshx_rt_event_log", false) == true) {
+            android.system.Os.setenv("MESHX_RT_EVENT_LOG", "1", true)
+            Log.i(TAG, "onCreate: MESHX_RT_EVENT_LOG=1")
+        }
+
+        intent?.extras?.getString("meshx_rt_run_id")?.takeIf { it.isNotEmpty() }?.let { runId ->
+            android.system.Os.setenv("MESHX_RT_RUN_ID", runId, true)
+            Log.i(TAG, "onCreate: MESHX_RT_RUN_ID=$runId")
+        }
+
         // mob_ble_* extras — support the recommended default path (Phase 2+)
         // for on-device validation and harness launches. These set the
         // MOB_BLE_* env vars consumed by MeshxMobileApp.App and
