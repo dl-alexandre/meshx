@@ -1,0 +1,4 @@
+05-24 12:00:01.000 100 200 I MeshxBle: {"v":1,"event":"device_discovered","device_id":"pixel-7","rssi":-42}
+05-24 12:00:02.000 100 200 I Elixir: MeshxAppEvent: {"schema":"meshx_rt_event.v1","run_id":"rt-01-synthetic-inconclusive","at_unix_ms":2000,"at_monotonic_ms":2000,"source":"probe","phase":"app","event":"mob_app_start","metadata":{"platform":"android"}}
+05-24 12:00:03.000 100 200 I Elixir: MeshxAppEvent: {"schema":"meshx_rt_event.v1","run_id":"rt-01-synthetic-inconclusive","at_unix_ms":3000,"at_monotonic_ms":3000,"source":"probe","phase":"scan","event":"session_start_scan_result","metadata":{"result":"ok"}}
+05-24 12:00:04.000 100 200 I Elixir: MeshxAppEvent: {"schema":"meshx_rt_event.v1","run_id":"rt-01-synthetic-inconclusive","at_unix_ms":4000,"at_monotonic_ms":4000,"source":"probe","phase":"wake","event":"selftest_heartbeat","metadata":{"events":0,"devices":0}}

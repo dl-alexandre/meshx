@@ -30,8 +30,9 @@ defmodule MeshxMobileApp.App do
   @impl Mob.App
   def on_start do
     configure_native_bridge()
-    start_meshx_runtime()
     start_ble_observability()
+    rt_probe(:app, :mob_app_start, %{platform: safe_platform()})
+    start_meshx_runtime()
     maybe_start_distribution()
     maybe_start_ble_self_test()
     maybe_start_mob_ble_transport()
@@ -59,10 +60,15 @@ defmodule MeshxMobileApp.App do
   # `apps/mob_ble/lib/mob/ble/mobile_bridge.ex`, wiring test.
   defp maybe_start_mob_ble_transport do
     if System.get_env("MOB_BLE_TRANSPORT") == "0" do
-      Logger.info("meshx_mobile_app: mob_ble transport skipped (MOB_BLE_TRANSPORT=0; legacy path active)")
+      Logger.info(
+        "meshx_mobile_app: mob_ble transport skipped (MOB_BLE_TRANSPORT=0; legacy path active)"
+      )
+
+      rt_probe(:transport, :mob_ble_transport_skipped, %{reason: "MOB_BLE_TRANSPORT=0"})
       :ok
     else
       local_name = System.get_env("MOB_BLE_LOCAL_NAME") || "meshx-mobile"
+      rt_probe(:transport, :mob_ble_transport_start_requested, %{local_name: local_name})
 
       case MeshxTransportBLE.start_link(
              bridge: Mob.Ble.bridge_module(),
@@ -73,8 +79,14 @@ defmodule MeshxMobileApp.App do
             "meshx_mobile_app: mob_ble transport up (bridge=#{inspect(Mob.Ble.bridge_module())})"
           )
 
+          rt_probe(:transport, :mob_ble_transport_started, %{
+            bridge: inspect(Mob.Ble.bridge_module()),
+            local_name: local_name
+          })
+
         other ->
           Logger.warning("meshx_mobile_app: mob_ble transport not started: #{inspect(other)}")
+          rt_probe(:transport, :mob_ble_transport_start_failed, %{reason: inspect(other)})
       end
     end
   end
@@ -87,8 +99,10 @@ defmodule MeshxMobileApp.App do
     case MeshxMobileApp.BLE.Observability.start_link([]) do
       {:ok, _pid} ->
         Logger.info("meshx_mobile_app: BLE.Observability started")
+        rt_probe(:app, :observability_started, %{})
 
       {:error, {:already_started, _pid}} ->
+        rt_probe(:app, :observability_already_started, %{})
         :ok
 
       other ->
@@ -116,9 +130,15 @@ defmodule MeshxMobileApp.App do
       # for routine mob-default validation.
       mob_default = System.get_env("MOB_BLE_TRANSPORT") != "0"
       opts = if mob_default, do: [native?: false], else: []
+
       case MeshxMobileApp.BleSelfTest.start_link(opts) do
-        {:ok, _pid} -> Logger.info("meshx_mobile_app: BLE self-test started (native?=#{not mob_default})")
-        other -> Logger.warning("meshx_mobile_app: BLE self-test not started: #{inspect(other)}")
+        {:ok, _pid} ->
+          Logger.info("meshx_mobile_app: BLE self-test started (native?=#{not mob_default})")
+          rt_probe(:selftest, :legacy_ble_selftest_started, %{native?: not mob_default})
+
+        other ->
+          Logger.warning("meshx_mobile_app: BLE self-test not started: #{inspect(other)}")
+          rt_probe(:selftest, :legacy_ble_selftest_start_failed, %{reason: inspect(other)})
       end
     end
   end
@@ -141,9 +161,11 @@ defmodule MeshxMobileApp.App do
       case Mob.Ble.SelfTest.start_link([]) do
         {:ok, _pid} ->
           Logger.info("meshx_mobile_app: Mob.Ble.SelfTest started (mob_ble path)")
+          rt_probe(:selftest, :mob_ble_selftest_started, %{})
 
         other ->
           Logger.warning("meshx_mobile_app: Mob.Ble.SelfTest not started: #{inspect(other)}")
+          rt_probe(:selftest, :mob_ble_selftest_start_failed, %{reason: inspect(other)})
       end
     end
   end
@@ -158,11 +180,18 @@ defmodule MeshxMobileApp.App do
     node = :"meshx_mobile_app_android_#{suffix}@127.0.0.1"
 
     case Mob.Dist.ensure_started(node: node, cookie: :meshx_mob_secret) do
-      :ok -> Logger.info("meshx_mobile_app: distribution up as #{node}")
-      other -> Logger.warning("meshx_mobile_app: distribution not started: #{inspect(other)}")
+      :ok ->
+        Logger.info("meshx_mobile_app: distribution up as #{node}")
+        rt_probe(:app, :distribution_started, %{node: inspect(node)})
+
+      other ->
+        Logger.warning("meshx_mobile_app: distribution not started: #{inspect(other)}")
+        rt_probe(:app, :distribution_start_failed, %{reason: inspect(other)})
     end
   rescue
-    error -> Logger.warning("meshx_mobile_app: distribution error: #{inspect(error)}")
+    error ->
+      Logger.warning("meshx_mobile_app: distribution error: #{inspect(error)}")
+      rt_probe(:app, :distribution_start_exception, %{error: inspect(error)})
   end
 
   defp configure_native_bridge do
@@ -200,9 +229,11 @@ defmodule MeshxMobileApp.App do
     case Application.ensure_all_started(:meshx_runtime) do
       {:ok, started} ->
         Logger.info("meshx_mobile_app: meshx_runtime started (#{length(started)} apps)")
+        rt_probe(:runtime, :meshx_runtime_started, %{started_apps: length(started)})
 
       {:error, reason} ->
         Logger.error("meshx_mobile_app: meshx_runtime failed to start: #{inspect(reason)}")
+        rt_probe(:runtime, :meshx_runtime_start_failed, %{reason: inspect(reason)})
     end
   end
 
@@ -211,5 +242,15 @@ defmodule MeshxMobileApp.App do
       nil -> nil
       dir -> Path.join(dir, "meshx_store")
     end
+  end
+
+  defp rt_probe(phase, event, metadata) do
+    MeshxMobileApp.BLE.Observability.probe(phase, event, metadata)
+  end
+
+  defp safe_platform do
+    :mob_nif.platform()
+  rescue
+    _ -> :unknown
   end
 end

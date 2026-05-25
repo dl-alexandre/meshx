@@ -70,6 +70,7 @@ defmodule MeshxMobileApp.BleSelfTest do
   @impl true
   def handle_continue(:start_ble, %{native?: false} = state) do
     Logger.info("BleSelfTest: native disabled — passive event-forward mode")
+    rt_probe(:selftest, :legacy_selftest_passive_mode, %{send_enabled: state.send_enabled})
     Process.send_after(self(), :heartbeat, @heartbeat_ms)
 
     if state.send_enabled do
@@ -83,9 +84,14 @@ defmodule MeshxMobileApp.BleSelfTest do
     nif = :mob_ble_nif
 
     Logger.info("BleSelfTest: starting scan + advertising as #{state.local_name}")
+    rt_probe(:scan, :selftest_start_scan_requested, %{local_name: state.local_name})
 
     scan = safe_call(fn -> nif.start_scan(self()) end)
+    rt_probe(:scan, :selftest_start_scan_result, %{result: inspect(scan)})
+
+    rt_probe(:advertise, :selftest_start_advertising_requested, %{local_name: state.local_name})
     adv = safe_call(fn -> nif.start_advertising(self(), state.local_name) end)
+    rt_probe(:advertise, :selftest_start_advertising_result, %{result: inspect(adv)})
 
     Logger.info("BleSelfTest: start_scan=#{inspect(scan)} start_advertising=#{inspect(adv)}")
     Process.send_after(self(), :heartbeat, @heartbeat_ms)
@@ -117,6 +123,11 @@ defmodule MeshxMobileApp.BleSelfTest do
     payload = "hello-from-#{state.local_name}-#{System.system_time(:second)}"
     result = safe_call(fn -> :mob_ble_nif.send_ping(self(), "broadcast", payload) end)
 
+    rt_probe(:send, :selftest_send_ping_result, %{
+      payload_bytes: byte_size(payload),
+      result: inspect(result)
+    })
+
     Logger.info(
       "BleSelfTest: MESH MESSAGE SENT payload=#{inspect(payload)} result=#{inspect(result)}"
     )
@@ -129,6 +140,17 @@ defmodule MeshxMobileApp.BleSelfTest do
   def handle_info(:heartbeat, state) do
     # Periodic proof-of-life: distinguishes "pipeline working, just no
     # MeshX peer correlated yet" from "no BLE events reaching the BEAM".
+    rt_probe(:wake, :selftest_heartbeat, %{
+      events: state.event_count,
+      devices: MapSet.size(state.discovered),
+      meshx_peers: MapSet.size(state.meshx_peers),
+      sent: state.sent,
+      send_enabled: state.send_enabled,
+      distinct_messages: MapSet.size(state.seen_messages),
+      beacon_callbacks: state.beacon_callbacks,
+      full_envelopes_received: state.full_envelopes_received
+    })
+
     Logger.info(
       "BleSelfTest: HEARTBEAT events=#{state.event_count} " <>
         "devices=#{MapSet.size(state.discovered)} " <>
@@ -227,6 +249,7 @@ defmodule MeshxMobileApp.BleSelfTest do
 
     rssi = (is_map(metadata) && (metadata[:rssi] || metadata["rssi"])) || 0
     advert = (is_map(metadata) && (metadata[:advertisement] || metadata["advertisement"])) || <<>>
+    rt_probe(:scan, :mob_ble_peer_up_tuple, %{device_id: device_id, rssi: rssi})
 
     state = maybe_log_meshx_peer(device_id, rssi, advert, state)
 
@@ -261,7 +284,8 @@ defmodule MeshxMobileApp.BleSelfTest do
     {:noreply, state}
   end
 
-  def handle_info({:ble_peer_down, _device_id}, state) do
+  def handle_info({:ble_peer_down, device_id}, state) do
+    rt_probe(:scan, :mob_ble_peer_down_tuple, %{device_id: device_id})
     {:noreply, state}
   end
 
@@ -276,6 +300,7 @@ defmodule MeshxMobileApp.BleSelfTest do
     # Use {peer, size} proxy key so distinct_msgs and DISTINCT logs move;
     # full message_id-based dedup + GATT only possible on the rich json+Adapter path.
     key = {to_string(peer_id), byte_size(frame)}
+    rt_probe(:receive, :mob_ble_frame_tuple, %{peer_id: peer_id, frame_bytes: byte_size(frame)})
     state = record_distinct_message(state, key, :frame, peer_id, peer_id)
     {:noreply, state}
   end
@@ -421,4 +446,8 @@ defmodule MeshxMobileApp.BleSelfTest do
   end
 
   defp normalize_b64_hash(h), do: h
+
+  defp rt_probe(phase, event, metadata) do
+    MeshxMobileApp.BLE.Observability.probe(phase, event, metadata)
+  end
 end

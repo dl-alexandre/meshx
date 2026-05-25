@@ -105,7 +105,9 @@ defmodule MeshxMobileApp.Session do
 
   def handle_call(:start, _from, %{mode: :scan, bridge: bridge} = state) do
     state = %{state | status: "Scanning", peer_id: nil}
+    rt_probe(:scan, :session_start_scan_requested, %{})
     result = bridge.start_scan(self())
+    rt_probe(:scan, :session_start_scan_result, %{result: inspect(result)})
     state = record_result(state, "Scan started", "Looking for MeshX BLE peers.", result)
     broadcast(state)
     {:reply, to_snapshot(state), state}
@@ -113,14 +115,18 @@ defmodule MeshxMobileApp.Session do
 
   def handle_call(:start, _from, %{mode: :advertise, bridge: bridge} = state) do
     state = %{state | status: "Advertising", peer_id: nil}
+    rt_probe(:advertise, :session_start_advertising_requested, %{local_name: "meshx-mob"})
     result = bridge.start_advertising(self(), "meshx-mob")
+    rt_probe(:advertise, :session_start_advertising_result, %{result: inspect(result)})
     state = record_result(state, "Advertising started", "Waiting for a MeshX central.", result)
     broadcast(state)
     {:reply, to_snapshot(state), state}
   end
 
   def handle_call(:stop, _from, %{bridge: bridge} = state) do
+    rt_probe(:transport, :session_stop_requested, %{})
     result = bridge.stop(self())
+    rt_probe(:transport, :session_stop_result, %{result: inspect(result)})
 
     state =
       state
@@ -133,13 +139,16 @@ defmodule MeshxMobileApp.Session do
   end
 
   def handle_call(:send_ping, _from, %{peer_id: nil} = state) do
+    rt_probe(:send, :session_send_ping_skipped, %{reason: :no_peer})
     state = record(state, "Send skipped", "No secure peer is connected.")
     broadcast(state)
     {:reply, to_snapshot(state), state}
   end
 
   def handle_call(:send_ping, _from, %{bridge: bridge, peer_id: peer_id} = state) do
+    rt_probe(:send, :session_send_ping_requested, %{peer_id: peer_id})
     result = bridge.send_to_peer(self(), peer_id, "mob-harness-ping")
+    rt_probe(:send, :session_send_ping_result, %{peer_id: peer_id, result: inspect(result)})
     state = record_result(state, "Ping sent", peer_id, result)
     broadcast(state)
     {:reply, to_snapshot(state), state}
@@ -276,6 +285,13 @@ defmodule MeshxMobileApp.Session do
   end
 
   defp record(state, title, detail) do
+    rt_probe(:ui, :session_event_recorded, %{
+      title: title,
+      detail: detail,
+      status: state.status,
+      mode: state.mode
+    })
+
     events = [event(title, detail) | state.events] |> Enum.take(@max_events)
     %{state | events: events}
   end
@@ -343,6 +359,13 @@ defmodule MeshxMobileApp.Session do
            persisted_at: persisted_at
          ) do
       {:ok, durable} ->
+        rt_probe(:store, :local_inbox_snapshot_saved, %{
+          snapshot_id: persistence.snapshot_id,
+          persisted_at: durable.persisted_at,
+          full_messages: length(snapshot.full_messages),
+          unresolved_beacon_refs: length(snapshot.unresolved_beacon_refs)
+        })
+
         %{
           state
           | local_inbox_persistence: %{
@@ -353,6 +376,11 @@ defmodule MeshxMobileApp.Session do
         }
 
       {:error, reason} ->
+        rt_probe(:store, :local_inbox_snapshot_save_failed, %{
+          snapshot_id: persistence.snapshot_id,
+          reason: inspect(reason)
+        })
+
         %{state | local_inbox_persistence: %{persistence | last_error: reason}}
     end
   end
@@ -375,5 +403,9 @@ defmodule MeshxMobileApp.Session do
   defp broadcast(state) do
     snapshot = to_snapshot(state)
     Enum.each(state.subscribers, &send(&1, {__MODULE__, :updated, snapshot}))
+  end
+
+  defp rt_probe(phase, event, metadata) do
+    MeshxMobileApp.BLE.Observability.probe(phase, event, metadata)
   end
 end

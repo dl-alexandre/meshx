@@ -14,12 +14,42 @@ defmodule MeshxMobileApp.BLE.ObservabilityTest do
   describe "snapshot/1" do
     test "starts empty with monotonic started_at_ms", %{pid: pid} do
       snap = Observability.snapshot(pid)
+      assert String.starts_with?(snap.run_id, "local-")
       assert snap.peers == %{}
       assert snap.dispatch_outcomes == %{}
       assert snap.error_kinds == %{}
       assert snap.distinct_message_keys == 0
       assert snap.total_events == 0
+      assert snap.phase_counts == %{}
+      assert snap.timeline == []
+      assert snap.last_event_at_ms == nil
       assert is_integer(snap.started_at_ms)
+    end
+
+    test "uses explicit run id and caps the timeline" do
+      {:ok, pid} =
+        start_supervised(%{
+          id: :"obs_capped_#{System.unique_integer([:positive])}",
+          start:
+            {Observability, :start_link,
+             [
+               [
+                 name: :"obs_capped_name_#{System.unique_integer([:positive])}",
+                 run_id: "rt-01-baseline",
+                 timeline_limit: 2
+               ]
+             ]}
+        })
+
+      Observability.probe(pid, :app, :started, %{platform: :android})
+      Observability.probe(pid, :scan, :requested, %{})
+      Observability.probe(pid, :scan, :started, %{})
+
+      snap = Observability.snapshot(pid)
+      assert snap.run_id == "rt-01-baseline"
+      assert snap.phase_counts == %{app: 1, scan: 2}
+      assert Enum.map(snap.timeline, & &1.event) == [:started, :requested]
+      assert Enum.all?(snap.timeline, &(&1.schema == "meshx_rt_event.v1"))
     end
   end
 
@@ -48,6 +78,8 @@ defmodule MeshxMobileApp.BLE.ObservabilityTest do
       assert peer.beacon_callbacks == 0
       assert peer.distinct_messages == 0
       assert snap.total_events == 2
+      assert snap.phase_counts.scan == 2
+      assert [:advertisement_received, :device_discovered] = Enum.map(snap.timeline, & &1.event)
     end
   end
 
@@ -97,6 +129,7 @@ defmodule MeshxMobileApp.BLE.ObservabilityTest do
       snap = Observability.snapshot(pid)
       assert snap.dispatch_outcomes == %{"dispatched" => 1, "failed" => 1}
       assert snap.error_kinds == %{}
+      assert snap.phase_counts.dispatch == 2
     end
 
     test "real bridge errors increment error_kinds keyed by kind atom", %{pid: pid} do
@@ -118,6 +151,7 @@ defmodule MeshxMobileApp.BLE.ObservabilityTest do
       snap = Observability.snapshot(pid)
       assert snap.error_kinds == %{unauthorized: 2, scan_failed: 1}
       assert snap.dispatch_outcomes == %{}
+      assert snap.phase_counts.error == 3
     end
   end
 
@@ -133,6 +167,8 @@ defmodule MeshxMobileApp.BLE.ObservabilityTest do
       assert after_reset.peers == %{}
       assert after_reset.total_events == 0
       assert after_reset.distinct_message_keys == 0
+      assert after_reset.timeline == []
+      assert after_reset.phase_counts == %{}
       assert after_reset.started_at_ms >= before.started_at_ms
     end
   end

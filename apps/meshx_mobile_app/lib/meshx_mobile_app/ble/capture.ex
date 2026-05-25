@@ -12,7 +12,8 @@ defmodule MeshxMobileApp.BLE.Capture do
 
     * `from_logcat_line/1` strips the `adb logcat` prefix (timestamp,
       pid, level, tag) and returns the trailing JSON payload, or nil
-      if the line isn't a `MeshxBle:` tagged event.
+      if the line isn't a `MeshxBle:` native event or a
+      `MeshxAppEvent:` reliability event.
     * `timestamped_filename/1` returns a stable, sortable filename for
       a fresh capture session.
 
@@ -21,7 +22,7 @@ defmodule MeshxMobileApp.BLE.Capture do
   appends to a single file.
   """
 
-  @logcat_marker "MeshxBle: "
+  @logcat_markers ["MeshxBle: ", "MeshxAppEvent: "]
 
   @doc """
   Extracts the JSON payload from an `adb logcat -s MeshxBle:I` line.
@@ -41,18 +42,22 @@ defmodule MeshxMobileApp.BLE.Capture do
       String.starts_with?(trimmed, "{") ->
         trimmed
 
-      String.contains?(trimmed, @logcat_marker) ->
-        [_, payload] = String.split(trimmed, @logcat_marker, parts: 2)
-
-        payload
-        |> String.trim()
-        |> case do
-          "" -> nil
-          s -> s
-        end
+      marker = Enum.find(@logcat_markers, &String.contains?(trimmed, &1)) ->
+        trailing_json(trimmed, marker)
 
       true ->
         nil
+    end
+  end
+
+  defp trailing_json(line, marker) do
+    [_, payload] = String.split(line, marker, parts: 2)
+
+    payload
+    |> String.trim()
+    |> case do
+      "" -> nil
+      s -> s
     end
   end
 
