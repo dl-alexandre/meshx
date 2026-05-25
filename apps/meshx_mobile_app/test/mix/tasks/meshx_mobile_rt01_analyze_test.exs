@@ -19,7 +19,9 @@ defmodule Mix.Tasks.MeshxMobileRt01AnalyzeTest do
       "--locked-from-ms",
       "1000",
       "--unlock-at-ms",
-      "5000"
+      "5000",
+      "--sustained-after-ms",
+      "0"
     ])
 
     assert_receive {:mix_shell, :info,

@@ -28,6 +28,7 @@ defmodule Mix.Tasks.Meshx.Mobile.Rt01.Analyze do
           unlock_at: :string,
           locked_from_ms: :string,
           locked_from: :string,
+          sustained_after_ms: :string,
           json: :boolean,
           out: :string
         ]
@@ -35,10 +36,16 @@ defmodule Mix.Tasks.Meshx.Mobile.Rt01.Analyze do
 
     input = opts[:input] || List.first(rest) || Mix.raise("missing --input <log-file>")
 
+    # RT-01 is strict by default: a pass requires receive evidence sustained at
+    # least 60s into the locked window. Override with --sustained-after-ms (0
+    # restores the legacy "any in-window evidence" gate).
+    sustained_after_ms = opts[:sustained_after_ms] || "60000"
+
     analysis =
       RT01LogAnalyzer.analyze_file(input,
         locked_from_ms: opts[:locked_from_ms] || opts[:locked_from],
-        unlock_at_ms: opts[:unlock_at_ms] || opts[:unlock_at]
+        unlock_at_ms: opts[:unlock_at_ms] || opts[:unlock_at],
+        sustained_after_ms: sustained_after_ms
       )
 
     if opts[:json] do
@@ -59,6 +66,29 @@ defmodule Mix.Tasks.Meshx.Mobile.Rt01.Analyze do
     Mix.shell().info(
       "RT01_WINDOW locked_from_ms=#{analysis.locked_from_ms || "unknown"} " <>
         "unlock_at_ms=#{analysis.unlock_at_ms || "missing"}"
+    )
+
+    Mix.shell().info(
+      "RT01_STRICT sustained_after_ms=#{analysis.sustained_after_ms || "off"} " <>
+        "in_window=#{analysis.receive_events_in_window} " <>
+        "unique=#{analysis.unique_message_hashes_in_window} " <>
+        "first_delta_ms=#{analysis.first_receive_delta_ms || "n/a"} " <>
+        "last_delta_ms=#{analysis.last_receive_delta_ms || "n/a"} " <>
+        "after_60s=#{analysis.receive_events_after_60s} after_5m=#{analysis.receive_events_after_5m}"
+    )
+
+    Mix.shell().info(
+      "RT01_COVERAGE covers_window=#{analysis.capture_covers_window? || false} " <>
+        "first_event_at_ms=#{analysis.capture_first_event_at_ms || "n/a"} " <>
+        "last_event_at_ms=#{analysis.capture_last_event_at_ms || "n/a"}"
+    )
+
+    Mix.shell().info(
+      "RT01_POST_UNLOCK window_ms=#{analysis.post_unlock_resume_window_ms} " <>
+        "receives=#{analysis.post_unlock_receive_events} " <>
+        "unique=#{analysis.post_unlock_unique_message_hashes} " <>
+        "first_delta_ms=#{analysis.first_post_unlock_receive_delta_ms || "n/a"} " <>
+        "last_delta_ms=#{analysis.last_post_unlock_receive_delta_ms || "n/a"}"
     )
 
     Enum.each(analysis.missing, &Mix.shell().info("RT01_MISSING #{&1}"))
