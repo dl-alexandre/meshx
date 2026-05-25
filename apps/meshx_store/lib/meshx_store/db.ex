@@ -87,6 +87,7 @@ defmodule MeshxStore.DB do
 
   @impl true
   def init(data_dir) do
+    Process.flag(:trap_exit, true)
     File.mkdir_p!(data_dir)
     {:ok, cub} = CubDB.start_link(data_dir: data_dir)
     {:ok, %{cub: cub, data_dir: data_dir}}
@@ -95,6 +96,19 @@ defmodule MeshxStore.DB do
   @impl true
   def handle_call(:db, _from, %{cub: cub} = state) do
     {:reply, cub, state}
+  end
+
+  @impl true
+  def handle_info({:EXIT, cub, reason}, %{cub: cub} = state) do
+    {:stop, {:cubdb_exit, reason}, state}
+  end
+
+  @impl true
+  def terminate(_reason, %{cub: cub}) when is_pid(cub) do
+    if Process.alive?(cub), do: GenServer.stop(cub)
+    :ok
+  catch
+    :exit, _ -> :ok
   end
 
   defp default_data_dir do

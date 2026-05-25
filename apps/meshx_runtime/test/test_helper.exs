@@ -7,9 +7,13 @@ db_path =
 Application.stop(:meshx_runtime)
 Application.stop(:meshx_store)
 
-Enum.each([MeshxStore.DB, MeshxStore.Dedupe, MeshxStore.RelayCache], fn module ->
-  if pid = Process.whereis(module), do: GenServer.stop(pid)
-end)
+stop_store_processes = fn ->
+  Enum.each([MeshxStore.DB, MeshxStore.Dedupe, MeshxStore.RelayCache], fn module ->
+    if pid = Process.whereis(module), do: GenServer.stop(pid)
+  end)
+end
+
+stop_store_processes.()
 
 Application.put_env(:meshx_store, :data_dir, db_path)
 
@@ -18,5 +22,6 @@ Application.put_env(:meshx_store, :data_dir, db_path)
 ExUnit.after_suite(fn _ ->
   Application.stop(:meshx_runtime)
   Application.stop(:meshx_store)
+  stop_store_processes.()
   File.rm_rf(db_path)
 end)
