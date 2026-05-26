@@ -65,6 +65,14 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC"
         android:minSdkVersion="34" />
+    <!-- Keep BLE scan callbacks alive while backgrounded on API 34+ (strict FGS
+         type enforcement). On API <=33 a running FGS already covers scanning. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE"
+        android:minSdkVersion="34" />
+    <!-- Doze exemption: deep-idle suspends background BLE scans even with a
+         foreground service, so whitelisting is what keeps locked receive alive
+         (RT-01). Opt-in prompt via the meshx_ignore_battery_opt launch extra. -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
     <!-- Package visibility (API 30+): apps we want to launch via Mob.Device.open_url. -->
     <queries>
@@ -124,7 +132,7 @@
         <!-- Background keep-alive foreground service (Mob.Background) -->
         <service android:name=".BeamForegroundService"
             android:exported="false"
-            android:foregroundServiceType="dataSync" />
+            android:foregroundServiceType="dataSync|connectedDevice" />
 
         <!-- FCM token refresh (remote push notifications) -->
         <service android:name=".MobFirebaseService"

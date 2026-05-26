@@ -181,6 +181,30 @@ class MainActivity : ComponentActivity() {
             Log.i(TAG, "onCreate: MESHX_RT_RUN_ID=$runId")
         }
 
+        // Doze exemption (opt-in): deep-idle suspends background BLE scans even
+        // with a foreground service, which is what kills locked-window receive
+        // (RT-01). When launched with this extra we ask the OS to whitelist the
+        // app (system dialog). For scripted captures the same effect is
+        // `adb shell dumpsys deviceidle whitelist +dev.meshx.mob`.
+        if (intent?.extras?.getBoolean("meshx_ignore_battery_opt", false) == true) {
+            val pm = getSystemService(android.os.PowerManager::class.java)
+            if (pm != null && !pm.isIgnoringBatteryOptimizations(packageName)) {
+                try {
+                    startActivity(
+                        Intent(
+                            android.provider.Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
+                            Uri.parse("package:$packageName")
+                        )
+                    )
+                    Log.i(TAG, "onCreate: requested battery-optimization exemption")
+                } catch (t: Throwable) {
+                    Log.w(TAG, "onCreate: battery-opt exemption request failed: ${t.message}")
+                }
+            } else {
+                Log.i(TAG, "onCreate: already ignoring battery optimizations")
+            }
+        }
+
         // mob_ble_* extras — support the recommended default path (Phase 2+)
         // for on-device validation and harness launches. These set the
         // MOB_BLE_* env vars consumed by MeshxMobileApp.App and

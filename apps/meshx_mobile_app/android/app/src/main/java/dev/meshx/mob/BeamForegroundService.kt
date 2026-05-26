@@ -5,6 +5,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
 import android.content.Intent
+import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
@@ -35,7 +36,22 @@ class BeamForegroundService : Service() {
             return START_NOT_STICKY
         }
         ensureChannel()
-        startForeground(NOTIF_ID, buildNotification())
+        // Declare the connectedDevice type (alongside dataSync) so BLE scan
+        // callbacks keep being delivered while backgrounded on API 34+, where
+        // foreground-service types are strictly enforced. On API <=33 the typed
+        // overload is unavailable / unnecessary (a running FGS already covers
+        // scanning), so fall back to the untyped start. Doze suspension is a
+        // separate axis handled by the battery-optimization exemption.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            startForeground(
+                NOTIF_ID,
+                buildNotification(),
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC or
+                    ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE
+            )
+        } else {
+            startForeground(NOTIF_ID, buildNotification())
+        }
         return START_STICKY
     }
 
