@@ -60,7 +60,26 @@ send_burst() {
 
 # Has the receiver logged a locked-window delivery since capture started?
 receiver_delivery_count() {
-  grep -cE "mesh_message_beacon_received|mesh_message_received|fetch_response_received|GATT_FETCH_RECEIVED" "$LOG" 2>/dev/null || echo 0
+  # grep -c prints exactly one number (0 on no match) and exits 1 when zero;
+  # swallow the exit and take the first line so we never return "0\n0".
+  local n
+  n=$(grep -cE "mesh_message_beacon_received|mesh_message_received|fetch_response_received|GATT_FETCH_RECEIVED" "$LOG" 2>/dev/null || true)
+  echo "${n%%$'\n'*}" | grep -qE '^[0-9]+$' && echo "${n%%$'\n'*}" || echo 0
+}
+
+# Fail fast (~2s) if the sender's androidTest APK is stale/missing the send
+# class — otherwise every burst silently ClassNotFounds and the awake-confirm
+# window is wasted.
+preflight_sender() {
+  local out
+  out=$(adb -s "$SENDER" shell am instrument -w -e class "$SEND_CLASS" "$RUNNER" 2>&1 | tr -cd '[:print:]\n')
+  if grep -qiE "ClassNotFoundException|Failed loading specified test class|initializationError|INSTRUMENTATION_FAILED" <<<"$out"; then
+    echo "ABORT: sender $SENDER cannot load $SEND_CLASS — androidTest APK is stale/missing." >&2
+    echo "Rebuild + install it (in a stable shell — gradle):" >&2
+    echo "  (cd apps/meshx_mobile_app/android && ./gradlew :app:assembleAndroidTest)" >&2
+    echo "  adb -s $SENDER install -r app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk" >&2
+    return 1
+  fi
 }
 
 dump_ble_diag() {  # serial
@@ -100,6 +119,13 @@ adb -s "$RECEIVER" shell am start -n "$PKG/.MainActivity" \
   --ez meshx_ble_selftest true --ez meshx_ble_selftest_send false \
   --ez meshx_ble_fetch_on_beacon true --es mob_node_suffix "$RECEIVER_SUFFIX" >/dev/null 2>&1
 sleep 20  # let the receiver BEAM + scanner come up
+
+say "Pre-flight: sender can load $SEND_CLASS"
+if ! preflight_sender; then
+  dump_ble_diag "$SENDER"
+  exit 1
+fi
+echo "Sender instrumentation OK."
 
 say "Awake confirm: looped sends until the receiver fetches one (timeout ${PEER_TIMEOUT}s)"
 adb -s "$RECEIVER" logcat -c 2>/dev/null || true
