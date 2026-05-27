@@ -112,8 +112,8 @@ jobs:
             raise "focused remaining-items audit must keep AUX scan-response row incomplete"
           end
 
-          unless "upstreaming_mob_dev_mob_patches" in focused_remaining_items["incomplete_rows"] do
-            raise "focused remaining-items audit must keep upstream patch row incomplete"
+          unless "upstreaming_mob_dev_mob_patches" in focused_remaining_items["completed_rows"] do
+            raise "focused remaining-items audit must record upstream patch row complete after downstream migration"
           end
 
           unless artifact_bundle["release_candidate_complete?"] == false do

@@ -13,10 +13,6 @@
   {"lib/meshx_runtime/flow_control.ex", :call, 107},
   {"lib/meshx_runtime/flow_control.ex", :call_without_opaque, 107},
 
-  # Outbox: GenServer return value tuple shape
-  {"lib/meshx_runtime/outbox.ex", :unmatched_return, 54},
-  {"lib/meshx_runtime/outbox.ex", :unmatched_return, 97},
-
   # Router: queue_full branch unreachable given current FlowControl spec
   {"lib/meshx_runtime/router.ex", :pattern_match, 465},
 

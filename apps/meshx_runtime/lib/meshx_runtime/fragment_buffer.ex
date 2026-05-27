@@ -58,7 +58,7 @@ defmodule MeshxRuntime.FragmentBuffer do
       auto_sweep?: Keyword.get(opts, :auto_sweep?, true)
     }
 
-    if config.auto_sweep?, do: schedule_sweep(config.sweep_interval_ms)
+    _ = if config.auto_sweep?, do: schedule_sweep(config.sweep_interval_ms)
     {:ok, %{buffers: %{}, config: config}}
   end
 
@@ -91,7 +91,7 @@ defmodule MeshxRuntime.FragmentBuffer do
   def handle_info(:sweep, state) do
     {buffers, evicted} = evict_expired(state.buffers, now_ms(), state.config.reassembly_ttl_ms)
     emit_evictions(evicted, :ttl)
-    if state.config.auto_sweep?, do: schedule_sweep(state.config.sweep_interval_ms)
+    _ = if state.config.auto_sweep?, do: schedule_sweep(state.config.sweep_interval_ms)
     {:noreply, %{state | buffers: buffers}}
   end
 
@@ -100,7 +100,8 @@ defmodule MeshxRuntime.FragmentBuffer do
   defp finalize(original_id, fragments, buffers, state) do
     case Fragment.reassemble(Map.values(fragments)) do
       {:ok, ^original_id, frame} ->
-        {:reply, {:complete, original_id, frame}, %{state | buffers: Map.delete(buffers, original_id)}}
+        {:reply, {:complete, original_id, frame},
+         %{state | buffers: Map.delete(buffers, original_id)}}
 
       {:incomplete, received, expected} ->
         {:reply, {:partial, received, expected}, %{state | buffers: buffers}}

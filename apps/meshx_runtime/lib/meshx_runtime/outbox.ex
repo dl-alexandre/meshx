@@ -56,7 +56,7 @@ defmodule MeshxRuntime.Outbox do
     interval = Keyword.get(opts, :retry_interval_ms, @default_retry_interval_ms)
     max_backoff = Keyword.get(opts, :max_retry_backoff_ms, @default_max_retry_backoff_ms)
     auto_retry? = Keyword.get(opts, :auto_retry?, true)
-    if auto_retry?, do: schedule_retry(interval)
+    _ = if auto_retry?, do: schedule_retry(interval)
 
     {:ok,
      %{
@@ -104,7 +104,7 @@ defmodule MeshxRuntime.Outbox do
   def handle_info(:retry, %{auto_retry?: auto_retry?} = state) do
     retry_visible_peers(state)
     state = bump_retry_attempt(state)
-    if auto_retry?, do: schedule_retry(next_retry_interval(state))
+    _ = if auto_retry?, do: schedule_retry(next_retry_interval(state))
     {:noreply, state}
   end
 
