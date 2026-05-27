@@ -25,7 +25,11 @@ defmodule MeshxProtocol.PropertyTest do
       %Packet{
         version: Packet.version(),
         type: type,
-        flags: flags,
+        # The channel flag (0x08) is reserved and framing-managed: it is set
+        # solely from `channel_id`, never carried as free-form user flags.
+        # Mask it out so generated packets stay self-consistent (a set channel
+        # flag with no channel segment is not a valid packet).
+        flags: Bitwise.band(flags, Bitwise.bnot(Packet.flag_channel())),
         ttl: ttl,
         msg_id: msg_id,
         payload: payload

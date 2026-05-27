@@ -103,7 +103,6 @@ defmodule MeshxMobileApp.BLE.LocalFocusedRemainingItemsAudit do
         "docs/upstream_mob_migration_checklist.md",
         "mix.lock",
         "apps/meshx_mobile_app/mix.lock",
-        "apps/meshx_mobile_app/mob.exs",
         "patches/README.md",
         "apps/meshx_mobile_app/mix.exs",
         "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/patch-deps-check-1212.log",
@@ -246,7 +245,6 @@ defmodule MeshxMobileApp.BLE.LocalFocusedRemainingItemsAudit do
         "docs/upstream_mob_migration_checklist.md",
         "mix.lock",
         "apps/meshx_mobile_app/mix.lock",
-        "apps/meshx_mobile_app/mob.exs",
         "patches/README.md",
         "apps/meshx_mobile_app/mix.exs"
       ],
