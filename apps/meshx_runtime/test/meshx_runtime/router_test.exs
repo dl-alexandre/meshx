@@ -68,6 +68,46 @@ defmodule MeshxRuntime.RouterTest do
     assert RelayCache.get(id) == {id, "hello-router", 0}
   end
 
+  test "default subscription receives channel-tagged packets", %{remote: remote} do
+    flush_transport_events()
+    id = msg_id()
+    packet = %Packet{type: :data, msg_id: id, payload: "in-chan", channel_id: "bluetooth"}
+    {:ok, frame} = Codec.encode_packet(packet)
+
+    assert :ok = Memory.send_frame(remote, "local", frame)
+    assert_receive {:meshx_runtime, :packet, :memory, "remote", received}
+    assert received.channel_id == "bluetooth"
+    assert received.payload == "in-chan"
+  end
+
+  test "channel-scoped subscriber only receives matching channels", %{remote: remote} do
+    flush_transport_events()
+    # Overwrites the setup's :all subscription for self() (subscribers keyed by pid).
+    Router.subscribe(self(), channels: ["chat"])
+
+    {:ok, chat} =
+      Codec.encode_packet(%Packet{
+        type: :data,
+        msg_id: msg_id(),
+        payload: "hi",
+        channel_id: "chat"
+      })
+
+    assert :ok = Memory.send_frame(remote, "local", chat)
+    assert_receive {:meshx_runtime, :packet, :memory, "remote", %{channel_id: "chat"}}
+
+    {:ok, other} =
+      Codec.encode_packet(%Packet{
+        type: :data,
+        msg_id: msg_id(),
+        payload: "nope",
+        channel_id: "other"
+      })
+
+    assert :ok = Memory.send_frame(remote, "local", other)
+    refute_receive {:meshx_runtime, :packet, :memory, "remote", _}, 100
+  end
+
   test "drops duplicate inbound frames", %{remote: remote} do
     flush_transport_events()
     id = msg_id()
@@ -336,6 +376,30 @@ defmodule MeshxRuntime.RouterTest do
     assert_eventually(fn -> StoreOutbox.pending_for_destination("later") == [] end)
   end
 
+  test "store true direct sends request delivery ack and retry when ack is absent" do
+    flush_transport_events()
+    packet = Packet.new(:data, msg_id(), "direct-retry")
+
+    assert :ok = Router.send_packet("remote", packet, store: true, max_attempts: 2)
+
+    assert_receive {:meshx_transport, :memory, {:frame, "local", frame}}
+    assert {:ok, decoded, <<>>} = Codec.decode_packet(frame)
+    assert decoded.msg_id == packet.msg_id
+    assert decoded.payload == "direct-retry"
+    assert Packet.flag_set?(decoded.flags, Packet.flag_ack_requested())
+
+    assert [tracked] = StoreOutbox.pending_for_destination("remote")
+    assert tracked.msg_id == packet.msg_id
+    assert tracked.attempts == 1
+
+    Outbox.retry_now()
+    assert_receive {:meshx_transport, :memory, {:frame, "local", retry_frame}}
+    assert {:ok, retry_packet, <<>>} = Codec.decode_packet(retry_frame)
+    assert retry_packet.msg_id == packet.msg_id
+    assert Packet.flag_set?(retry_packet.flags, Packet.flag_ack_requested())
+    assert_eventually(fn -> StoreOutbox.get(tracked.id).status == :failed end)
+  end
+
   test "outbox retries pending rows until ACK or max attempts" do
     flush_transport_events()
     packet = Packet.new(:data, msg_id(), "retry-me")
@@ -352,6 +416,34 @@ defmodule MeshxRuntime.RouterTest do
     Outbox.retry_now()
     assert_receive {:meshx_transport, :memory, {:frame, "local", _frame2}}
     assert_eventually(fn -> StoreOutbox.get(queued.id).status == :failed end)
+  end
+
+  test "read receipt packets mark tracked deliveries read and emit runtime event" do
+    flush_transport_events()
+    packet = Packet.new(:data, msg_id(), "read-me")
+
+    assert :ok = Router.send_packet("remote", packet, store: true, max_attempts: 2)
+    assert_receive {:meshx_transport, :memory, {:frame, "local", _frame}}
+
+    send_read_receipt_from_peer("remote", packet.msg_id)
+
+    assert_receive {:meshx_runtime, :read_receipt, :memory, "remote", acked_id, {:ok, read}}
+    assert acked_id == packet.msg_id
+    assert read.status == :sent
+    assert %DateTime{} = read.delivery_acked_at
+    assert %DateTime{} = read.read_at
+    assert StoreOutbox.pending_for_destination("remote") == []
+  end
+
+  test "sends read receipts as typed ack packets" do
+    flush_transport_events()
+    msg_id = msg_id()
+
+    assert :ok = Router.send_read_receipt("remote", msg_id)
+
+    assert_receive {:meshx_transport, :memory, {:frame, "local", frame}}
+    assert {:ok, packet, <<>>} = Codec.decode_packet(frame)
+    assert {:ok, %{kind: :read, acked_msg_id: ^msg_id}} = Ack.decode_receipt(packet)
   end
 
   test "fragments outbound packets when mtu requires it" do
@@ -624,6 +716,12 @@ defmodule MeshxRuntime.RouterTest do
 
   defp send_ack_from_peer(peer_id, acked_msg_id) do
     packet = Ack.packet(acked_msg_id)
+    {:ok, frame} = Codec.encode_packet(packet)
+    assert :ok = MeshxTransport.Memory.Hub.deliver(peer_id, "local", frame)
+  end
+
+  defp send_read_receipt_from_peer(peer_id, acked_msg_id) do
+    packet = Ack.read_receipt_packet(acked_msg_id)
     {:ok, frame} = Codec.encode_packet(packet)
     assert :ok = MeshxTransport.Memory.Hub.deliver(peer_id, "local", frame)
   end

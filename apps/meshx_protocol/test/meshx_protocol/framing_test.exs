@@ -55,4 +55,53 @@ defmodule MeshxProtocol.FramingTest do
     assert decoded.msg_id == 99
     assert rest == <<1, 1>>
   end
+
+  describe "channel segment" do
+    test "channel-less frame is byte-identical to the legacy format and decodes channel_id \"\"" do
+      packet = Packet.new(:data, 42, "hello")
+      {:ok, frame} = Framing.encode(packet)
+
+      plen = byte_size("hello")
+      header = <<1::8, 1::8, 0::8, 64::8, plen::16-little, 42::32-little>>
+      crc = Bitwise.band(:erlang.crc32(header <> "hello"), 0xFFFF)
+
+      assert frame == header <> "hello" <> <<crc::16-little>>
+      assert {:ok, decoded, <<>>} = Framing.decode(frame)
+      assert decoded.channel_id == ""
+      refute Packet.flag_set?(decoded.flags, Packet.flag_channel())
+    end
+
+    test "round-trips a channel id and sets the channel flag" do
+      packet = %Packet{type: :data, msg_id: 7, payload: "hi", channel_id: "bluetooth"}
+      assert {:ok, frame} = Framing.encode(packet)
+      assert {:ok, decoded, <<>>} = Framing.decode(frame)
+      assert decoded.channel_id == "bluetooth"
+      assert decoded.payload == "hi"
+      assert Packet.flag_set?(decoded.flags, Packet.flag_channel())
+    end
+
+    test "channel segment is covered by the checksum" do
+      packet = %Packet{type: :data, msg_id: 1, payload: "x", channel_id: "c"}
+      {:ok, frame} = Framing.encode(packet)
+      # header is 10 bytes, then chan_len byte; flip the channel-id byte at offset 11
+      <<head::binary-size(11), _c::8, tail::binary>> = frame
+      assert {:error, "checksum mismatch"} = Framing.decode(head <> <<?z>> <> tail)
+    end
+
+    test "rejects a channel id longer than 255 bytes" do
+      packet = %Packet{
+        type: :data,
+        msg_id: 1,
+        payload: "",
+        channel_id: String.duplicate("x", 256)
+      }
+
+      assert {:error, _} = Framing.encode(packet)
+    end
+
+    test "errors when the channel flag is set but the segment is truncated" do
+      truncated = <<1::8, 1::8, Packet.flag_channel()::8, 64::8, 0::16-little, 9::32-little>>
+      assert {:error, _} = Framing.decode(truncated <> <<0::16>>)
+    end
+  end
 end

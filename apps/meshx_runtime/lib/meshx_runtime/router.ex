@@ -44,9 +44,25 @@ defmodule MeshxRuntime.Router do
     GenServer.call(__MODULE__, {:detach_transport, name})
   end
 
-  @spec subscribe(pid()) :: :ok
-  def subscribe(pid \\ self()) do
-    GenServer.call(__MODULE__, {:subscribe, pid})
+  @doc """
+  Subscribes a process to inbound router events.
+
+  By default the subscriber receives every delivered packet. Pass
+  `channels: ["bluetooth", ...]` to receive `:packet` deliveries only for those
+  channel ids (the default empty channel `""` is broadcast and must be listed
+  explicitly to receive it under a scoped subscription). Lifecycle events
+  (peer up/down, acks, errors) are always delivered regardless of channel.
+  """
+  @spec subscribe(pid(), keyword()) :: :ok
+  def subscribe(pid \\ self(), opts \\ []) do
+    GenServer.call(__MODULE__, {:subscribe, pid, channel_filter(opts)})
+  end
+
+  defp channel_filter(opts) do
+    case Keyword.get(opts, :channels) do
+      nil -> :all
+      channels when is_list(channels) -> MapSet.new(channels)
+    end
   end
 
   @spec unsubscribe(pid()) :: :ok
@@ -57,6 +73,11 @@ defmodule MeshxRuntime.Router do
   @spec send_packet(term(), Packet.t(), keyword()) :: :ok | {:error, term()}
   def send_packet(peer_id, %Packet{} = packet, opts \\ []) do
     GenServer.call(__MODULE__, {:send_packet, peer_id, packet, opts})
+  end
+
+  @spec send_read_receipt(term(), non_neg_integer(), keyword()) :: :ok | {:error, term()}
+  def send_read_receipt(peer_id, msg_id, opts \\ []) do
+    GenServer.call(__MODULE__, {:send_read_receipt, peer_id, msg_id, opts})
   end
 
   @spec ensure_secure_session(term(), keyword()) :: :ok | {:error, term()}
@@ -90,17 +111,24 @@ defmodule MeshxRuntime.Router do
     {:reply, :ok, %{state | transports: Map.delete(state.transports, name)}}
   end
 
-  def handle_call({:subscribe, pid}, _from, state) do
-    {:reply, :ok, %{state | subscribers: MapSet.put(state.subscribers, pid)}}
+  def handle_call({:subscribe, pid, filter}, _from, state) do
+    {:reply, :ok, %{state | subscribers: Map.put(state.subscribers, pid, filter)}}
   end
 
   def handle_call({:unsubscribe, pid}, _from, state) do
-    {:reply, :ok, %{state | subscribers: MapSet.delete(state.subscribers, pid)}}
+    {:reply, :ok, %{state | subscribers: Map.delete(state.subscribers, pid)}}
   end
 
   def handle_call({:send_packet, peer_id, packet, opts}, _from, state) do
+    packet = maybe_request_delivery_ack(packet, opts)
     {reply, state} = send_packet_with_flow(peer_id, packet, opts, state)
     {:reply, reply, state}
+  end
+
+  def handle_call({:send_read_receipt, peer_id, msg_id, opts}, _from, state) do
+    packet = Ack.read_receipt_packet(msg_id, opts)
+    result = send_plain_packet_to_peer(peer_id, packet, opts, state, false)
+    {:reply, result, state}
   end
 
   def handle_call({:ensure_secure_session, peer_id, opts}, _from, state) do
@@ -251,25 +279,25 @@ defmodule MeshxRuntime.Router do
         }
       )
 
-      notify(state, {:meshx_runtime, :packet, transport, peer_id, packet})
+      notify_packet(state, packet, {:meshx_runtime, :packet, transport, peer_id, packet})
       if relay?, do: relay_packet(peer_id, packet, state)
       state
     end
   end
 
   defp maybe_handle_ack_packet(transport, peer_id, %Packet{type: :ack} = packet, state) do
-    case Ack.decode(packet) do
-      {:ok, acked_msg_id} ->
-        result = StoreOutbox.ack(acked_msg_id, peer_id)
-
-        Telemetry.execute([:router, :ack, :received], %{count: 1}, %{
-          transport: transport,
-          peer_id: peer_id,
-          msg_id: acked_msg_id,
-          result: result
-        })
-
+    case Ack.decode_receipt(packet) do
+      {:ok, %{kind: :delivery, acked_msg_id: acked_msg_id} = receipt} ->
+        result = StoreOutbox.mark_delivered(acked_msg_id, peer_id)
+        emit_receipt_received(state, transport, peer_id, receipt, result)
         notify(state, {:meshx_runtime, :ack, transport, peer_id, acked_msg_id, result})
+        notify(state, {:meshx_runtime, :delivery_ack, transport, peer_id, acked_msg_id, result})
+        {:state, release_flow(peer_id, acked_msg_id, state)}
+
+      {:ok, %{kind: :read, acked_msg_id: acked_msg_id} = receipt} ->
+        result = StoreOutbox.mark_read(acked_msg_id, peer_id)
+        emit_receipt_received(state, transport, peer_id, receipt, result)
+        notify(state, {:meshx_runtime, :read_receipt, transport, peer_id, acked_msg_id, result})
         {:state, release_flow(peer_id, acked_msg_id, state)}
 
       {:error, reason} ->
@@ -285,6 +313,27 @@ defmodule MeshxRuntime.Router do
   end
 
   defp maybe_handle_ack_packet(_transport, _peer_id, _packet, _state), do: :not_ack
+
+  defp emit_receipt_received(state, transport, peer_id, receipt, result) do
+    Telemetry.execute([:router, :receipt, :received], %{count: 1}, %{
+      transport: transport,
+      peer_id: peer_id,
+      msg_id: receipt.acked_msg_id,
+      kind: receipt.kind,
+      result: result
+    })
+
+    if receipt.kind == :delivery do
+      Telemetry.execute([:router, :ack, :received], %{count: 1}, %{
+        transport: transport,
+        peer_id: peer_id,
+        msg_id: receipt.acked_msg_id,
+        result: result
+      })
+    end
+
+    notify(state, {:meshx_runtime, :receipt, transport, peer_id, receipt, result})
+  end
 
   defp maybe_handle_fragment_packet(
          transport,
@@ -410,7 +459,7 @@ defmodule MeshxRuntime.Router do
 
   defp maybe_send_ack(transport, peer_id, %Packet{flags: flags, msg_id: msg_id}, state) do
     if Packet.flag_set?(flags, Packet.flag_ack_requested()) do
-      ack = Ack.packet(msg_id)
+      ack = Ack.delivery_packet(msg_id)
       send_plain_packet_to_peer(peer_id, ack, [transport: transport], state, false)
     end
   end
@@ -482,13 +531,31 @@ defmodule MeshxRuntime.Router do
     end
   end
 
-  defp maybe_queue_delivery(_peer_id, _packet, _opts, :ok), do: :ok
+  defp maybe_queue_delivery(peer_id, packet, opts, :ok) do
+    if tracked_delivery?(opts) do
+      case Outbox.track_sent(peer_id, packet, opts) do
+        {:ok, _record} ->
+          :ok
+
+        {:error, reason} ->
+          Telemetry.execute([:router, :delivery, :track_error], %{count: 1}, %{
+            peer_id: peer_id,
+            msg_id: packet.msg_id,
+            reason: reason
+          })
+
+          {:error, {:sent_untracked, reason}}
+      end
+    else
+      :ok
+    end
+  end
 
   defp maybe_queue_delivery(_peer_id, _packet, _opts, {:error, :secure_required}),
     do: {:error, :secure_required}
 
   defp maybe_queue_delivery(peer_id, packet, opts, {:error, reason}) do
-    if Keyword.get(opts, :store, false) and not Keyword.get(opts, :secure, false) do
+    if tracked_delivery?(opts) do
       case Outbox.enqueue(peer_id, packet, opts) do
         {:ok, record} -> {:queued, reason, record}
         {:error, enqueue_reason} -> {:error, {reason, enqueue_reason}}
@@ -499,6 +566,18 @@ defmodule MeshxRuntime.Router do
   end
 
   defp maybe_queue_delivery(_peer_id, _packet, _opts, result), do: result
+
+  defp tracked_delivery?(opts) do
+    Keyword.get(opts, :store, false) and not Keyword.get(opts, :secure, false)
+  end
+
+  defp maybe_request_delivery_ack(packet, opts) do
+    if tracked_delivery?(opts), do: request_delivery_ack(packet), else: packet
+  end
+
+  defp request_delivery_ack(%Packet{flags: flags} = packet) do
+    %{packet | flags: Packet.set_flag(flags, Packet.flag_ack_requested())}
+  end
 
   defp release_flow(peer_id, msg_id, state) do
     {flow, next} = FlowControl.release(state.flow, peer_id, msg_id)
@@ -720,8 +799,20 @@ defmodule MeshxRuntime.Router do
   end
 
   defp notify(state, message) do
-    Enum.each(state.subscribers, &send(&1, message))
+    Enum.each(Map.keys(state.subscribers), &send(&1, message))
   end
+
+  # Channel-scoped delivery for inbound packets: a subscriber receives the
+  # packet only if it subscribed to all channels (`:all`) or explicitly to this
+  # packet's channel id.
+  defp notify_packet(state, %Packet{channel_id: channel_id}, message) do
+    Enum.each(state.subscribers, fn {pid, filter} ->
+      if deliver_channel?(filter, channel_id), do: send(pid, message)
+    end)
+  end
+
+  defp deliver_channel?(:all, _channel_id), do: true
+  defp deliver_channel?(filter, channel_id), do: MapSet.member?(filter, channel_id)
 
   defp emit_send_result(:ok, peer_id, measurements) do
     Telemetry.execute([:router, :send, :stop], measurements, %{peer_id: peer_id})
@@ -741,7 +832,7 @@ defmodule MeshxRuntime.Router do
   defp new_state do
     %{
       transports: %{},
-      subscribers: MapSet.new(),
+      subscribers: %{},
       flow: FlowControl.new(Application.get_env(:meshx_runtime, :flow_control, []))
     }
   end

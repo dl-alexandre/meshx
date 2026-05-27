@@ -16,6 +16,7 @@ defmodule MeshxProtocol.Packet do
   @flag_encrypted 0x01
   @flag_fragmented 0x02
   @flag_ack_requested 0x04
+  @flag_channel 0x08
 
   # --- Struct ---
 
@@ -26,7 +27,8 @@ defmodule MeshxProtocol.Packet do
     :payload,
     version: 0x01,
     flags: 0x00,
-    ttl: 64
+    ttl: 64,
+    channel_id: ""
   ]
 
   @type t :: %Packet{
@@ -35,7 +37,8 @@ defmodule MeshxProtocol.Packet do
           flags: non_neg_integer(),
           ttl: non_neg_integer(),
           msg_id: non_neg_integer(),
-          payload: binary()
+          payload: binary(),
+          channel_id: binary()
         }
 
   # --- Public API ---
@@ -63,6 +66,7 @@ defmodule MeshxProtocol.Packet do
   def flag_encrypted, do: @flag_encrypted
   def flag_fragmented, do: @flag_fragmented
   def flag_ack_requested, do: @flag_ack_requested
+  def flag_channel, do: @flag_channel
 
   @doc "Checks if a specific flag is set."
   def flag_set?(flags, flag), do: Bitwise.band(flags, flag) == flag
