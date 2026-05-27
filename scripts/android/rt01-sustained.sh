@@ -58,12 +58,13 @@ send_burst() {
   adb -s "$SENDER" shell am instrument -w -e class "$SEND_CLASS" "$RUNNER" >/dev/null 2>&1 || true
 }
 
-# Has the receiver logged a locked-window delivery since capture started?
+# Count receive events EXACTLY as the analyzer scores them: the @locked_evidence_events
+# rt-events as they appear in MeshxMobileApp.BLE.Observability "MeshxAppEvent:" JSON
+# ("event":"<name>"). Deliberately NOT broad log lines like GATT_FETCH_RECEIVED, so the
+# live harness counter and the mix meshx.mobile.rt01.analyze verdict use one definition.
 receiver_delivery_count() {
-  # grep -c prints exactly one number (0 on no match) and exits 1 when zero;
-  # swallow the exit and take the first line so we never return "0\n0".
   local n
-  n=$(grep -cE "mesh_message_beacon_received|mesh_message_received|fetch_response_received|GATT_FETCH_RECEIVED" "$LOG" 2>/dev/null || true)
+  n=$(grep -cE '"event":"(authenticated_payload_received|mesh_message_received|mesh_message_beacon_received|local_inbox_snapshot_saved)"' "$LOG" 2>/dev/null || true)
   echo "${n%%$'\n'*}" | grep -qE '^[0-9]+$' && echo "${n%%$'\n'*}" || echo 0
 }
 
@@ -153,14 +154,19 @@ adbq "$RECEIVER" svc power stayon false || true
 sleep 1
 adbq "$RECEIVER" input keyevent KEYCODE_SLEEP || adbq "$RECEIVER" input keyevent 26 || true
 LOCK_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-echo "locked_from=$LOCK_AT"
+LOCK_EPOCH=$(date -u -j -f "%Y-%m-%dT%H:%M:%SZ" "$LOCK_AT" +%s)
+# Baseline at lock so the live counter reports LOCKED-window deliveries (delta),
+# matching what the analyzer scores in_window — not the pre-lock awake delivery.
+LOCK_BASELINE=$(receiver_delivery_count)
+echo "locked_from=$LOCK_AT  (pre-lock delivery baseline=$LOCK_BASELINE)"
 
 end=$(( $(date +%s) + HOLD_SECS ))
 burst=0
 while [[ $(date +%s) -lt $end ]]; do
   send_burst        # ~30s blocking instrumented advertise/responder window
   burst=$((burst+1))
-  printf '  burst %d  (t+%ds)  receiver deliveries=%s\n' "$burst" "$(( $(date +%s) - $(date -u -j -f "%Y-%m-%dT%H:%M:%SZ" "$LOCK_AT" +%s) ))" "$(receiver_delivery_count)"
+  printf '  burst %d  (t+%ds)  locked deliveries=%d\n' \
+    "$burst" "$(( $(date +%s) - LOCK_EPOCH ))" "$(( $(receiver_delivery_count) - LOCK_BASELINE ))"
   remaining=$(( end - $(date +%s) ))
   [[ $remaining -le 0 ]] && break
   sleep "$(( SEND_INTERVAL - 30 < 5 ? 5 : SEND_INTERVAL - 30 ))"
