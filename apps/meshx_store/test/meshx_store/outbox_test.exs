@@ -64,6 +64,7 @@ defmodule MeshxStore.OutboxTest do
 
     assert {:ok, sent} = Outbox.ack(50, "peer-a")
     assert sent.status == :sent
+    assert %DateTime{} = sent.delivery_acked_at
     assert Outbox.pending_for_destination("peer-a") == []
     assert [%{msg_id: 51}] = Outbox.pending_for_destination("peer-b")
   end
@@ -77,6 +78,28 @@ defmodule MeshxStore.OutboxTest do
 
     assert {:ok, sent} = Outbox.ack(52, "peer-a")
     assert sent.status == :sent
+    assert %DateTime{} = sent.delivery_acked_at
+  end
+
+  test "read receipt marks matching row sent and read" do
+    {:ok, _} = Outbox.enqueue(%{msg_id: 53, payload: "x", destinations: ["peer-a"]})
+
+    assert {:ok, read} = Outbox.mark_read(53, "peer-a")
+    assert read.status == :sent
+    assert %DateTime{} = read.delivery_acked_at
+    assert %DateTime{} = read.read_at
+  end
+
+  test "delivery and read receipts are idempotent" do
+    {:ok, _} = Outbox.enqueue(%{msg_id: 54, payload: "x", destinations: ["peer-a"]})
+
+    assert {:ok, delivered} = Outbox.mark_delivered(54, "peer-a")
+    assert {:ok, delivered_again} = Outbox.mark_delivered(54, "peer-a")
+    assert delivered_again.delivery_acked_at == delivered.delivery_acked_at
+
+    assert {:ok, read} = Outbox.mark_read(54, "peer-a")
+    assert {:ok, read_again} = Outbox.mark_read(54, "peer-a")
+    assert read_again.read_at == read.read_at
   end
 
   test "pending_for_destination includes direct and broadcast entries" do
@@ -93,15 +116,6 @@ defmodule MeshxStore.OutboxTest do
     assert ids == [40, 42]
   end
 
-  test "retryable returns failed but not exhausted" do
-    {:ok, _} =
-      Outbox.enqueue(%{msg_id: 4, payload: "z", max_attempts: 3, status: :failed, attempts: 1})
-
-    retryable = Outbox.retryable()
-    assert length(retryable) == 1
-    assert hd(retryable).msg_id == 4
-  end
-
   test "status updates return not_found for missing records" do
     assert {:error, :not_found} = Outbox.mark_sent(404)
     assert {:error, :not_found} = Outbox.mark_sent_by_id(-1)
@@ -109,6 +123,7 @@ defmodule MeshxStore.OutboxTest do
     assert {:error, :not_found} = Outbox.mark_failed_by_id(-1)
     assert {:error, :not_found} = Outbox.record_attempt_by_id(-1)
     assert {:error, :not_found} = Outbox.ack(404, "missing")
+    assert {:error, :not_found} = Outbox.mark_read(404, "missing")
   end
 
   test "enqueue validates required fields" do

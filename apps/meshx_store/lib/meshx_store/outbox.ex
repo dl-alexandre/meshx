@@ -3,7 +3,9 @@ defmodule MeshxStore.Outbox do
   Store-and-forward outbox backed by CubDB.
 
   Messages are enqueued with a status of `:pending`, marked `:sent` when
-  successfully forwarded, or `:failed` when retries are exhausted.
+  a delivery acknowledgement arrives, or `:failed` when retries are exhausted.
+  Read receipts are tracked separately from delivery so callers can distinguish
+  delivered-but-unread from read messages without changing retry semantics.
 
   ## Error contract
 
@@ -17,8 +19,8 @@ defmodule MeshxStore.Outbox do
     * `:invalid_max_attempts` — `max_attempts` less than 1
     * `:not_found` — referenced record does not exist
 
-  Status queries (`pending/1`, `retryable/1`, `pending_for_destination/2`)
-  return empty lists when no records match; they do not return error tuples.
+  Status queries (`pending/1`, `pending_for_destination/2`) return empty lists
+  when no records match; they do not return error tuples.
   """
 
   alias MeshxStore.DB
@@ -31,6 +33,8 @@ defmodule MeshxStore.Outbox do
           attempts: non_neg_integer(),
           max_attempts: non_neg_integer(),
           status: :pending | :sent | :failed,
+          delivery_acked_at: DateTime.t() | nil,
+          read_at: DateTime.t() | nil,
           inserted_at: DateTime.t(),
           updated_at: DateTime.t()
         }
@@ -43,6 +47,8 @@ defmodule MeshxStore.Outbox do
     :attempts,
     :max_attempts,
     :status,
+    :delivery_acked_at,
+    :read_at,
     :inserted_at,
     :updated_at
   ]
@@ -84,6 +90,8 @@ defmodule MeshxStore.Outbox do
           attempts: attempts,
           max_attempts: max_attempts,
           status: Map.get(attrs, :status, :pending),
+          delivery_acked_at: Map.get(attrs, :delivery_acked_at),
+          read_at: Map.get(attrs, :read_at),
           inserted_at: now,
           updated_at: now
         }
@@ -142,25 +150,47 @@ defmodule MeshxStore.Outbox do
     update_by_id(id, %{status: :sent})
   end
 
-  @doc "Marks a pending/failed row sent when an ACK arrives from a destination."
+  @doc "Marks a row delivered when a delivery ACK arrives from a destination."
   @spec ack(non_neg_integer(), String.t() | term()) :: {:ok, t()} | {:error, :not_found}
-  def ack(msg_id, destination) do
+  def ack(msg_id, destination), do: mark_delivered(msg_id, destination)
+
+  @doc "Marks a row delivered when a delivery ACK arrives from a destination."
+  @spec mark_delivered(non_neg_integer(), String.t() | term()) ::
+          {:ok, t()} | {:error, :not_found}
+  def mark_delivered(msg_id, destination) do
     destination = to_string(destination)
 
-    find_by_msg_id(msg_id)
+    find_by_msg_id_and_destination(msg_id, destination)
     |> case do
       nil ->
         {:error, :not_found}
 
-      record when record.status in [:pending, :failed] ->
-        if record.destinations == [] or destination in record.destinations do
-          mark_sent_by_id(record.id)
-        else
-          {:error, :not_found}
-        end
+      record ->
+        update_by_id(record.id, %{
+          status: :sent,
+          delivery_acked_at: Map.get(record, :delivery_acked_at) || DateTime.utc_now()
+        })
+    end
+  end
 
-      _ ->
+  @doc "Marks a row read when a read receipt arrives from a destination."
+  @spec mark_read(non_neg_integer(), String.t() | term()) :: {:ok, t()} | {:error, :not_found}
+  def mark_read(msg_id, destination) do
+    destination = to_string(destination)
+
+    find_by_msg_id_and_destination(msg_id, destination)
+    |> case do
+      nil ->
         {:error, :not_found}
+
+      record ->
+        now = DateTime.utc_now()
+
+        update_by_id(record.id, %{
+          status: :sent,
+          delivery_acked_at: Map.get(record, :delivery_acked_at) || now,
+          read_at: Map.get(record, :read_at) || now
+        })
     end
   end
 
@@ -191,20 +221,6 @@ defmodule MeshxStore.Outbox do
     end
   end
 
-  @doc """
-  Returns failed messages that are eligible for retry.
-  """
-  @spec retryable(non_neg_integer()) :: [t()]
-  def retryable(limit \\ 100) do
-    DB.select(min_key: {:outbox, 0}, max_key: {{:outbox, nil}, nil})
-    |> Stream.map(fn {_key, value} -> value end)
-    |> Stream.filter(fn record ->
-      record.status == :failed and record.attempts < record.max_attempts
-    end)
-    |> Enum.sort_by(& &1.updated_at, DateTime)
-    |> Enum.take(limit)
-  end
-
   @doc false
   @spec clear() :: :ok
   def clear do
@@ -221,6 +237,15 @@ defmodule MeshxStore.Outbox do
     DB.select(min_key: {:outbox, 0}, max_key: {{:outbox, nil}, nil})
     |> Stream.map(fn {_key, value} -> value end)
     |> Enum.find(&(&1.msg_id == msg_id))
+  end
+
+  defp find_by_msg_id_and_destination(msg_id, destination) do
+    DB.select(min_key: {:outbox, 0}, max_key: {{:outbox, nil}, nil})
+    |> Stream.map(fn {_key, value} -> value end)
+    |> Enum.find(fn record ->
+      record.msg_id == msg_id and
+        (record.destinations == [] or destination in record.destinations)
+    end)
   end
 
   defp update_by_id(id, attrs) do
