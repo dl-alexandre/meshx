@@ -125,7 +125,7 @@ Total fixed overhead: 12 bytes (10-byte header + 2-byte CRC).
 | Value | Type | Purpose |
 |-------|------|---------|
 | `0x01` | `data` | Application payload. |
-| `0x02` | `ack` | Acknowledgement of a previously sent `data` packet (correlates by `msg_id`). |
+| `0x02` | `ack` | Delivery acknowledgement or read receipt for a previously sent packet (correlates by `msg_id`). |
 | `0x03` | `gossip` | Routing/topology gossip. |
 | `0x04` | `control` | Out-of-band control. Used for the Noise handshake (see §5). |
 | `0x05` | `fragment` | Application-level fragmentation (see §4). |
@@ -137,6 +137,26 @@ Total fixed overhead: 12 bytes (10-byte header + 2-byte CRC).
 | `0x01` | `encrypted` | `payload` is Noise ciphertext (see §5). |
 | `0x02` | `fragmented` | `payload` is a fragment chunk (see §4). |
 | `0x04` | `ack_requested` | Sender requests an `ack` packet referencing this `msg_id`. |
+
+### ACK payloads
+
+Current ACK packets carry a typed receipt payload:
+
+```
++---------+------+--------------+
+| version | kind | acked_msg_id |
+| u8      | u8   | u32 LE       |
++---------+------+--------------+
+```
+
+| Field | Size | Encoding | Notes |
+|-------|------|----------|-------|
+| `version` | 1 | uint8 | Current value: `0x01`. |
+| `kind` | 1 | uint8 | `0x01` = delivery acknowledgement, `0x02` = read receipt. |
+| `acked_msg_id` | 4 | uint32 little-endian | The original packet `msg_id` being acknowledged. |
+
+Legacy four-byte ACK payloads (`acked_msg_id` only) are still accepted and
+treated as delivery acknowledgements.
 
 ### Checksum
 

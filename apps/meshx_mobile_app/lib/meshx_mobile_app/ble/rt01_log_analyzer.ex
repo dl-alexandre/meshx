@@ -44,7 +44,7 @@ defmodule MeshxMobileApp.BLE.RT01LogAnalyzer do
   @spec analyze_file(Path.t(), keyword()) :: analysis()
   def analyze_file(path, opts \\ []) do
     path
-    |> File.stream!([], :line)
+    |> File.stream!(:line)
     |> analyze_lines(opts)
   end
 

@@ -84,6 +84,9 @@ Common events:
 {:meshx_runtime, :packet, transport, peer_id, packet}
 {:meshx_runtime, :duplicate, transport, peer_id, msg_id}
 {:meshx_runtime, :ack, transport, peer_id, acked_msg_id, result}
+{:meshx_runtime, :delivery_ack, transport, peer_id, acked_msg_id, result}
+{:meshx_runtime, :read_receipt, transport, peer_id, acked_msg_id, result}
+{:meshx_runtime, :receipt, transport, peer_id, receipt, result}
 {:meshx_runtime, :decode_error, transport, peer_id, reason}
 {:meshx_runtime, :decrypt_error, transport, peer_id, reason}
 {:meshx_runtime, :noise_established, transport, peer_id}
@@ -105,11 +108,21 @@ Queue for later if a peer is offline:
   MeshxRuntime.Router.send_packet("node-b", packet, store: true, max_attempts: 5)
 ```
 
+When `store: true` sends to an online peer, the router sets
+`ack_requested`, stores a pending delivery row after the first successful
+send, and the outbox retries until a delivery ack or read receipt arrives.
+
 Request encryption after a Noise session is established:
 
 ```elixir
 :ok = MeshxRuntime.Router.ensure_secure_session("node-b")
 :ok = MeshxRuntime.Router.send_packet("node-b", packet, secure: true)
+```
+
+Send a read receipt after local application state marks a message read:
+
+```elixir
+:ok = MeshxRuntime.Router.send_read_receipt("node-b", packet.msg_id)
 ```
 
 Broadcast public packets:
