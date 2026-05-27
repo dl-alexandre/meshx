@@ -29,6 +29,11 @@ defmodule MeshxRuntime.Outbox do
     GenServer.call(__MODULE__, {:enqueue, peer_id, packet, opts})
   end
 
+  @spec track_sent(term(), Packet.t(), keyword()) :: {:ok, struct()} | {:error, term()}
+  def track_sent(peer_id, %Packet{} = packet, opts \\ []) do
+    GenServer.call(__MODULE__, {:track_sent, peer_id, packet, opts})
+  end
+
   @spec replay(term()) :: :ok
   def replay(peer_id) do
     GenServer.cast(__MODULE__, {:replay, peer_id})
@@ -69,6 +74,11 @@ defmodule MeshxRuntime.Outbox do
     {:reply, result, state}
   end
 
+  def handle_call({:track_sent, peer_id, packet, opts}, _from, state) do
+    result = enqueue_packet(peer_id, packet, Keyword.put_new(opts, :attempts, 1))
+    {:reply, result, state}
+  end
+
   def handle_call(:reset, _from, state) do
     Router.subscribe(self())
     {:reply, :ok, state}
@@ -104,12 +114,18 @@ defmodule MeshxRuntime.Outbox do
     packet = request_ack(packet)
 
     with {:ok, frame} <- Codec.encode_packet(packet) do
+      attempts = Keyword.get(opts, :attempts, 0)
+      max_attempts = Keyword.get(opts, :max_attempts, 5)
+      status = Keyword.get(opts, :status, initial_status(attempts, max_attempts))
+
       result =
         StoreOutbox.enqueue(%{
           msg_id: packet.msg_id,
           payload: frame,
           destinations: [destination(peer_id)],
-          max_attempts: Keyword.get(opts, :max_attempts, 5)
+          attempts: attempts,
+          max_attempts: max_attempts,
+          status: status
         })
 
       case result do
@@ -140,7 +156,7 @@ defmodule MeshxRuntime.Outbox do
 
   defp replay_record(peer_id, record) do
     with {:ok, packet, _rest} <- Codec.decode_packet(record.payload),
-         :ok <- Router.send_packet(peer_id, packet, store: false) do
+         :ok <- Router.send_packet(peer_id, packet, store: false, flow_control: false) do
       Telemetry.execute([:outbox, :replay, :stop], %{count: 1}, %{
         peer_id: peer_id,
         msg_id: record.msg_id,
@@ -176,6 +192,9 @@ defmodule MeshxRuntime.Outbox do
     %{packet | flags: Packet.set_flag(flags, Packet.flag_ack_requested())}
   end
 
+  defp initial_status(attempts, max_attempts) when attempts >= max_attempts, do: :failed
+  defp initial_status(_attempts, _max_attempts), do: :pending
+
   defp schedule_retry(interval) do
     Process.send_after(self(), :retry, interval)
   end
@@ -185,8 +204,28 @@ defmodule MeshxRuntime.Outbox do
   end
 
   defp next_retry_interval(state) do
-    multiplier = 2 ** state.retry_attempt
-    min(state.retry_interval_ms * multiplier, state.max_retry_backoff_ms)
+    retry_interval_for(state.retry_attempt, state.retry_interval_ms, state.max_retry_backoff_ms)
+  end
+
+  @doc """
+  Backoff for a retry attempt: exponential (`interval * 2^attempt`), capped at
+  `max_backoff_ms`, then equal-jittered into `[capped/2, capped]`.
+
+  Jitter decorrelates retries so peers/workers that went offline together don't
+  resend in lockstep when they return. Exposed for unit testing.
+  """
+  @spec retry_interval_for(non_neg_integer(), pos_integer(), pos_integer()) :: pos_integer()
+  def retry_interval_for(attempt, interval_ms, max_backoff_ms)
+      when is_integer(attempt) and attempt >= 0 do
+    capped = min(interval_ms * 2 ** attempt, max_backoff_ms)
+    apply_jitter(capped)
+  end
+
+  defp apply_jitter(ms) when ms <= 1, do: ms
+
+  defp apply_jitter(ms) do
+    floor = div(ms, 2)
+    floor + :rand.uniform(ms - floor)
   end
 
   defp destination(peer_id), do: to_string(peer_id)
