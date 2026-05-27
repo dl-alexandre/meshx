@@ -46,7 +46,7 @@ defmodule Mix.Tasks.MeshxMobileReleaseCITest do
              ~s("extended_advertising_interop_aux_scan_response" in focused_remaining_items["incomplete_rows"])
 
     assert workflow =~
-             ~s("upstreaming_mob_dev_mob_patches" in focused_remaining_items["incomplete_rows"])
+             ~s("upstreaming_mob_dev_mob_patches" in focused_remaining_items["completed_rows"])
 
     assert workflow =~
              "plain_completion_audit = File.read!(\"tmp/ci-local-completion-audit.txt\")"
