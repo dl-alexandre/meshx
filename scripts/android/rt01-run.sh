@@ -56,6 +56,26 @@ launch() {  # serial suffix send?
     --es mob_node_suffix "$2" >/dev/null 2>&1
 }
 
+# On a peering failure, capture WHY: is each device advertising a meshx beacon,
+# scanning, seeing adverts, BT on, permissions granted, awake? Written per device.
+dump_ble_diag() {  # serial
+  local s="$1" f="$OUT_DIR/${1}-blediag.txt"
+  {
+    echo "## $s  $(date -u +%FT%TZ)"
+    echo "-- power/wakefulness --"
+    adbq "$s" dumpsys battery | grep -iE "powered|level|status"
+    adbq "$s" dumpsys power | grep -oE "mWakefulness=[A-Za-z]+|Display Power: state=[A-Z]+"
+    echo "-- bluetooth on? --"; adbq "$s" settings get global bluetooth_on
+    echo "-- BLE permissions --"
+    adbq "$s" dumpsys package "$PKG" | grep -iE "BLUETOOTH_(SCAN|ADVERTISE|CONNECT)|FINE_LOCATION" | grep -iE "granted="
+    echo "-- last 40 advertise/scan/beacon/selftest log lines --"
+    adb -s "$s" logcat -d 2>/dev/null | tr -d '\r' \
+      | grep -iE "advertis|startScan|scan result|beacon|received native event|HEARTBEAT|MESH MESSAGE|permission deni|adapter" \
+      | tail -40
+  } > "$f" 2>&1
+  echo "  diagnostics -> $f"
+}
+
 say "Power check"
 for s in "$SENDER" "$RECEIVER"; do
   if powered "$s"; then echo "$s: powered OK"; else
@@ -89,6 +109,9 @@ if [[ $peered -ne 1 ]]; then
   echo "ABORT: peering not established (sent>0 & peers>=1) within ${PEER_TIMEOUT}s." >&2
   echo "Last sender HB: $(heartbeat "$SENDER")" >&2
   echo "Last receiver HB: $(heartbeat "$RECEIVER")" >&2
+  say "Capturing BLE diagnostics (why peering failed)"
+  dump_ble_diag "$SENDER"
+  dump_ble_diag "$RECEIVER"
   exit 1
 fi
 echo "Peering confirmed."
