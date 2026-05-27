@@ -22,7 +22,7 @@ export LC_ALL=C LC_CTYPE=C
 
 PKG=dev.meshx.mob
 RUNNER="dev.meshx.mob.test/androidx.test.runner.AndroidJUnitRunner"
-SEND_CLASS="dev.meshx.mob.ble.MXFullEnvelopeSmokeTest"
+SEND_CLASS="mob.ble.MXFullEnvelopeSmokeTest"   # package is mob.ble (NOT dev.meshx.mob.ble)
 SENDER="5200f354f4fb277f"      # T390 default (instrumented sender)
 RECEIVER="R52W90AW7EN"          # T577U default (locked real-app receiver)
 RUN_ID="rt-01-sustained-$(date -u +%Y%m%dT%H%M%SZ)"
