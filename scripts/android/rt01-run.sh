@@ -14,6 +14,11 @@
 #     [--run-id rt-01-<label>] [--hold-secs 900] [--peer-timeout 120]
 set -euo pipefail
 
+# adb logcat carries non-UTF8 bytes (binary BLE payloads); BSD `tr` aborts with
+# "Illegal byte sequence" under a UTF-8 locale, which under `set -e` kills the
+# run. Force the C locale so byte-wise tr/grep are safe.
+export LC_ALL=C LC_CTYPE=C
+
 PKG=dev.meshx.mob
 SENDER="5200f354f4fb277f"      # T390 default
 RECEIVER="R52W90AW7EN"          # T577U default (the locked device)
