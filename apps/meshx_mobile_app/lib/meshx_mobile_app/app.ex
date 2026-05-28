@@ -70,10 +70,25 @@ defmodule MeshxMobileApp.App do
       local_name = System.get_env("MOB_BLE_LOCAL_NAME") || "meshx-mobile"
       rt_probe(:transport, :mob_ble_transport_start_requested, %{local_name: local_name})
 
-      case MeshxTransportBLE.start_link(
-             bridge: Mob.Ble.bridge_module(),
-             bridge_opts: [local_name: local_name]
-           ) do
+      # Route the transport's outer frame events into BleSelfTest when the
+      # selftest is running, so the receive pipeline reaches Observability and
+      # the rt-event-model analyzer events (`mesh_message_received` etc.) fire.
+      # Without this wiring `{:meshx_transport, :ble, {:frame, ...}}` events
+      # drop on the floor and every RT-01 verdict comes back inconclusive
+      # regardless of whether the locked-window scan survived.
+      transport_opts = [
+        bridge: Mob.Ble.bridge_module(),
+        bridge_opts: [local_name: local_name]
+      ]
+
+      transport_opts =
+        if System.get_env("MESHX_BLE_SELFTEST") in [nil, ""] do
+          transport_opts
+        else
+          Keyword.put(transport_opts, :event_target, MeshxMobileApp.BleSelfTest)
+        end
+
+      case MeshxTransportBLE.start_link(transport_opts) do
         {:ok, _pid} ->
           Logger.info(
             "meshx_mobile_app: mob_ble transport up (bridge=#{inspect(Mob.Ble.bridge_module())})"

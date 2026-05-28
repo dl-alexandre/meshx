@@ -7,8 +7,11 @@ import android.app.Service
 import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.os.Build
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
 import androidx.core.app.NotificationCompat
+import mob.ble.MobBleNative
 
 /**
  * Foreground service that keeps the BEAM node alive when the screen is locked.
@@ -52,6 +55,20 @@ class BeamForegroundService : Service() {
         } else {
             startForeground(NOTIF_ID, buildNotification())
         }
+        // RT-01 lever 2a: once this foreground service is established, re-register
+        // the BLE scan from the FG context so Android treats it as a foreground-app
+        // scan (exempt from screen-off background-scan suspension). The BEAM session
+        // may have started the scan earlier at background importance; rebinding it
+        // here is the lever under test for locked-receive reliability. Delay a beat
+        // so the FGS importance is settled before re-registration.
+        Handler(Looper.getMainLooper()).postDelayed({
+            try {
+                MobBleNative.restartScanFromForeground()
+            } catch (_: Throwable) {
+                // Best-effort: if the BEAM bridge isn't up yet the session path
+                // still starts the scan; this lever only matters once both exist.
+            }
+        }, 1500L)
         return START_STICKY
     }
 

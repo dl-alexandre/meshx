@@ -305,6 +305,71 @@ defmodule MeshxMobileApp.BleSelfTest do
     {:noreply, state}
   end
 
+  # MeshxTransportBLE forwards bridge frame events as
+  # `{:meshx_transport, :ble, {:frame, peer_id, frame}}`. When `App` wires
+  # BleSelfTest as the transport's outer event_target, this clause parses the
+  # MX envelope and emits the canonical `%ReceivedMessage{}` via Observability,
+  # which is what fires the rt-event-model analyzer events
+  # (`mesh_message_received` / `authenticated_payload_received` /
+  # `local_inbox_snapshot_saved`). Closes the pipeline gap that left every
+  # RT-01 verdict inconclusive regardless of whether locked scan survived.
+  def handle_info({:meshx_transport, :ble, {:frame, peer_id, frame}}, state)
+      when is_binary(frame) do
+    state = %{state | event_count: state.event_count + 1}
+
+    case MeshxMobileApp.BLE.MessageEnvelope.parse(frame) do
+      {:ok, envelope} ->
+        received = %MeshxMobileApp.BLE.Events.ReceivedMessage{
+          message_id: envelope.message_id,
+          sender_peer_id: envelope.sender_peer_id,
+          recipient_peer_id: envelope.recipient_peer_id,
+          received_device_id: to_string(peer_id),
+          received_at: System.system_time(:millisecond),
+          rssi: 0,
+          envelope: envelope,
+          raw_transport_metadata: %{
+            transport: :ble,
+            source_event: :transport_frame,
+            peer_id: peer_id,
+            message_payload: frame
+          }
+        }
+
+        MeshxMobileApp.BLE.Observability.record(received)
+
+        state = %{state | full_envelopes_received: state.full_envelopes_received + 1}
+        key = {envelope.sender_peer_id, envelope.message_id}
+
+        state =
+          record_distinct_message(
+            state,
+            key,
+            :envelope,
+            envelope.sender_peer_id,
+            to_string(peer_id)
+          )
+
+        {:noreply, state}
+
+      {:error, reason} ->
+        rt_probe(:receive, :transport_frame_parse_failed, %{
+          peer_id: peer_id,
+          reason: inspect(reason),
+          frame_bytes: byte_size(frame)
+        })
+
+        {:noreply, state}
+    end
+  end
+
+  def handle_info({:meshx_transport, :ble, {:peer_up, _peer}}, state) do
+    {:noreply, %{state | event_count: state.event_count + 1}}
+  end
+
+  def handle_info({:meshx_transport, :ble, {:peer_down, _peer_id}}, state) do
+    {:noreply, %{state | event_count: state.event_count + 1}}
+  end
+
   def handle_info(other, state) do
     Logger.debug("BleSelfTest: unexpected #{inspect(other)}")
     {:noreply, state}

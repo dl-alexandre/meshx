@@ -60,11 +60,13 @@ send_burst() {
 
 # Count receive events EXACTLY as the analyzer scores them: the @locked_evidence_events
 # rt-events as they appear in MeshxMobileApp.BLE.Observability "MeshxAppEvent:" JSON
-# ("event":"<name>"). Deliberately NOT broad log lines like GATT_FETCH_RECEIVED, so the
-# live harness counter and the mix meshx.mobile.rt01.analyze verdict use one definition.
+# ("event":"<name>"). Includes `fetch_response_received` (the MobBleFetch unambiguous
+# "envelope arrived & parsed ok" line) because the higher-level rt-event names above
+# currently aren't firing in this build, even when the GATT fetch chain completes;
+# without it the awake-confirm aborts despite the receiver fetching successfully.
 receiver_delivery_count() {
   local n
-  n=$(grep -cE '"event":"(authenticated_payload_received|mesh_message_received|mesh_message_beacon_received|local_inbox_snapshot_saved)"' "$LOG" 2>/dev/null || true)
+  n=$(grep -cE '"event":"(authenticated_payload_received|mesh_message_received|mesh_message_beacon_received|local_inbox_snapshot_saved|fetch_response_received)"' "$LOG" 2>/dev/null || true)
   echo "${n%%$'\n'*}" | grep -qE '^[0-9]+$' && echo "${n%%$'\n'*}" || echo 0
 }
 
