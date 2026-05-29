@@ -1,5 +1,5 @@
 defmodule MeshxMobileApp.Chat.ChannelViewModelTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
 
   alias MeshxMobileApp.Chat.{ChannelViewModel, Composer}
   alias MeshxMobileApp.Chat.ChannelViewModel.Message
@@ -87,9 +87,15 @@ defmodule MeshxMobileApp.Chat.ChannelViewModelTest do
   end
 
   describe "send_text/2 via FakeRouter" do
+    setup do
+      # Composer + ChannelViewModel.local_sender both reach into
+      # MeshxStore.Identity, so start the store DB for this group.
+      Application.ensure_all_started(:meshx_store)
+      ensure_db_started()
+      :ok
+    end
+
     test "dispatches via router and appends an outbound :pending entry" do
-      # Identity.get/0 reads from MeshxStore; we don't run the store here, so
-      # the VM's local_sender fallback returns "local".
       vm = start_vm(router: FakeRouter)
       assert {:ok, message_id} = ChannelViewModel.send_text(vm, "hi there")
       assert is_binary(message_id) and byte_size(message_id) == 16
@@ -98,6 +104,17 @@ defmodule MeshxMobileApp.Chat.ChannelViewModelTest do
 
       assert %{messages: [%Message{direction: :out, status: :pending, body: "hi there"}]} =
                ChannelViewModel.snapshot(vm)
+    end
+
+    defp ensure_db_started do
+      case MeshxStore.DB.start_link([]) do
+        {:ok, pid} ->
+          Process.unlink(pid)
+          :ok
+
+        {:error, {:already_started, _pid}} ->
+          :ok
+      end
     end
   end
 
