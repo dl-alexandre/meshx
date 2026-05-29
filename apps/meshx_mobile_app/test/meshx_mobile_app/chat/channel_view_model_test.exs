@@ -46,7 +46,13 @@ defmodule MeshxMobileApp.Chat.ChannelViewModelTest do
       _ = ChannelViewModel.snapshot(vm)
 
       assert %{messages: [msg], message_count: 1} = ChannelViewModel.snapshot(vm)
-      assert %Message{direction: :in, status: :delivered, body: "hello", sender_peer_id: "bob-peer"} = msg
+
+      assert %Message{
+               direction: :in,
+               status: :delivered,
+               body: "hello",
+               sender_peer_id: "bob-peer"
+             } = msg
     end
 
     test "ignored when channel_id mismatches (router shouldn't even deliver, defensive)" do
@@ -75,7 +81,8 @@ defmodule MeshxMobileApp.Chat.ChannelViewModelTest do
 
       send(vm, incoming_for("#general", "pushed", "bob-peer"))
 
-      assert_receive {ChannelViewModel, :updated, %{message_count: 1, messages: [%{body: "pushed"}]}}
+      assert_receive {ChannelViewModel, :updated,
+                      %{message_count: 1, messages: [%{body: "pushed"}]}}
     end
   end
 
@@ -88,6 +95,7 @@ defmodule MeshxMobileApp.Chat.ChannelViewModelTest do
       assert is_binary(message_id) and byte_size(message_id) == 16
 
       _ = ChannelViewModel.snapshot(vm)
+
       assert %{messages: [%Message{direction: :out, status: :pending, body: "hi there"}]} =
                ChannelViewModel.snapshot(vm)
     end

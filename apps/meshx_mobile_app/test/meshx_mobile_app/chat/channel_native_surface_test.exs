@@ -51,6 +51,7 @@ defmodule MeshxMobileApp.Chat.ChannelNativeSurfaceTest do
 
     test "uses nickname_for/1 when it returns a non-empty string" do
       msgs = [msg(sender_peer_id: "abc123")]
+
       surface =
         ChannelNativeSurface.build(snapshot(msgs),
           nickname_for: fn "abc123" -> "Alice" end
