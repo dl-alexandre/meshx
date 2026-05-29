@@ -26,8 +26,9 @@ defmodule MeshxMobileApp.ChatScreen do
 
     # Identity.get/0's spec is `{:ok, t()}`; let the screen crash on init if
     # the store isn't up so the supervisor surfaces the real cause instead of
-    # masking it as a "nil sender" UX bug.
-    {:ok, %{peer_id: local_peer_id}} = Identity.get()
+    # masking it as a "nil sender" UX bug. The wire_peer_id (raw 32 bytes) is
+    # what envelopes carry, so `from_self?` row tagging matches consistently.
+    {:ok, %{wire_peer_id: local_peer_id}} = Identity.get()
 
     socket =
       socket

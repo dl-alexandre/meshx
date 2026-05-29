@@ -19,17 +19,33 @@ defmodule MeshxMobileApp.Chat.Identity do
 
   @nickname_key {:chat, :nickname}
 
-  @type t :: %{peer_id: binary(), nickname: String.t()}
+  @type t :: %{peer_id: binary(), wire_peer_id: binary(), nickname: String.t()}
 
   @doc """
   Returns the local chat identity, ensuring the underlying node identity
   exists and a nickname is set (defaulting if absent).
+
+  The returned map carries two peer-id forms:
+
+    * `:peer_id` — the URL-safe Base64 of the public key (~43 chars).
+      The display form, used in nicknames and UI labels.
+    * `:wire_peer_id` — the raw 32-byte public key. Fits `MessageEnvelope`'s
+      `@max_peer_id_size 32` exactly; this is what outbound chat envelopes
+      carry as `sender_peer_id`, and what receivers compare against to
+      decide whether a row was sent by the local user.
   """
   @spec get() :: {:ok, t()}
   def get do
-    with {:ok, peer_id} <- NodeIdentity.local_peer_id() do
+    with {:ok, identity} <- NodeIdentity.ensure_local() do
+      peer_id = Base.url_encode64(identity.public_key, padding: false)
       nickname = DB.get(@nickname_key) || default_nickname(peer_id)
-      {:ok, %{peer_id: peer_id, nickname: nickname}}
+
+      {:ok,
+       %{
+         peer_id: peer_id,
+         wire_peer_id: identity.public_key,
+         nickname: nickname
+       }}
     end
   end
 

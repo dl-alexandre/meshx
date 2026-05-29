@@ -194,12 +194,12 @@ defmodule MeshxMobileApp.Chat.ChannelViewModel do
   defp dispatch(nil, _packet), do: :ok
   defp dispatch(router, packet), do: router.broadcast_packet(packet)
 
-  # The composer reads identity from MeshxStore; for the local-out display
-  # entry we just need the local peer_id. Identity.get/0's spec is
-  # `{:ok, t()}`; let the call crash if the store isn't up so the supervisor
-  # surfaces the real cause instead of masking it as a "local" sender label.
+  # Identity carries both display peer_id (Base64URL) and wire_peer_id (raw
+  # 32-byte public key); the outbound entry uses wire_peer_id so receivers
+  # and the `from_self?` comparison in ChannelNativeSurface match against
+  # the same bytes as the envelope they actually receive.
   defp local_sender do
-    {:ok, %{peer_id: peer_id}} = MeshxMobileApp.Chat.Identity.get()
-    peer_id
+    {:ok, %{wire_peer_id: wire_peer_id}} = MeshxMobileApp.Chat.Identity.get()
+    wire_peer_id
   end
 end

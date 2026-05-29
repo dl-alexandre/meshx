@@ -73,7 +73,7 @@ defmodule MeshxMobileApp.Chat.Composer do
     with {:ok, identity} <- get_identity(opts),
          {:ok, envelope} <-
            MessageEnvelope.build(
-             sender_peer_id: identity.peer_id,
+             sender_peer_id: sender_peer_id(identity),
              recipient_peer_id: Keyword.get(opts, :recipient_peer_id),
              created_at: now_ms(opts),
              payload_type: @payload_type,
@@ -95,6 +95,13 @@ defmodule MeshxMobileApp.Chat.Composer do
   end
 
   defp msg_id_from_envelope(<<id::32-little, _rest::binary>>), do: id
+
+  # Prefer the raw 32-byte public key form (wire_peer_id) when the identity
+  # carries it, which is the case once Identity.get/0 has resolved against
+  # MeshxStore. Unit-test identities pass only :peer_id (short literals like
+  # "alice-peer" that already fit @max_peer_id_size); fall back to that.
+  defp sender_peer_id(%{wire_peer_id: wpid}) when is_binary(wpid), do: wpid
+  defp sender_peer_id(%{peer_id: pid}) when is_binary(pid), do: pid
 
   defp get_identity(opts) do
     case Keyword.get(opts, :identity) do
