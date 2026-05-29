@@ -38,11 +38,7 @@ defmodule MeshxMobileApp.ChannelsScreen do
     <Scroll background={:background}>
       <Column background={:background} padding={:space_lg} gap={:space_md}>
         <Text text="Channels" text_size={:xl} text_color={:on_surface} />
-        <Text
-          text={summary_line(assigns.channels)}
-          text_size={:sm}
-          text_color={:muted}
-        />
+        <Text text={summary_line(assigns.channels)} text_size={:sm} text_color={:muted} />
         {channel_list(assigns.channels)}
         {join_row(assigns)}
         {status_line(assigns.status_line)}
