@@ -135,6 +135,11 @@
   {"lib/meshx_mobile_app/ble/peer_table.ex", :pattern_match_cov},
   {"lib/meshx_mobile_app/home_screen.ex", :no_return},
   {"lib/meshx_mobile_app/home_screen.ex", :unused_fun},
+  # Chat MVP screens — same Mob.Screen handle_event/3 no-return pattern as HomeScreen.
+  {"lib/meshx_mobile_app/chat_screen.ex", :no_return},
+  {"lib/meshx_mobile_app/chat_screen.ex", :unused_fun},
+  {"lib/meshx_mobile_app/channels_screen.ex", :no_return},
+  {"lib/meshx_mobile_app/channels_screen.ex", :unused_fun},
   {"lib/meshx_mobile_app/session.ex", :no_return},
   {"lib/meshx_mobile_app/session.ex", :unused_fun},
   {"lib/meshx_protocol/codec.ex", :no_return},

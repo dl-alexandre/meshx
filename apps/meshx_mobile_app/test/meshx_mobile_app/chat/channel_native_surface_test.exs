@@ -99,17 +99,17 @@ defmodule MeshxMobileApp.Chat.ChannelNativeSurfaceTest do
     end
 
     test "age_label handles seconds / minutes / hours / days / future" do
+      # {delta_ms, expected_meta_string}
       cases = [
-        # delta_ms,      expected
-        {-1,             "just now"},
-        {500,            "0s ago"},
-        {30_000,         "30s ago"},
-        {59_999,         "59s ago"},
-        {60_000,         "1m ago"},
-        {3_599_999,      "59m ago"},
-        {3_600_000,      "1h ago"},
-        {86_399_999,     "23h ago"},
-        {86_400_000,     "1d ago"},
+        {-1, "just now"},
+        {500, "0s ago"},
+        {30_000, "30s ago"},
+        {59_999, "59s ago"},
+        {60_000, "1m ago"},
+        {3_599_999, "59m ago"},
+        {3_600_000, "1h ago"},
+        {86_399_999, "23h ago"},
+        {86_400_000, "1d ago"},
         {2 * 86_400_000, "2d ago"}
       ]
 
