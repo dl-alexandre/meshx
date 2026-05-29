@@ -195,12 +195,11 @@ defmodule MeshxMobileApp.Chat.ChannelViewModel do
   defp dispatch(router, packet), do: router.broadcast_packet(packet)
 
   # The composer reads identity from MeshxStore; for the local-out display
-  # entry we just need *some* sender. Pulling it on demand keeps the VM
-  # independent of identity init order; fall back if the store isn't up.
+  # entry we just need the local peer_id. Identity.get/0's spec is
+  # `{:ok, t()}`; let the call crash if the store isn't up so the supervisor
+  # surfaces the real cause instead of masking it as a "local" sender label.
   defp local_sender do
-    case MeshxMobileApp.Chat.Identity.get() do
-      {:ok, %{peer_id: peer_id}} -> peer_id
-      _ -> "local"
-    end
+    {:ok, %{peer_id: peer_id}} = MeshxMobileApp.Chat.Identity.get()
+    peer_id
   end
 end

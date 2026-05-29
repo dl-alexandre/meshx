@@ -24,11 +24,10 @@ defmodule MeshxMobileApp.ChatScreen do
     {:ok, vm} = ChannelViewModel.start_link(channel: channel)
     {:ok, snapshot} = ChannelViewModel.subscribe(vm)
 
-    local_peer_id =
-      case Identity.get() do
-        {:ok, %{peer_id: id}} -> id
-        _ -> nil
-      end
+    # Identity.get/0's spec is `{:ok, t()}`; let the screen crash on init if
+    # the store isn't up so the supervisor surfaces the real cause instead of
+    # masking it as a "nil sender" UX bug.
+    {:ok, %{peer_id: local_peer_id}} = Identity.get()
 
     socket =
       socket
@@ -83,8 +82,7 @@ defmodule MeshxMobileApp.ChatScreen do
             {:noreply, socket}
 
           {:error, reason} ->
-            {:noreply,
-             Mob.Socket.assign(socket, :status_line, "Send failed: #{inspect(reason)}")}
+            {:noreply, Mob.Socket.assign(socket, :status_line, "Send failed: #{inspect(reason)}")}
         end
     end
   end
