@@ -40,6 +40,7 @@ defmodule MeshxMobileApp.HomeScreen do
           {action_button("Stop", :stop)}
         </Row>
         {action_button("Ping Secure Peer", :ping)}
+        {action_button("Chat", :open_chat)}
         {local_inbox_surface(assigns)}
         <Text text="Events" text_size={:md} text_color={:on_surface} />
         <Text text={events_text(assigns.events)} text_size={:sm} text_color={:muted} />
@@ -67,6 +68,10 @@ defmodule MeshxMobileApp.HomeScreen do
 
   def handle_info({:tap, :ping}, socket) do
     {:noreply, update_from_session(socket, &Session.send_ping/1)}
+  end
+
+  def handle_info({:tap, :open_chat}, socket) do
+    {:noreply, Mob.Socket.push(socket, MeshxMobileApp.ChannelsScreen)}
   end
 
   def handle_info({:tap, {:local_inbox_filter, state}}, socket) do
