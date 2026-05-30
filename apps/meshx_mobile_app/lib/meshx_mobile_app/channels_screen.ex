@@ -72,10 +72,8 @@ defmodule MeshxMobileApp.ChannelsScreen do
   end
 
   def handle_info({:tap, {:open, channel}}, socket) do
-    # TODO: nav push API in this Mob version is unverified — see HomeScreen.
-    # Once the framework's push call is known, push ChatScreen with
-    # `params: %{"channel" => channel}`.
-    {:noreply, Mob.Socket.assign(socket, :status_line, "Open #{channel} (nav TBD)")}
+    {:noreply,
+     Mob.Socket.push_screen(socket, MeshxMobileApp.ChatScreen, %{"channel" => channel})}
   end
 
   def handle_info(_other, socket), do: {:noreply, socket}

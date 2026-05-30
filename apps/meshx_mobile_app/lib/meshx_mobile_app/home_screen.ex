@@ -71,11 +71,7 @@ defmodule MeshxMobileApp.HomeScreen do
   end
 
   def handle_info({:tap, :open_chat}, socket) do
-    # TODO: nav push API in this Mob version is unverified — deps/mob source
-    # was iCloud-dematerialized when the chat MVP landed. Wire to whatever
-    # `Mob.Screen.push` / `Mob.Nav.push` / `Mob.Socket.*` call the framework
-    # exposes once deps/mob is readable.
-    {:noreply, socket}
+    {:noreply, Mob.Socket.push_screen(socket, MeshxMobileApp.ChannelsScreen)}
   end
 
   def handle_info({:tap, {:local_inbox_filter, state}}, socket) do
