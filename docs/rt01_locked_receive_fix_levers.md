@@ -98,3 +98,54 @@ if a lever regresses awake receive, so iterations are cheap.
 Both are native (`mob_ble` `BleScanner`/`MobBleNative` + meshx_mobile_app
 `BeamForegroundService`) and need an app rebuild + reinstall on the **receiver**
 (T577U) — the BEAM-payload-touching step; `install -r` preserves `/data`.
+
+## Post-mortem 2026-05-29 — the *real* reason every prior verdict was "inconclusive"
+
+Lever 2a was implemented, deployed, and measured on T577U/API 33: clean
+zero (`receive_events_after_5m = 0` across an 11-burst / 15-min locked
+hold). The Android-spec promise that an FGS exempts background-scan
+limits is empirically not honored on this Samsung stack — the same
+condition (FGS up) existed in `rt-01-sustained-002` and produced the
+same zero, so rebinding the scan from the FGS context didn't change
+the outcome.
+
+But while diagnosing 2a's failure mode, we found a separate, larger
+issue: **every RT-01 verdict to date was structurally inconclusive,
+not because the scan died but because the analyzer's events
+(`mesh_message_received` / `authenticated_payload_received` /
+`local_inbox_snapshot_saved`) never fired.** The chain:
+
+1. NIF emits `received_message` on each successful GATT fetch ✅ (5×
+   in the lever-2a awake-phase logcat)
+2. `Mob.Ble.MobileBridge` decodes it to `{:ble_frame, peer_id, frame}` ✅
+3. `MeshxTransportBLE` re-wraps as
+   `{:meshx_transport, :ble, {:frame, peer_id, frame}}` and forwards to
+   its outer `event_target` ✅
+4. That `event_target` (the pid that called `MeshxTransportBLE.start_link/1`
+   from `app.ex`) had **no `handle_info` clause** for the transport
+   frame shape — every frame dropped silently into the catchall ❌
+5. So `MeshxMobileApp.BLE.Observability.record(%ReceivedMessage{})` was
+   never called, and the analyzer's narrow event set never fired
+   regardless of whether the scan was alive ❌
+
+Consequence: the harness counter showed 5+ awake deliveries via
+`fetch_response_received` (the GATT-side event), but the analyzer's
+`locked_persistence_evidence` was structurally empty — locked-receive
+death and pipeline-gap silence are indistinguishable in past artifacts.
+
+**Fix landed on master 2026-05-30 (commit `eb507b1`):** wire
+`MeshxMobileApp.BleSelfTest` as the transport's `event_target` when
+`MESHX_BLE_SELFTEST` is set; `BleSelfTest.handle_info/2` parses the
+transport-frame envelope, builds `%MeshxMobileApp.BLE.Events.ReceivedMessage{}`,
+and calls `Observability.record/1`. Code is on master; on-device
+re-measurement (which requires a fresh `mix mob.deploy --native`) will
+give the first verdict in this program that isn't ambiguous between
+"scan died" and "pipeline broken."
+
+### Implication for the levers above
+
+Before the pipeline-gap fix, neither 2a nor any prior baseline could
+have proven receive on the analyzer surface — they could only show
+GATT-fetch evidence indirectly. Re-run baseline + 2a + 2b *after* the
+fix is on the receiver to get verdicts that mean what the gate text
+says they mean.
