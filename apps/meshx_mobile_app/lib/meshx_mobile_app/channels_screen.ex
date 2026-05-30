@@ -72,8 +72,7 @@ defmodule MeshxMobileApp.ChannelsScreen do
   end
 
   def handle_info({:tap, {:open, channel}}, socket) do
-    {:noreply,
-     Mob.Socket.push_screen(socket, MeshxMobileApp.ChatScreen, %{"channel" => channel})}
+    {:noreply, Mob.Socket.push_screen(socket, MeshxMobileApp.ChatScreen, %{"channel" => channel})}
   end
 
   def handle_info(_other, socket), do: {:noreply, socket}
