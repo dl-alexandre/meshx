@@ -1,9 +1,9 @@
 05:17:55  Acquired tunnel connection to device.
 05:17:55  Enabling developer disk image services.
 05:17:56  Acquired usage assertion.
-Launched application with dev.meshx.mobile.harness bundle identifier.
+Launched application with dev.mob.node.harness bundle identifier.
 Waiting for the application to terminate…
-MeshxMessageObserver: scan_requested
-MeshxMessageObserver: state CBManagerState(rawValue: 5)
-MeshxMessageObserver: scan_started
+MobMessageObserver: scan_requested
+MobMessageObserver: state CBManagerState(rawValue: 5)
+MobMessageObserver: scan_started
 App terminated due to signal 15.

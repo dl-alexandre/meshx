@@ -6,20 +6,20 @@
 | scan_window_sec | `15` |
 | wait_for_devices_sec | `30` |
 | observer_ready_timeout_sec | `10` |
-| sender_log | `/tmp/meshx-android-m26b-legacy-current/sender.log` |
-| observer_log | `/tmp/meshx-android-m26b-legacy-current/observer.log` |
-| adb_devices_log | `/tmp/meshx-android-m26b-legacy-current/adb-devices.txt` |
+| sender_log | `/tmp/mob-android-m26b-legacy-current/sender.log` |
+| observer_log | `/tmp/mob-android-m26b-legacy-current/observer.log` |
+| adb_devices_log | `/tmp/mob-android-m26b-legacy-current/adb-devices.txt` |
 | adb_inventory_device_count | `2` |
 | adb_ready_device_count | `2` |
 | adb_nonready_device_count | `0` |
-| adb_mdns_log | `/tmp/meshx-android-m26b-legacy-current/adb-mdns-services.txt` |
+| adb_mdns_log | `/tmp/mob-android-m26b-legacy-current/adb-mdns-services.txt` |
 | adb_mdns_service_count | `0` |
-| host_usb_log | `/tmp/meshx-android-m26b-legacy-current/host-usb.txt` |
+| host_usb_log | `/tmp/mob-android-m26b-legacy-current/host-usb.txt` |
 | host_usb_android_candidate_count | `2` |
 | sender_logcat_capture_failed | `false` |
 | observer_logcat_capture_failed | `false` |
-| summary_json | `/tmp/meshx-android-m26b-legacy-current/summary.json` |
-| summary_markdown | `/tmp/meshx-android-m26b-legacy-current/summary.md` |
+| summary_json | `/tmp/mob-android-m26b-legacy-current/summary.json` |
+| summary_markdown | `/tmp/mob-android-m26b-legacy-current/summary.md` |
 | legacy_beacon | `true` |
 | full_envelope_delivery_complete | `false` |
 | legacy_beacon_delivery_complete | `true` |
@@ -28,15 +28,15 @@
 ## Commands
 
 ```bash
-scripts/android_ble_message_delivery_two_device.sh --wait-for-devices 30 --skip-install --legacy-beacon --observer-settle 3 --window 15 --sender R52W90AW7EN --observer 5200f354f4fb277f --out-dir /tmp/meshx-android-m26b-legacy-current
-adb -s R52W90AW7EN shell pm grant dev.meshx.mob android.permission.BLUETOOTH_SCAN
-adb -s R52W90AW7EN shell pm grant dev.meshx.mob android.permission.BLUETOOTH_ADVERTISE
-adb -s R52W90AW7EN shell pm grant dev.meshx.mob android.permission.BLUETOOTH_CONNECT
-adb -s R52W90AW7EN shell pm grant dev.meshx.mob android.permission.ACCESS_FINE_LOCATION
-adb -s 5200f354f4fb277f shell pm grant dev.meshx.mob android.permission.BLUETOOTH_SCAN
-adb -s 5200f354f4fb277f shell pm grant dev.meshx.mob android.permission.BLUETOOTH_ADVERTISE
-adb -s 5200f354f4fb277f shell pm grant dev.meshx.mob android.permission.BLUETOOTH_CONNECT
-adb -s 5200f354f4fb277f shell pm grant dev.meshx.mob android.permission.ACCESS_FINE_LOCATION
+scripts/android_ble_message_delivery_two_device.sh --wait-for-devices 30 --skip-install --legacy-beacon --observer-settle 3 --window 15 --sender R52W90AW7EN --observer 5200f354f4fb277f --out-dir /tmp/mob-android-m26b-legacy-current
+adb -s R52W90AW7EN shell pm grant dev.mob.mob android.permission.BLUETOOTH_SCAN
+adb -s R52W90AW7EN shell pm grant dev.mob.mob android.permission.BLUETOOTH_ADVERTISE
+adb -s R52W90AW7EN shell pm grant dev.mob.mob android.permission.BLUETOOTH_CONNECT
+adb -s R52W90AW7EN shell pm grant dev.mob.mob android.permission.ACCESS_FINE_LOCATION
+adb -s 5200f354f4fb277f shell pm grant dev.mob.mob android.permission.BLUETOOTH_SCAN
+adb -s 5200f354f4fb277f shell pm grant dev.mob.mob android.permission.BLUETOOTH_ADVERTISE
+adb -s 5200f354f4fb277f shell pm grant dev.mob.mob android.permission.BLUETOOTH_CONNECT
+adb -s 5200f354f4fb277f shell pm grant dev.mob.mob android.permission.ACCESS_FINE_LOCATION
 adb -s R52W90AW7EN shell input keyevent KEYCODE_WAKEUP
 adb -s R52W90AW7EN shell wm dismiss-keyguard
 adb -s 5200f354f4fb277f shell input keyevent KEYCODE_WAKEUP
@@ -51,18 +51,18 @@ adb -s 5200f354f4fb277f shell getprop ro.build.version.sdk
 adb -s 5200f354f4fb277f shell pm has-feature android.hardware.bluetooth_le
 adb -s R52W90AW7EN logcat -c
 adb -s 5200f354f4fb277f logcat -c
-adb -s R52W90AW7EN shell am force-stop dev.meshx.mob
-adb -s 5200f354f4fb277f shell am force-stop dev.meshx.mob
-adb -s 5200f354f4fb277f shell am start -n dev.meshx.mob/.MainActivity --ez meshx_start_scan true
+adb -s R52W90AW7EN shell am force-stop dev.mob.mob
+adb -s 5200f354f4fb277f shell am force-stop dev.mob.mob
+adb -s 5200f354f4fb277f shell am start -n dev.mob.mob/.MainActivity --ez mob_start_scan true
 wait up to 10s for Device B scan_start_result accepted=true
 sleep 3
-adb -s R52W90AW7EN shell am start -n dev.meshx.mob/.MainActivity --ez meshx_dispatch_test true --ez meshx_dispatch_legacy_beacon true
+adb -s R52W90AW7EN shell am start -n dev.mob.mob/.MainActivity --ez mob_dispatch_test true --ez mob_dispatch_legacy_beacon true
 sleep 15
-adb devices -l > /tmp/meshx-android-m26b-legacy-current/adb-devices.txt
-adb mdns services > /tmp/meshx-android-m26b-legacy-current/adb-mdns-services.txt
-ioreg -p IOUSB -l -w0 > /tmp/meshx-android-m26b-legacy-current/host-usb.txt
-adb -s R52W90AW7EN logcat -d -s MeshxBle:I MeshxBleControl:I MeshxBleDispatch:I MeshxBleGossip:I AndroidRuntime:E > /tmp/meshx-android-m26b-legacy-current/sender.log 2>&1 || true
-adb -s 5200f354f4fb277f logcat -d -s MeshxBle:I MeshxBleControl:I MeshxBleDispatch:I MeshxBleGossip:I AndroidRuntime:E > /tmp/meshx-android-m26b-legacy-current/observer.log 2>&1 || true
+adb devices -l > /tmp/mob-android-m26b-legacy-current/adb-devices.txt
+adb mdns services > /tmp/mob-android-m26b-legacy-current/adb-mdns-services.txt
+ioreg -p IOUSB -l -w0 > /tmp/mob-android-m26b-legacy-current/host-usb.txt
+adb -s R52W90AW7EN logcat -d -s MobBle:I MobBleControl:I MobBleDispatch:I MobBleGossip:I AndroidRuntime:E > /tmp/mob-android-m26b-legacy-current/sender.log 2>&1 || true
+adb -s 5200f354f4fb277f logcat -d -s MobBle:I MobBleControl:I MobBleDispatch:I MobBleGossip:I AndroidRuntime:E > /tmp/mob-android-m26b-legacy-current/observer.log 2>&1 || true
 ```
 
 ## ADB Inventory
@@ -117,7 +117,7 @@ adb -s 5200f354f4fb277f logcat -d -s MeshxBle:I MeshxBleControl:I MeshxBleDispat
 | `observer_scan_started` | `true` |
 | `received_message_logged` | `false` |
 | `observer_m14_consistent` | `false` |
-| `observer_meshx_transport_metadata` | `false` |
+| `observer_mob_routing_metadata` | `false` |
 | `payload_match` | `` |
 | `legacy_beacon_requested` | `true` |
 | `legacy_beacon_advertising_started` | `true` |
@@ -139,7 +139,7 @@ adb -s 5200f354f4fb277f logcat -d -s MeshxBle:I MeshxBleControl:I MeshxBleDispat
 | `observer_scan_started` | `true` |
 | `received_message_logged` | `false` |
 | `observer_m14_consistent` | `false` |
-| `observer_meshx_transport_metadata` | `false` |
+| `observer_mob_routing_metadata` | `false` |
 | `payload_match` | `` |
 | `sender_and_observer_distinct` | `true` |
 | `sender_and_observer_logs_distinct` | `true` |
@@ -166,7 +166,7 @@ Blockers:
 - `sender_payload_size_matches`
 - `received_message_logged`
 - `observer_m14_consistent`
-- `observer_meshx_transport_metadata`
+- `observer_mob_routing_metadata`
 - `payload_match`
 - `android_logcat_provenance`
 

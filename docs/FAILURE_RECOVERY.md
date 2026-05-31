@@ -16,8 +16,8 @@ For metric event names referenced below see [`METRICS.md`](METRICS.md).
 **Diagnosis**
 
 ```elixir
-MeshxRuntime.PeerRegistry.list()         # Is the peer there at all?
-MeshxRuntime.PeerRegistry.get("peer-x")  # What was the last known state?
+Mob.Runtime.PeerRegistry.list()         # Is the peer there at all?
+Mob.Runtime.PeerRegistry.get("peer-x")  # What was the last known state?
 :inet.getstat(some_socket)               # TCP-level health
 ```
 
@@ -45,8 +45,8 @@ Common causes:
 **Diagnosis**
 
 ```elixir
-MeshxStore.Outbox.pending_for_destination("peer-x", 1000) |> length()
-MeshxStore.Outbox.pending(1000) |> length()
+Mob.Store.Outbox.pending_for_destination("peer-x", 1000) |> length()
+Mob.Store.Outbox.pending(1000) |> length()
 ```
 
 The destination peer is offline longer than the configured retry window,
@@ -74,7 +74,7 @@ keeps re-queuing).
 Either:
 
 1. A peer is running an incompatible MeshX protocol version (check
-   `MeshxProtocol.Packet.version/0` on both ends).
+   `Mob.Protocol.Packet.version/0` on both ends).
 2. A peer has a stale Noise session (its session keys no longer match
    ours), usually after one side restarted without the other noticing.
 3. Something on the path is mangling frames — proxy, IDS, NAT with deep
@@ -83,7 +83,7 @@ Either:
 **Recovery**
 
 - Force a new handshake by triggering peer down / up, or call
-  `MeshxRuntime.SessionManager.reset_peer("peer-x")`.
+  `Mob.Runtime.SessionManager.reset_peer("peer-x")`.
 - If protocol versions differ, plan an upgrade — the wire format is not
   backward-compatible across major versions.
 
@@ -97,7 +97,7 @@ Either:
 **Diagnosis**
 
 ```elixir
-MeshxRuntime.SessionManager.status("peer-x")
+Mob.Runtime.SessionManager.status("peer-x")
 ```
 
 Likely causes:
@@ -110,20 +110,20 @@ Likely causes:
 
 - Cross-check trust:
   ```elixir
-  MeshxStore.Trust.list_for_node("peer-x")
+  Mob.Store.Trust.list_for_node("peer-x")
   ```
 - If rotating keys, finish the rotation per
   [`KEY_ROTATION.md`](KEY_ROTATION.md).
 - As a last resort, purge the session and let it re-handshake:
   ```elixir
-  MeshxRuntime.SessionManager.reset_peer("peer-x")
+  Mob.Runtime.SessionManager.reset_peer("peer-x")
   ```
 
 ## 5. CubDB store corruption
 
 **Detection**
 
-- BEAM startup fails while opening `MeshxStore.DB`.
+- BEAM startup fails while opening `Mob.Store.DB`.
 - The CubDB data directory may become inconsistent after a crash or partial
   backup restore.
 
@@ -139,8 +139,8 @@ snapshot.
 2. Restore the most recent complete data-directory backup.
 3. If no backup exists, move the broken directory aside and start fresh:
    ```bash
-   mv /var/lib/meshx/store /var/lib/meshx/store.broken
-   mkdir -p /var/lib/meshx/store
+   mv /var/lib/mob/store /var/lib/mob/store.broken
+   mkdir -p /var/lib/mob/store
    ```
 
 The store carries dedupe state, relay cache, outbox, and identity/trust.
@@ -156,15 +156,15 @@ identity/trust must be re-established.
 
 **Diagnosis**
 
-Check the order in which apps fail. `meshx_store` needs the CubDB data
-directory writeable. `meshx_runtime` will not start without
-`meshx_transport` and `meshx_noise`.
+Check the order in which apps fail. `mob_store` needs the CubDB data
+directory writeable. `mob_runtime` will not start without
+`mob_routing` and `mob_noise`.
 
 **Recovery**
 
-- File permissions: `chown -R meshx:meshx /var/lib/meshx`.
+- File permissions: `chown -R mob:mob /var/lib/mob`.
 - Data directory missing: create the configured `MESHX_STORE_DATA_DIR` or allow
-  `MeshxStore.DB` to create it with a writeable parent directory.
+  `Mob.Store.DB` to create it with a writeable parent directory.
 - Stale store state: stop the runtime before moving or restoring the CubDB data
   directory.
 
@@ -181,7 +181,7 @@ The per-peer in-flight queue is full. Either the peer is slow at ACKing
 process. Inspect:
 
 ```elixir
-:sys.get_state(MeshxRuntime.Router).flow
+:sys.get_state(Mob.Runtime.Router).flow
 ```
 
 **Recovery**

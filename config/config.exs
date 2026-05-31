@@ -9,9 +9,9 @@
 # move said applications out of the umbrella.
 import Config
 
-config :meshx_runtime, discovery: [enabled?: false]
-config :meshx_runtime, flow_control: [send_window: 8, queue_limit: 256]
+config :mob_runtime, discovery: [enabled?: false]
+config :mob_runtime, flow_control: [send_window: 8, queue_limit: 256]
 
-config :meshx_store, trust_policy: :tofu
+config :mob_store, trust_policy: :tofu
 
 import_config "#{config_env()}.exs"

@@ -16,7 +16,7 @@ Run this immediately before launching the main app selftest or instrumented test
 
 ## Selftest Path vs Instrumented Test Path
 
-- **Main-app selftest** (`meshx_ble_selftest=true` intents): exercises the **exact shipping** `BleScanner` + bridge + fetch coordinator code path. Preferred for production scanner confidence and positive MB+GATT release evidence.
+- **Main-app selftest** (`mob_ble_selftest=true` intents): exercises the **exact shipping** `BleScanner` + bridge + fetch coordinator code path. Preferred for production scanner confidence and positive MB+GATT release evidence.
 - **Instrumented tests** (the four `*Test.kt`): `IOSHybridDirectMxReceiveTest`, `IOSAuxFullMxAdvertSmokeTest`, `IOSResponderFetchSmokeTest`, `MXFullEnvelopeSmokeTest`. Now unblocked on T390 by the version-aware permission shim (see below). Useful for targeted negative carrier evidence (hybrid) and responder smoke, but still shim-exercising rather than the prod main-activity path.
 
 **Recommendation (2026-05-18 session)**: Use selftest + `capture-hybrid-run.sh` for all positive evidence and regression recipes on T390. Use instrumented tests when you specifically need the JUnit harness or hybrid negative probes.
@@ -27,7 +27,7 @@ Proven recipe (archived in `artifacts/local-ble/2026-05-18-recapture-18-android-
 
 1. Fresh debug build with full-MX sender opt-in on the emitter:
    ```sh
-   cd apps/meshx_mobile_app/android
+   cd apps/mob_node/android
    MESHX_MX_SEND=true ./gradlew :app:assembleDebug
    adb -s R52W90AW7EN install -r app/build/outputs/apk/debug/app-debug.apk
    adb -s 5200f354f4fb277f install -r app/build/outputs/apk/debug/app-debug.apk
@@ -61,9 +61,9 @@ Proven recipe (archived in `artifacts/local-ble/2026-05-18-recapture-18-android-
 6. Success signals (in T390 logcat / selftest output):
    - `BleSelfTest: HEARTBEAT events=... devices=1 ... beacon_callbacks=NN`
    - `BleSelfTest: DISTINCT MESH MESSAGE kind=beacon ...`
-   - `MeshxBeaconFetch: fetch_start ...`
+   - `MobBeaconFetch: fetch_start ...`
    - `fetch_connect_result`, `fetch_service_discovery_result`, `fetch_response_received` with `envelope_parse":"ok"`
-   - `BleSelfTest: DISTINCT MESH MESSAGE kind=envelope ... from=meshx-t577u`
+   - `BleSelfTest: DISTINCT MESH MESSAGE kind=envelope ... from=mob-t577u`
 
 7. Post-capture verification (accepts lightweight `GATT_FETCH_RECEIVED` or full selftest envelope markers):
    ```sh
@@ -80,7 +80,7 @@ The shim (conditional legacy `BLUETOOTH`/`BLUETOOTH_ADMIN` + `ACCESS_FINE_LOCATI
 
 Build both APKs first:
 ```sh
-cd apps/meshx_mobile_app/android
+cd apps/mob_node/android
 ./gradlew :app:assembleDebug :app:assembleDebugAndroidTest
 adb -s 5200f354f4fb277f install -r -t app/build/outputs/apk/debug/app-debug.apk
 adb -s 5200f354f4fb277f install -r -t app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
@@ -91,26 +91,26 @@ Awake the device, then run any of the four:
 ```sh
 # Negative carrier evidence (iOS hybrid emit + Android receive)
 adb -s 5200f354f4fb277f shell am instrument -w \
-  -e class dev.meshx.mob.ble.IOSHybridDirectMxReceiveTest \
-  dev.meshx.mob.test/androidx.test.runner.AndroidJUnitRunner
+  -e class dev.mob.mob.ble.IOSHybridDirectMxReceiveTest \
+  dev.mob.mob.test/androidx.test.runner.AndroidJUnitRunner
 
 # AUX / full-MX advert smoke
 adb -s 5200f354f4fb277f shell am instrument -w \
-  -e class dev.meshx.mob.ble.IOSAuxFullMxAdvertSmokeTest \
-  dev.meshx.mob.test/androidx.test.runner.AndroidJUnitRunner
+  -e class dev.mob.mob.ble.IOSAuxFullMxAdvertSmokeTest \
+  dev.mob.mob.test/androidx.test.runner.AndroidJUnitRunner
 
 # Responder fetch smoke (iOS responder)
 adb -s 5200f354f4fb277f shell am instrument -w \
-  -e class dev.meshx.mob.ble.IOSResponderFetchSmokeTest \
-  dev.meshx.mob.test/androidx.test.runner.AndroidJUnitRunner
+  -e class dev.mob.mob.ble.IOSResponderFetchSmokeTest \
+  dev.mob.mob.test/androidx.test.runner.AndroidJUnitRunner
 
 # MX envelope send smoke
 adb -s 5200f354f4fb277f shell am instrument -w \
-  -e class dev.meshx.mob.ble.MXFullEnvelopeSmokeTest \
-  dev.meshx.mob.test/androidx.test.runner.AndroidJUnitRunner
+  -e class dev.mob.mob.ble.MXFullEnvelopeSmokeTest \
+  dev.mob.mob.test/androidx.test.runner.AndroidJUnitRunner
 ```
 
-Expect the tests to reach BLE (previously blocked by permission grant on API 28). For negative hybrid carrier runs, launch iOS harness first with `--meshx-auto-direct-mx-hybrid-advertise` (see `ble-lab-cheat-sheet.md`).
+Expect the tests to reach BLE (previously blocked by permission grant on API 28). For negative hybrid carrier runs, launch iOS harness first with `--mob-auto-direct-mx-hybrid-advertise` (see `ble-lab-cheat-sheet.md`).
 
 ## Known Limitations & 2026-05-18 Session Tips
 
@@ -122,7 +122,7 @@ Expect the tests to reach BLE (previously blocked by permission grant on API 28)
 - **Verification**: `verify-t390-gatt-capture.sh` is the quick gate after a T390 receiver run. It tolerates both the lightweight `GATT_FETCH_RECEIVED` marker and the full selftest envelope path.
 - **Permission shim note**: The shim is deliberately narrow and version-gated so it does not affect API 31+ behavior. It only unblocks the test runner on the minSdk=28 device.
 - **Rebuild hygiene**: After any `BleScanner` or test change, reassemble both debug + androidTest APKs and reinstall (`-r -t`) before the next T390 run.
-- **Cache / TMPDIR**: The app seeds a writable cache dir; `MeshxStore.DB` failures on API 28 are usually fixed by a clean reinstall.
+- **Cache / TMPDIR**: The app seeds a writable cache dir; `Mob.Store.DB` failures on API 28 are usually fixed by a clean reinstall.
 
 ## Quick One-Shot T390 Selftest (no capture script)
 
@@ -132,10 +132,10 @@ adb -s 5200f354f4fb277f shell input keyevent WAKEUP
 adb -s 5200f354f4fb277f shell svc power stayon true
 
 # Receiver (no send)
-adb -s 5200f354f4fb277f shell am start -n dev.meshx.mob/.MainActivity \
-  --ez meshx_ble_selftest true \
-  --ez meshx_ble_selftest_send false \
-  --ez meshx_ble_fetch_on_beacon true \
+adb -s 5200f354f4fb277f shell am start -n dev.mob.mob/.MainActivity \
+  --ez mob_ble_selftest true \
+  --ez mob_ble_selftest_send false \
+  --ez mob_ble_fetch_on_beacon true \
   --es mob_node_suffix t390 \
   --activity-clear-top
 

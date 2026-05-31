@@ -17,7 +17,7 @@ GATT fetch is blocked for the current Android hardware pair:
   harness, without `MessageEnvelope`, fetch protocol, legacy beacon,
   planner, ledger, replay, routing, crypto, or persistence
 - Reconfirmed on May 12, 2026 after waking both devices and dismissing
-  keyguard; current rerun logs live under `/tmp/meshx-android-m40-current`
+  keyguard; current rerun logs live under `/tmp/mob-android-m40-current`
 
 Conclusion: this is transport/platform behavior for this hardware pair,
 not a MeshX protocol failure.
@@ -109,7 +109,7 @@ SM-T390. The sender emitted `advert_gossip_outcome kind=gossiped` and
 Artifact summary:
 
 ```
-/tmp/meshx-android-m59-gossip-live/summary.json
+/tmp/mob-android-m59-gossip-live/summary.json
 ```
 
 This keeps the current transport recommendation unchanged:

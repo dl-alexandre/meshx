@@ -1,0 +1,72 @@
+--------- beginning of main
+05-21 20:30:31.655 27130 27175 I Elixir  : step 1 starting
+05-21 20:30:31.723 27130 27175 I Elixir  : step 1 => ok
+05-21 20:30:31.723 27130 27175 I Elixir  : step 2 starting
+05-21 20:30:31.835 27130 27175 I Elixir  : step 2 => ok
+05-21 20:30:31.835 27130 27175 I Elixir  : step 3 starting
+05-21 20:30:32.013 27130 27175 I Elixir  : step 3 => ok
+05-21 20:30:32.013 27130 27175 I Elixir  : step 4 starting
+05-21 20:30:32.013 27130 27175 I Elixir  : step 4 => android
+05-21 20:30:32.013 27130 27175 I Elixir  : step 5 starting
+05-21 20:30:32.694 27130 27175 I Elixir  : mob_node: mob_runtime started (11 apps)
+05-21 20:30:32.721 27130 27165 I BEAMout : 20:30:32.694 [info] mob_node: mob_runtime started (11 apps)
+05-21 20:30:32.730 27130 27175 I Elixir  : mob_node: BLE.Observability started
+05-21 20:30:32.733 27130 27165 I BEAMout : 20:30:32.730 [info] mob_node: BLE.Observability started
+05-21 20:30:32.757 27130 27175 I Elixir  : Mob.Dist: node suffix applied — mob_node_android_t577u@127.0.0.1 → mob_node_android_t577u_t577u@127.0.0.1
+05-21 20:30:32.758 27130 27175 I Elixir  : mob_node: distribution up as mob_node_android_t577u@127.0.0.1
+05-21 20:30:32.760 27130 27165 I BEAMout : 20:30:32.758 [info] mob_node: distribution up as mob_node_android_t577u@127.0.0.1
+05-21 20:30:32.775 27130 27175 I Elixir  : mob_node: BLE self-test started
+05-21 20:30:32.776 27130 27175 I Elixir  : BleSelfTest: starting scan + advertising as mob-t577u
+05-21 20:30:32.856 27130 27165 I BEAMout : 20:30:32.775 [info] mob_node: BLE self-test started
+05-21 20:30:32.860 27130 27165 I BEAMout : 20:30:32.776 [info] BleSelfTest: starting scan + advertising as mob-t577u
+05-21 20:30:32.985 27130 27175 I Elixir  : mob_node: mob_ble transport up (bridge=Mob.Ble.MobileBridge)
+05-21 20:30:32.986 27130 27175 I Elixir  : BleSelfTest: start_scan=:ok start_advertising=:ok
+05-21 20:30:32.989 27130 27165 I BEAMout : 20:30:32.985 [info] mob_node: mob_ble transport up (bridge=Mob.Ble.MobileBridge)
+05-21 20:30:33.003 27130 27165 I BEAMout : 20:30:32.986 [info] BleSelfTest: start_scan=:ok start_advertising=:ok
+05-21 20:30:33.976 27130 27175 I Elixir  : step 5 => {ok,<0.140.0>}
+05-21 20:30:35.760 27130 27175 I Elixir  : Mob.Dist: waiting for EPMD (adb reverse tcp:4369 tcp:4369)...
+05-21 20:30:37.989 27130 27175 I Elixir  : BleSelfTest: HEARTBEAT events=0 devices=0 mob_peers=0 sent=0 send_enabled=true distinct_msgs=0 beacon_callbacks=0 envelopes=0
+05-21 20:30:37.989 27130 27165 I BEAMout : 20:30:37.989 [info] BleSelfTest: HEARTBEAT events=0 devices=0 mob_peers=0 sent=0 send_enabled=true distinct_msgs=0 beacon_callbacks=0 envelopes=0
+05-21 20:30:40.040 27130 05-21 20:30:39.659 10688 10724 I Elixir  : BleSelfTest: HEARTBEAT events=0 devices=0 mob_peers=0 sent=0 send_enabled=false distinct_msgs=0 beacon_callbacks=0 envelopes=0
+05-21 20:30:39.660 10688 10715 I BEAMout : 20:30:39.659 [info] BleSelfTest: HEARTBEAT events=0 devices=0 mob_peers=0 sent=0 send_enabled=false distinct_msgs=0 beacon_callbacks=0 envelopes=0
+05-21 20:30:40.130 10688 10724 I Elixir  : Mob.Dist: no EPMD on port 4369 after 10s -- skipping dist (run mix mob.connect to enable)
+05-21 20:30:44.661 10688 10724 I Elixir  : BleSelfTest: HEARTBEAT events=0 devices=0 mob_peers=0 sent=0 send_enabled=false distinct_msgs=0 beacon_callbacks=0 envelopes=0
+05-21 20:30:44.661 10688 10715 I BEAMout : 20:30:44.661 [info] BleSelfTest: HEARTBEAT events=0 devices=0 mob_peers=0 sent=0 send_enabled=false distinct_msgs=0 beacon_callbacks=0 envelopes=0
+05-21 20:30:49.662 10688 10724 I Elixir  : BleSelfTest: HEARTBEAT events=0 devices=0 mob_peers=0 sent=0 send_enabled=false distinct_msgs=0 beacon_callbacks=0 envelopes=0
+05-21 20:30:49.663 10688 10715 I BEAMout : 20:30:49.662 [info] BleSelfTest: HEARTBEAT events=0 devices=0 mob_peers=0 sent=0 send_enabled=false distinct_msgs=0 beacon_callbacks=0 envelopes=0
+05-21 20:30:54.664 10688 10724 I Elixir  : BleSelfTest: HEARTBEAT events=0 devices=0 mob_peers=0 sent=0 send_enabled=false distinct_msgs=0 beacon_callbacks=0 envelopes=0
+05-21 20:30:54.665 10688 10715 I BEAMout : 20:30:54.664 [info] BleSelfTest: HEARTBEAT events=0 devices=0 mob_peers=0 sent=0 send_enabled=false distinct_msgs=0 beacon_callbacks=0 envelopes=0
+05-21 20:30:59.666 10688 10724 I Elixir  : BleSelfTest: HEARTBEAT events=0 devices=0 mob_peers=0 sent=0 send_enabled=false distinct_msgs=0 beacon_callbacks=0 envelopes=0
+05-21 20:30:59.667 10688 10715 I BEAMout : 20:30:59.666 [info] BleSelfTest: HEARTBEAT events=0 devices=0 mob_peers=0 sent=0 send_enabled=false distinct_msgs=0 beacon_callbacks=0 envelopes=0
+05-21 20:31:04.668 10688 10724 I Elixir  : BleSelfTest: HEARTBEAT events=0 devices=0 mob_peers=0 sent=0 send_enabled=false distinct_msgs=0 beacon_callbacks=0 envelopes=0
+05-21 20:31:04.669 10688 10715 I BEAMout : 20:31:04.668 [info] BleSelfTest: HEARTBEAT events=0 devices=0 mob_peers=0 sent=0 send_enabled=false distinct_msgs=0 beacon_callbacks=0 envelopes=0
+05-21 20:31:09.670 10688 10724 I Elixir  : BleSelfTest: HEARTBEAT events=0 devices=0 mob_peers=0 sent=0 send_enabled=false distinct_msgs=0 beacon_callbacks=0 envelopes=0
+05-21 20:31:09.671 10688 10715 I BEAMout : 20:31:09.670 [info] BleSelfTest: HEARTBEAT events=0 devices=0 mob_peers=0 sent=0 send_enabled=false distinct_msgs=0 beacon_callbacks=0 envelopes=0
+05-21 20:31:14.672 10688 10724 I Elixir  : BleSelfTest: HEARTBEAT events=0 devices=0 mob_peers=0 sent=0 send_enabled=false distinct_msgs=0 beacon_callbacks=0 envelopes=0
+05-21 20:31:14.674 10688 10715 I BEAMout : 20:31:14.672 [info] BleSelfTest: HEARTBEAT events=0 devices=0 mob_peers=0 sent=0 send_enabled=false distinct_msgs=0 beacon_callbacks=0 envelopes=0
+-21 20:30:54.098 27130 27165 I BEAMout : 20:30:54.096 [info] BleSelfTest: MESH MESSAGE SENT payload="hello-from-mob-t577u-1779420654" result=:ok
+05-21 20:30:54.099 27130 27165 I BEAMout : 20:30:54.096 [debug] BleSelfTest: unexpected {Mob.Ble.MobileBridge, :bridge_event, "{\"v\":1,\"event\":\"error\",\"kind\":\"unknown\",\"detail\":\"{\\\"v\\\":1,\\\"event\\\":\\\"attempt_outcome\\\",\\\"attempt_id\\\":\\\"selftest-1779420654069\\\",\\\"message_id\\\":\\\"\\\\\\/VTDuNMGS9wAVtXPtYVsoA==\\\",\\\"target_peer_id\\\":\\\"broadcast\\\",\\\"target_device_ids\\\":[\\\"broadcast\\\"],\\\"kind\\\":\\\"dispatched\\\",\\\"reason\\\":\\\"legacy_beacon_fallback\\\",\\\"adapter\\\":\\\"ble_android\\\",\\\"outcome_at_ms\\\":584326130}\"}"}
+05-21 20:30:57.994 27130 27175 I Elixir  : BleSelfTest: HEARTBEAT events=0 devices=0 mob_peers=0 sent=3 send_enabled=true distinct_msgs=0 beacon_callbacks=0 envelopes=0
+05-21 20:30:57.995 27130 27165 I BEAMout : 20:30:57.994 [info] BleSelfTest: HEARTBEAT events=0 devices=0 mob_peers=0 sent=3 send_enabled=true distinct_msgs=0 beacon_callbacks=0 envelopes=0
+05-21 20:31:01.123 27130 27175 I Elixir  : BleSelfTest: MESH MESSAGE SENT payload="hello-from-mob-t577u-1779420661" result=:ok
+05-21 20:31:01.124 27130 27165 I BEAMout : 20:31:01.123 [info] BleSelfTest: MESH MESSAGE SENT payload="hello-from-mob-t577u-1779420661" result=:ok
+05-21 20:31:01.125 27130 27165 I BEAMout : 20:31:01.123 [debug] BleSelfTest: unexpected {Mob.Ble.MobileBridge, :bridge_event, "{\"v\":1,\"event\":\"error\",\"kind\":\"unknown\",\"detail\":\"{\\\"v\\\":1,\\\"event\\\":\\\"attempt_outcome\\\",\\\"attempt_id\\\":\\\"selftest-1779420661100\\\",\\\"message_id\\\":\\\"LPoV1MgN0vvXSnzuIIE9Hg==\\\",\\\"target_peer_id\\\":\\\"broadcast\\\",\\\"target_device_ids\\\":[\\\"broadcast\\\"],\\\"kind\\\":\\\"dispatched\\\",\\\"reason\\\":\\\"legacy_beacon_fallback\\\",\\\"adapter\\\":\\\"ble_android\\\",\\\"outcome_at_ms\\\":584333161}\"}"}
+05-21 20:31:02.996 27130 27175 I Elixir  : BleSelfTest: HEARTBEAT events=0 devices=0 mob_peers=0 sent=4 send_enabled=true distinct_msgs=0 beacon_callbacks=0 envelopes=0
+05-21 20:31:02.997 27130 27165 I BEAMout : 20:31:02.996 [info] BleSelfTest: HEARTBEAT events=0 devices=0 mob_peers=0 sent=4 send_enabled=true distinct_msgs=0 beacon_callbacks=0 envelopes=0
+05-21 20:31:07.998 27130 27175 I Elixir  : BleSelfTest: HEARTBEAT events=0 devices=0 mob_peers=0 sent=4 send_enabled=true distinct_msgs=0 beacon_callbacks=0 envelopes=0
+05-21 20:31:07.999 27130 27165 I BEAMout : 20:31:07.998 [info] BleSelfTest: HEARTBEAT events=0 devices=0 mob_peers=0 sent=4 send_enabled=true distinct_msgs=0 beacon_callbacks=0 envelopes=0
+05-21 20:31:08.152 27130 27175 I Elixir  : BleSelfTest: MESH MESSAGE SENT payload="hello-from-mob-t577u-1779420668" result=:ok
+05-21 20:31:08.154 27130 27165 I BEAMout : 20:31:08.152 [info] BleSelfTest: MESH MESSAGE SENT payload="hello-from-mob-t577u-1779420668" result=:ok
+05-21 20:31:08.155 27130 27165 I BEAMout : 20:31:08.153 [debug] BleSelfTest: unexpected {Mob.Ble.MobileBridge, :bridge_event, "{\"v\":1,\"event\":\"error\",\"kind\":\"unknown\",\"detail\":\"{\\\"v\\\":1,\\\"event\\\":\\\"attempt_outcome\\\",\\\"attempt_id\\\":\\\"selftest-1779420668126\\\",\\\"message_id\\\":\\\"2LlklOdTLJgV5IpjwUpvfA==\\\",\\\"target_peer_id\\\":\\\"broadcast\\\",\\\"target_device_ids\\\":[\\\"broadcast\\\"],\\\"kind\\\":\\\"dispatched\\\",\\\"reason\\\":\\\"legacy_beacon_fallback\\\",\\\"adapter\\\":\\\"ble_android\\\",\\\"outcome_at_ms\\\":584340187}\"}"}
+05-21 20:31:13.000 27130 27175 I Elixir  : BleSelfTest: HEARTBEAT events=0 devices=0 mob_peers=0 sent=5 send_enabled=true distinct_msgs=0 beacon_callbacks=0 envelopes=0
+05-21 20:31:13.001 27130 27165 I BEAMout : 20:31:13.000 [info] BleSelfTest: HEARTBEAT events=0 devices=0 mob_peers=0 sent=5 send_enabled=true distinct_msgs=0 beacon_callbacks=0 envelopes=0
+05-21 20:31:15.182 27130 27175 I Elixir  : BleSelfTest: MESH MESSAGE SENT payload="hello-from-mob-t577u-1779420675" result=:ok
+05-21 20:31:15.184 27130 27165 I BEAMout : 20:31:15.181 [info] BleSelfTest: MESH MESSAGE SENT payload="hello-from-mob-t577u-1779420675" result=:ok
+05-21 20:31:15.185 27130 27165 I BEAMout : 20:31:15.183 [debug] BleSelfTest: unexpected {Mob.Ble.MobileBridge, :bridge_event, "{\"v\":1,\"event\":\"error\",\"kind\":\"unknown\",\"detail\":\"{\\\"v\\\":1,\\\"event\\\":\\\"attempt_outcome\\\",\\\"attempt_id\\\":\\\"selftest-1779420675158\\\",\\\"message_id\\\":\\\"5jko+XA\\\\\\/MaMQCAYnbpFxUQ==\\\",\\\"target_peer_id\\\":\\\"broadcast\\\",\\\"target_device_ids\\\":[\\\"broadcast\\\"],\\\"kind\\\":\\\"dispatched\\\",\\\"reason\\\":\\\"legacy_beacon_fallback\\\",\\\"adapter\\\":\\\"ble_android\\\",\\\"outcome_at_ms\\\":584347219}\"}"}
+05-21 20:31:18.002 27130 27175 I Elixir  : BleSelfTest: HEARTBEAT events=0 devices=0 mob_peers=0 sent=6 send_enabled=true distinct_msgs=0 beacon_callbacks=0 envelopes=0
+05-21 20:31:18.003 27130 27165 I BEAMout : 20:31:18.001 [info] BleSelfTest: HEARTBEAT events=0 devices=0 mob_peers=0 sent=6 send_enabled=true distinct_msgs=0 beacon_callbacks=0 envelopes=0
+05-21 20:31:22.209 27130 27175 I Elixir  : BleSelfTest: MESH MESSAGE SENT payload="hello-from-mob-t577u-1779420682" result=:ok
+05-21 20:31:22.210 27130 27165 I BEAMout : 20:31:22.209 [info] BleSelfTest: MESH MESSAGE SENT payload="hello-from-mob-t577u-1779420682" result=:ok
+05-21 20:31:22.212 27130 27165 I BEAMout : 20:31:22.209 [debug] BleSelfTest: unexpected {Mob.Ble.MobileBridge, :bridge_event, "{\"v\":1,\"event\":\"error\",\"kind\":\"unknown\",\"detail\":\"{\\\"v\\\":1,\\\"event\\\":\\\"attempt_outcome\\\",\\\"attempt_id\\\":\\\"selftest-1779420682185\\\",\\\"message_id\\\":\\\"xjRUtp1wYS1YTnn18ZeTyg==\\\",\\\"target_peer_id\\\":\\\"broadcast\\\",\\\"target_device_ids\\\":[\\\"broadcast\\\"],\\\"kind\\\":\\\"dispatched\\\",\\\"reason\\\":\\\"legacy_beacon_fallback\\\",\\\"adapter\\\":\\\"ble_android\\\",\\\"outcome_at_ms\\\":584354246}\"}"}
+05-21 20:31:23.003 27130 27175 I Elixir  : BleSelfTest: HEARTBEAT events=0 devices=0 mob_peers=0 sent=7 send_enabled=true distinct_msgs=0 beacon_callbacks=0 envelopes=0
+05-21 20:31:23.004 27130 27165 I BEAMout : 20:31:23.003 [info] BleSelfTest: HEARTBEAT events=0 devices=0 mob_peers=0 sent=7 send_enabled=true distinct_msgs=0 beacon_callbacks=0 envelopes=0

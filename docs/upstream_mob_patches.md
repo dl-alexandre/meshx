@@ -5,11 +5,11 @@
 MeshX previously carried two temporary project-local patches for iOS
 native builds:
 
-- `patches/01-mob_dev-meshx-build-additions.patch` targets
+- `patches/01-mob_dev-mob-build-additions.patch` targets
   `mob_dev 0.4.0` and injects project Swift sources plus
-  `meshx_ble_nif.m` into the generated iOS device build.
+  `mob_ble_nif.m` into the generated iOS device build.
 - `patches/02-mob-static-nif-table.patch` targets `mob 0.5.18` and
-  registers `meshx_ble_nif_nif_init` in the static NIF table.
+  registers `mob_ble_nif_nif_init` in the static NIF table.
 
 These patches are downstream for the vendored dependency versions. They
 should not be submitted upstream as-is: upstream `mob_dev` and `mob`
@@ -39,7 +39,7 @@ superseded upstream:
 - Upstream `mob` no longer carries `ios/driver_tab_ios.c`; its
   reference table is `ios/driver_tab_ios.zig`.
 
-That means the upstream path for `meshx_ble_nif` should be a dependency
+That means the upstream path for `mob_ble_nif` should be a dependency
 upgrade plus a `mob.exs :static_nifs` entry, not a hand-edited static
 table patch.
 
@@ -62,7 +62,7 @@ Scratch upstream clones under `tmp/upstream/` contain the upstream PR
 branches for that remaining gap:
 
 - `tmp/upstream/mob_dev`
-  - Branch: `meshx-ios-swift-sources`; local commit `0cf9df0`
+  - Branch: `mob-ios-swift-sources`; local commit `0cf9df0`
     `Support project iOS Swift sources`.
   - PR: https://github.com/GenericJam/mob_dev/pull/6
     - State: open, ready for review.
@@ -76,7 +76,7 @@ branches for that remaining gap:
   - `test/mob_dev/native_build_test.exs` covers the config-to-Zig
     argument normalization.
 - `tmp/upstream/mob_new`
-  - Branch: `meshx-ios-swift-sources`; local commit `3dbe111`
+  - Branch: `mob-ios-swift-sources`; local commit `3dbe111`
     `Compile project iOS Swift sources`.
   - PR: https://github.com/GenericJam/mob_new/pull/5
     - State: open, ready for review.
@@ -109,10 +109,10 @@ be found`.
 
 MeshX would configure the extension point with:
 
-- Swift sources under `../../meshx_mobile/Sources/MeshxMobile/`.
-- `ios/MeshxBLEBridge.swift`.
-- A `:static_nifs` entry for `:meshx_ble_nif`, with the native source
-  at `c_src/meshx_ble_nif.c` or another upstream-supported project NIF
+- Swift sources under `../../mob_node/Sources/Mob.Node/`.
+- `ios/MobBLEBridge.swift`.
+- A `:static_nifs` entry for `:mob_ble_nif`, with the native source
+  at `c_src/mob_ble_nif.c` or another upstream-supported project NIF
   location after migration.
 
 ## Current Verification
@@ -122,9 +122,9 @@ The downstream patch path has been verified by:
 - iOS harness device build on Coding iPad
   `00008030-000209510ED0C02E`.
 - Android-to-iOS responder hardware smoke:
-  `dev.meshx.mob.ble.IOSResponderFetchSmokeTest`, passing on
+  `dev.mob.mob.ble.IOSResponderFetchSmokeTest`, passing on
   SM-T577U `R52W90AW7EN`.
-- `mix meshx.patch_deps --check` from `apps/meshx_mobile_app`, archived at
+- `mix mob.patch_deps --check` from `apps/mob_node`, archived at
   `artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/patch-deps-check-1212.log`,
   which was re-run after the upstream handoff comments at
   2026-05-17T12:12:03-0700 and reported both local patch files as already
@@ -149,7 +149,7 @@ Rechecked with `gh pr view`:
     returned by the GitHub PR timeline; one maintainer handoff issue comment is
     now present.
   - Base/head: `GenericJam/mob_dev:master` ←
-    `dl-alexandre:meshx-ios-swift-sources`.
+    `dl-alexandre:mob-ios-swift-sources`.
 - https://github.com/GenericJam/mob_new/pull/5
   - State: open.
   - Draft: false.
@@ -161,12 +161,12 @@ Rechecked with `gh pr view`:
     returned by the GitHub PR timeline; one maintainer handoff issue comment is
     now present.
   - Base/head: `GenericJam/mob_new:master` ←
-    `dl-alexandre:meshx-ios-swift-sources`.
+    `dl-alexandre:mob-ios-swift-sources`.
 
 The PR descriptions were updated on 2026-05-17 to include the MeshX
 integration evidence now available from the downstream checkout:
 
-- `mix meshx.patch_deps --check` reports both local patch files already
+- `mix mob.patch_deps --check` reports both local patch files already
   patched for the locked dependency versions; latest archive:
   `artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/patch-deps-check-1212.log`.
 - The MeshX iOS harness device build succeeds with project Swift sources
@@ -208,7 +208,7 @@ before the downstream patch migration can start.
 
 This item can close only after both PRs are merged and released, MeshX is
 migrated to the released dependency versions, the downstream patch files and
-`mix meshx.patch_deps` requirement are removed, and the post-migration MeshX
+`mix mob.patch_deps` requirement are removed, and the post-migration MeshX
 gates pass.
 
 Branch-protection details are not visible to this token:
@@ -231,7 +231,7 @@ Suggested maintainer context:
 > upstream extension points. `mob_dev#6` reads project Swift source
 > configuration from `mob.exs`; `mob_new#5` teaches the generated iOS Zig
 > templates to compile those sources. MeshX has validated the downstream patch
-> path with `mix meshx.patch_deps --check`, an iOS harness device build, and a
+> path with `mix mob.patch_deps --check`, an iOS harness device build, and a
 > physical SM-T577U -> iPad12,1 responder smoke covering Android beacon cue,
 > iOS MX responder, Android MFQ/MFR fetch, and MX envelope parse.
 >

@@ -182,7 +182,7 @@ required_validation_checks = [
   "observer_scan_started",
   "received_message_logged",
   "observer_m14_consistent",
-  "observer_meshx_transport_metadata",
+  "observer_mob_routing_metadata",
   "payload_match",
   "sender_and_observer_distinct",
   "sender_and_observer_logs_distinct",
@@ -383,7 +383,7 @@ if observer_raw_metadata.is_a?(Hash) &&
   fail_gate("observer_log uses known verifier fixture raw_transport_metadata.received_device_id")
 end
 
-Dir.mktmpdir("meshx-m26-audit-") do |dir|
+Dir.mktmpdir("mob-m26-audit-") do |dir|
   revalidation_summary = File.join(dir, "summary.json")
   verified =
     system(

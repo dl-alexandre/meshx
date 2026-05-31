@@ -6,7 +6,7 @@
 #
 # Flow: stayon + Doze-whitelist -> launch both apps with RT-01 event logging ->
 # confirm awake peering (sent>0 / peers>=1, ABORTS fast if not) -> sleep the
-# receiver -> hold -> wake -> capture logcat -> mix meshx.mobile.rt01.analyze.
+# receiver -> hold -> wake -> capture logcat -> mix mob.node.rt01.analyze.
 #
 # Usage:
 #   scripts/android/rt01-run.sh \
@@ -19,7 +19,7 @@ set -euo pipefail
 # run. Force the C locale so byte-wise tr/grep are safe.
 export LC_ALL=C LC_CTYPE=C
 
-PKG=dev.meshx.mob
+PKG=dev.mob.mob
 SENDER="5200f354f4fb277f"      # T390 default
 RECEIVER="R52W90AW7EN"          # T577U default (the locked device)
 RUN_ID="rt-01-$(date -u +%Y%m%dT%H%M%SZ)"
@@ -56,12 +56,12 @@ launch() {  # serial suffix send?
   adbq "$1" am force-stop "$PKG" || true
   sleep 1
   adb -s "$1" shell am start -n "$PKG/.MainActivity" \
-    --ez meshx_rt_event_log true --es meshx_rt_run_id "$RUN_ID" \
-    --ez meshx_ble_selftest true --ez meshx_ble_selftest_send "$3" \
+    --ez mob_rt_event_log true --es mob_rt_run_id "$RUN_ID" \
+    --ez mob_ble_selftest true --ez mob_ble_selftest_send "$3" \
     --es mob_node_suffix "$2" >/dev/null 2>&1
 }
 
-# On a peering failure, capture WHY: is each device advertising a meshx beacon,
+# On a peering failure, capture WHY: is each device advertising a mob beacon,
 # scanning, seeing adverts, BT on, permissions granted, awake? Written per device.
 dump_ble_diag() {  # serial
   local s="$1" f="$OUT_DIR/${1}-blediag.txt"
@@ -105,7 +105,7 @@ deadline=$(( $(date +%s) + PEER_TIMEOUT ))
 peered=0
 while [[ $(date +%s) -lt $deadline ]]; do
   sh=$(heartbeat "$SENDER"); rh=$(heartbeat "$RECEIVER")
-  ssent=$(hb_field "$sh" sent); rpeers=$(hb_field "$rh" meshx_peers)
+  ssent=$(hb_field "$sh" sent); rpeers=$(hb_field "$rh" mob_peers)
   echo "  sender sent=${ssent:-?}  receiver peers=${rpeers:-?}"
   if [[ "${ssent:-0}" -gt 0 && "${rpeers:-0}" -ge 1 ]]; then peered=1; break; fi
   sleep 10
@@ -143,7 +143,7 @@ echo "unlock_at=$UNLOCK_AT  log: $LOG"
 
 say "Analyze (strict gate)"
 cd "$ROOT"
-mix meshx.mobile.rt01.analyze \
+mix mob.node.rt01.analyze \
   --input "$LOG" \
   --locked-from "$LOCK_AT" \
   --unlock-at "$UNLOCK_AT" \

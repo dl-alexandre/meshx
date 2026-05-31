@@ -90,6 +90,6 @@ in‑run progress matches the final verdict.
 
 All three levers are **native** (mostly `BleScanner.kt` in the `mob_ble`
 submodule) and require an **app rebuild + reinstall** — the one operation that
-touches `dev.meshx.mob`'s embedded BEAM payload (`install -r` preserves `/data`,
+touches `dev.mob.mob`'s embedded BEAM payload (`install -r` preserves `/data`,
 but validate the BEAM still boots after). Start with lever #1: one‑file change,
 biggest expected lever, then re‑measure before doing more.

@@ -6,8 +6,8 @@ Shorthand: `GenericJam/mob_dev#6` and `GenericJam/mob_new#5`.
 
 | Repository | PR | Branch | Status | Permission |
 | --- | --- | --- | --- | --- |
-| `GenericJam/mob_dev` | https://github.com/GenericJam/mob_dev/pull/6 | `meshx-ios-swift-sources` -> `master` | Open, mergeable, unstable | `READ` |
-| `GenericJam/mob_new` | https://github.com/GenericJam/mob_new/pull/5 | `meshx-ios-swift-sources` -> `master` | Open, mergeable, unstable | `READ` |
+| `GenericJam/mob_dev` | https://github.com/GenericJam/mob_dev/pull/6 | `mob-ios-swift-sources` -> `master` | Open, mergeable, unstable | `READ` |
+| `GenericJam/mob_new` | https://github.com/GenericJam/mob_new/pull/5 | `mob-ios-swift-sources` -> `master` | Open, mergeable, unstable | `READ` |
 
 ## Handoff
 
@@ -20,7 +20,7 @@ The MeshX downstream patch path must remain in place until:
 1. GenericJam merges `mob_dev#6` and `mob_new#5`.
 2. The merged changes are released or otherwise available as dependency refs.
 3. MeshX updates the dependency pins to the upstream refs.
-4. `mix meshx.patch_deps --check` is no longer required for those changes.
+4. `mix mob.patch_deps --check` is no longer required for those changes.
 5. The post-merge MeshX build/test gates, including `mix test`, pass without the downstream patches.
 
 Until all five steps pass, `upstream_patch_migration_complete` remains a blocked

@@ -20,7 +20,7 @@
   "full_resolution_review_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/release-candidate/local-full-resolution-transport-review.json",
   "hardware_attachments": [
     {
-      "command_or_harness": "adb shell am startservice meshx_ble_selftest with iPad MeshxMobileHarness --meshx-auto-scan",
+      "command_or_harness": "adb shell am startservice mob_ble_selftest with iPad Mob.NodeHarness --mob-auto-scan",
       "device_model": "SM-T577U / Android tablet",
       "evidence_types_by_gate": {
         "android_legacy_beacon_gossip_one_hop": "android_legacy_beacon_gossip_summary"
@@ -29,12 +29,12 @@
         "android_legacy_beacon_gossip_one_hop"
       ],
       "os_or_api_version": "Android device R52W90AW7EN (SM-T577U)",
-      "raw_log_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/android-to-ipad-beacon-rerun/android-meshx-extract.log",
+      "raw_log_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/android-to-ipad-beacon-rerun/android-mob-extract.log",
       "role": "attached Android sender observed by iPad harness",
       "summary_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/summary.json"
     },
     {
-      "command_or_harness": "xcrun devicectl device process launch --console dev.meshx.mobile.harness -- --meshx-auto-scan / --meshx-auto-beacon",
+      "command_or_harness": "xcrun devicectl device process launch --console dev.mob.node.harness -- --mob-auto-scan / --mob-auto-beacon",
       "device_model": "iPad 9th generation (iPad12,1)",
       "evidence_types_by_gate": {
         "ios_advert_only_participation": "ios_advert_only_hardware_log"
@@ -181,7 +181,7 @@
         ],
         "evidence_type": "ios_background_ble_boundary",
         "summary": "All iPad captures were foreground devicectl harness launches; no iOS background scan or advertise behavior is claimed.",
-        "test_command": "xcrun devicectl device process launch --console dev.meshx.mobile.harness ..."
+        "test_command": "xcrun devicectl device process launch --console dev.mob.node.harness ..."
       },
       "legacy_beacon_gossip_hardware": {
         "artifact_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/ipad-to-android-beacon-rerun/ipad-sender.log",
@@ -210,7 +210,7 @@
         ],
         "evidence_type": "legacy_beacon_gossip_hardware",
         "summary": "Fresh iPad auto-beacon run dispatched 28 MB legacy beacon refs from sender ios-harness-B1C7BB9A; Android did not record a matched iPad sender hash, so this is iPad foreground emit evidence, not Android receive proof.",
-        "test_command": "xcrun devicectl device process launch --device 39FD8D3A-9CA5-5DEF-AFC0-AA5205511117 --terminate-existing --console dev.meshx.mobile.harness --meshx-auto-beacon"
+        "test_command": "xcrun devicectl device process launch --device 39FD8D3A-9CA5-5DEF-AFC0-AA5205511117 --terminate-existing --console dev.mob.node.harness --mob-auto-beacon"
       },
       "legacy_beacon_observe_hardware": {
         "artifact_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/android-to-ipad-beacon-rerun/ipad-observer.log",
@@ -239,7 +239,7 @@
         ],
         "evidence_type": "legacy_beacon_observe_hardware",
         "summary": "Fresh iPad observe run captured 474 legacy_beacon_received lines, including 247 lines with attached SM-T577U sender hash 12f78557517a13f9; this proves foreground iPad observe of Android MB beacon refs only.",
-        "test_command": "xcrun devicectl device process launch --device 39FD8D3A-9CA5-5DEF-AFC0-AA5205511117 --terminate-existing --console dev.meshx.mobile.harness --meshx-auto-scan --meshx-log-candidate-discoveries; adb -s R52W90AW7EN shell am start -n dev.meshx.mob/.MainActivity --ez meshx_ble_selftest true"
+        "test_command": "xcrun devicectl device process launch --device 39FD8D3A-9CA5-5DEF-AFC0-AA5205511117 --terminate-existing --console dev.mob.node.harness --mob-auto-scan --mob-log-candidate-discoveries; adb -s R52W90AW7EN shell am start -n dev.mob.mob/.MainActivity --ez mob_ble_selftest true"
       },
       "negative_claim_review": {
         "artifact_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/README.md",
@@ -268,7 +268,7 @@
         ],
         "evidence_type": "ios_parity_negative_fixture_matrix",
         "summary": "Operator review keeps iOS parity, delivery, full-envelope, background, routing, trust, and whole-project completion claims blocked.",
-        "test_command": "mix meshx.mobile.local_ios_parity.hardware_review --input artifacts/local-ble/2026-05-17-sm-t577u-ipad9/ios/evidence.json --json"
+        "test_command": "mix mob.node.local_ios_parity.hardware_review --input artifacts/local-ble/2026-05-17-sm-t577u-ipad9/ios/evidence.json --json"
       },
       "target_ios_device_matrix": {
         "artifact_path": "artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/android-to-ipad-beacon-rerun/devicectl-devices.txt",

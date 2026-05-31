@@ -1,4 +1,4 @@
-defmodule MeshxScripts.BLESender do
+defmodule MobScripts.BLESender do
   @moduledoc """
   Two-node BLE smoke test — sender side.
 
@@ -27,9 +27,9 @@ defmodule MeshxScripts.BLESender do
       can take 5–30s); shorten only if you know the peer is already paired.
   """
 
-  alias MeshxProtocol.Packet
-  alias MeshxRuntime.Router
-  alias MeshxTransportBLE.BluezBridge
+  alias Mob.Protocol.Packet
+  alias Mob.Runtime.Router
+  alias Mob.Routing.BLE.BluezBridge
 
   def main do
     id = System.get_env("MESHX_NODE_ID", "ble-sender")
@@ -41,14 +41,14 @@ defmodule MeshxScripts.BLESender do
     Router.subscribe(self())
 
     {:ok, ble} =
-      MeshxTransportBLE.start_link(
+      Mob.Routing.BLE.start_link(
         id: id,
         event_target: Router,
         bridge: BluezBridge,
         bridge_opts: bridge_opts(id)
       )
 
-    :ok = Router.attach_transport(:ble, MeshxTransportBLE, ble)
+    :ok = Router.attach_transport(:ble, Mob.Routing.BLE, ble)
 
     wait_for_peer!(receiver_id, timeout_ms)
     wait_for_noise!(receiver_id, timeout_ms)
@@ -59,7 +59,7 @@ defmodule MeshxScripts.BLESender do
 
   defp wait_for_peer!(receiver_id, timeout_ms) do
     receive do
-      {:meshx_runtime, :peer_up, :ble, %{id: ^receiver_id}} -> :ok
+      {:mob_runtime, :peer_up, :ble, %{id: ^receiver_id}} -> :ok
     after
       timeout_ms ->
         IO.puts(:stderr, "timed out waiting for BLE peer #{receiver_id}")
@@ -69,7 +69,7 @@ defmodule MeshxScripts.BLESender do
 
   defp wait_for_noise!(receiver_id, timeout_ms) do
     receive do
-      {:meshx_runtime, :noise_established, :ble, ^receiver_id} -> :ok
+      {:mob_runtime, :noise_established, :ble, ^receiver_id} -> :ok
     after
       timeout_ms ->
         IO.puts(:stderr, "timed out waiting for Noise handshake with #{receiver_id}")
@@ -95,14 +95,14 @@ defmodule MeshxScripts.BLESender do
 
   defp start_runtime! do
     if data_dir = System.get_env("MESHX_STORE_DATA_DIR") do
-      Application.put_env(:meshx_store, :data_dir, data_dir)
+      Application.put_env(:mob_store, :data_dir, data_dir)
     end
 
-    {:ok, _apps} = Application.ensure_all_started(:meshx_store)
-    {:ok, _apps} = Application.ensure_all_started(:meshx_runtime)
-    :ok = MeshxRuntime.ensure_dependency_workers_started()
-    {:ok, _} = Application.ensure_all_started(:meshx_transport_ble)
+    {:ok, _apps} = Application.ensure_all_started(:mob_store)
+    {:ok, _apps} = Application.ensure_all_started(:mob_runtime)
+    :ok = Mob.Runtime.ensure_dependency_workers_started()
+    {:ok, _} = Application.ensure_all_started(:mob_routing_ble)
   end
 end
 
-MeshxScripts.BLESender.main()
+MobScripts.BLESender.main()

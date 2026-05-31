@@ -7,7 +7,7 @@ for querying saved snapshots.
 
 ## Current Scope
 
-`MeshxMobileApp.BLE.LocalInboxPersistencePolicy` converts a
+`Mob.Node.BLE.LocalInboxPersistencePolicy` converts a
 `LocalInbox.snapshot/1` value into a JSON-safe durable snapshot candidate
 with an injected `persisted_at` timestamp.
 
@@ -20,18 +20,18 @@ The snapshot may contain:
 - the advert-only transport profile and capability notes;
 - the policy version and retention settings that produced the snapshot.
 
-`MeshxMobileApp.BLE.LocalInboxStore` can save, load, delete, and clear
-these durable snapshot candidates through `MeshxStore.DB`. Callers still
+`Mob.Node.BLE.LocalInboxStore` can save, load, delete, and clear
+these durable snapshot candidates through `Mob.Store.DB`. Callers still
 own when to invoke it; there is no automatic write loop, background
 worker, sync, migration, or cleanup scheduler.
 
-`MeshxMobileApp.BLE.LocalInboxDurableSnapshot` can restore a saved
+`Mob.Node.BLE.LocalInboxDurableSnapshot` can restore a saved
 durable snapshot into a read-only shape with `nearby_messages`,
 `trust_evidence`, and `resolution_statuses`. This lets product/API code
 query saved snapshots with `LocalInboxQuery` without replaying raw BLE
 events or rebuilding the live in-memory inbox.
 
-`MeshxMobileApp.BLE.LocalPersistenceNegativeValidation` records the
+`Mob.Node.BLE.LocalPersistenceNegativeValidation` records the
 current blocked claim matrix for this boundary. Opt-in snapshots cannot
 be promoted to default lifecycle persistence, persisted beacon refs
 cannot become delivery records, manual prune calls cannot become

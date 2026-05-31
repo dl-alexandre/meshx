@@ -26,14 +26,14 @@ rather than by umbrella path.
 
 The following order resolves the dependency graph from leaves to root:
 
-1. **`meshx_protocol`** — no internal deps; pure library
-2. **`meshx_transport`** — depends on `meshx_protocol`
-3. **`meshx_noise`** — no internal deps; pure library (uses `decibel`)
-4. **`meshx_store`** — no internal deps; pure library (uses `cubdb`)
-5. **`meshx_mob`** — no internal deps; pure library
-6. **`meshx_transport_ble`** — depends on `meshx_transport`
-7. **`meshx_runtime`** — depends on `meshx_protocol`, `meshx_noise`, `meshx_store`, `meshx_transport`, `meshx_transport_ble`, `meshx_mob`, `telemetry`
-8. **`meshx_mobile_app`** — deployable Mob app; publish only if it is split into a reusable package
+1. **`mob_protocol`** — no internal deps; pure library
+2. **`mob_routing`** — depends on `mob_protocol`
+3. **`mob_noise`** — no internal deps; pure library (uses `decibel`)
+4. **`mob_store`** — no internal deps; pure library (uses `cubdb`)
+5. **`mob_node`** — no internal deps; pure library
+6. **`mob_routing_ble`** — depends on `mob_routing`
+7. **`mob_runtime`** — depends on `mob_protocol`, `mob_noise`, `mob_store`, `mob_routing`, `mob_routing_ble`, `mob_node`, `telemetry`
+8. **`mob_node`** — deployable Mob app; publish only if it is split into a reusable package
 
 Once step 7 is complete, the full runtime is available on Hex. Step 8 is not
 required for the core library release; it is the application shell that consumes
@@ -46,8 +46,8 @@ the published packages.
 **Python is not required for MeshX core, protocol, store, noise, or TCP/UDP
 transports.** It is only needed when using the BLE transport on Linux.
 
-`meshx_transport_ble` ships a BlueZ-backed bridge at
-`priv/bin/meshx_bluez_bridge` (a Python 3 script) that communicates with
+`mob_routing_ble` ships a BlueZ-backed bridge at
+`priv/bin/mob_bluez_bridge` (a Python 3 script) that communicates with
 Elixir via stdin/stdout. Using the BLE transport on Linux requires:
 
 - **Python 3** (tested on 3.10+)
@@ -76,16 +76,16 @@ Before any version bump:
 
 - [ ] `mix format --check-formatted` passes
 - [ ] `mix test` passes (all 200 tests)
-- [ ] `mix meshx.mobile.advert_gossip.audit apps/meshx_mobile_app/test/fixtures/advert_gossip_scenarios` passes
-- [ ] `mix meshx.mobile.local_readiness.audit --allow-open --out tmp/local-readiness.json` archived for mobile advert-only status
-- [ ] `mix meshx.mobile.local_completion.audit --allow-open | tee tmp/local-completion-audit.txt` archived for plain-text open-objective review
-- [ ] `mix meshx.mobile.local_completion.audit --allow-open --json --out tmp/local-completion-audit.json` archived for whole-project completion audit
-- [ ] `mix meshx.mobile.local_completion.blocker_matrix --json --out tmp/local-completion-blocker-matrix.json` archived for whole-project blocker classification
-- [ ] `mix meshx.mobile.remaining_items.audit --json --out tmp/focused-remaining-items-audit.json` archived for the responder/AUX/upstream/startup focused objective state
-- [ ] `mix meshx.mobile.local_release.artifact_bundle --json --out tmp/local-release-artifact-bundle.json` archived for release-candidate artifact checklist
-- [ ] `mix meshx.mobile.local_release.recent_evidence --json --out tmp/local-release-recent-evidence.json` archived for recent evidence slices and closure artifact pointers
+- [ ] `mix mob.node.advert_gossip.audit apps/mob_node/test/fixtures/advert_gossip_scenarios` passes
+- [ ] `mix mob.node.local_readiness.audit --allow-open --out tmp/local-readiness.json` archived for mobile advert-only status
+- [ ] `mix mob.node.local_completion.audit --allow-open | tee tmp/local-completion-audit.txt` archived for plain-text open-objective review
+- [ ] `mix mob.node.local_completion.audit --allow-open --json --out tmp/local-completion-audit.json` archived for whole-project completion audit
+- [ ] `mix mob.node.local_completion.blocker_matrix --json --out tmp/local-completion-blocker-matrix.json` archived for whole-project blocker classification
+- [ ] `mix mob.node.remaining_items.audit --json --out tmp/focused-remaining-items-audit.json` archived for the responder/AUX/upstream/startup focused objective state
+- [ ] `mix mob.node.local_release.artifact_bundle --json --out tmp/local-release-artifact-bundle.json` archived for release-candidate artifact checklist
+- [ ] `mix mob.node.local_release.recent_evidence --json --out tmp/local-release-recent-evidence.json` archived for recent evidence slices and closure artifact pointers
 - [ ] `tmp/local-release-artifact-bundle.json` reviewed for `required_commands`; generated and review command gates remain visible
-- [ ] `mix meshx.mobile.local_release.manifest --json --out tmp/local-release.json` archived for mobile advert-only release boundary
+- [ ] `mix mob.node.local_release.manifest --json --out tmp/local-release.json` archived for mobile advert-only release boundary
 - [ ] CI `Generate mobile local release manifests` step passes on the release commit
 - [ ] Completion audit section in `tmp/local-release.json` reviewed; whole-project completion remains false unless every blocker is closed
 - [ ] Hardware evidence section in `tmp/local-release.json` reviewed; open gates remain called out in release notes
@@ -109,7 +109,7 @@ Until Hex publishing is complete, install MeshX via git:
 ```elixir
 defp deps do
   [
-    {:meshx_runtime, git: "https://github.com/dl-alexandre/meshx.git", tag: "v0.1.0"}
+    {:mob_runtime, git: "https://github.com/dl-alexandre/mob.git", tag: "v0.1.0"}
   ]
 end
 ```
@@ -139,14 +139,14 @@ For any release note or operator artifact that references this mode,
 archive both machine-readable manifests:
 
 ```bash
-mix meshx.mobile.local_readiness.audit --allow-open --out tmp/local-readiness.json
-mix meshx.mobile.local_completion.audit --allow-open | tee tmp/local-completion-audit.txt
-mix meshx.mobile.local_completion.audit --allow-open --json --out tmp/local-completion-audit.json
-mix meshx.mobile.local_completion.blocker_matrix --json --out tmp/local-completion-blocker-matrix.json
-mix meshx.mobile.remaining_items.audit --json --out tmp/focused-remaining-items-audit.json
-mix meshx.mobile.local_release.artifact_bundle --json --out tmp/local-release-artifact-bundle.json
-mix meshx.mobile.local_release.recent_evidence --json --out tmp/local-release-recent-evidence.json
-mix meshx.mobile.local_release.manifest --json --out tmp/local-release.json
+mix mob.node.local_readiness.audit --allow-open --out tmp/local-readiness.json
+mix mob.node.local_completion.audit --allow-open | tee tmp/local-completion-audit.txt
+mix mob.node.local_completion.audit --allow-open --json --out tmp/local-completion-audit.json
+mix mob.node.local_completion.blocker_matrix --json --out tmp/local-completion-blocker-matrix.json
+mix mob.node.remaining_items.audit --json --out tmp/focused-remaining-items-audit.json
+mix mob.node.local_release.artifact_bundle --json --out tmp/local-release-artifact-bundle.json
+mix mob.node.local_release.recent_evidence --json --out tmp/local-release-recent-evidence.json
+mix mob.node.local_release.manifest --json --out tmp/local-release.json
 ```
 
 The local release manifest is intentionally constrained. It may describe

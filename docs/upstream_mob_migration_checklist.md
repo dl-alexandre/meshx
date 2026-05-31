@@ -31,8 +31,8 @@ This file supersedes / expands the high-level "Post-Merge MeshX Migration Checkl
 
 ## Assumptions & Risks (read before starting the numbered steps)
 
-- The 14 Swift paths in the `ios_swift_sources` example must resolve relative to the same CWD the old patch used (`../../meshx_mobile/...` from the iOS build context inside `apps/meshx_mobile_app`).
-- `:archs` for the `meshx_ble_nif` entry (`[:ios]` vs `[:ios_device, :ios_sim]`) is a knob you may need to tune; run `mix mob.regen_driver_tab --force` (or the device build) and inspect the generated `driver_tab_ios.*` to confirm the symbol appears.
+- The 14 Swift paths in the `ios_swift_sources` example must resolve relative to the same CWD the old patch used (`../../mob_node/...` from the iOS build context inside `apps/mob_node`).
+- `:archs` for the `mob_ble_nif` entry (`[:ios]` vs `[:ios_device, :ios_sim]`) is a knob you may need to tune; run `mix mob.regen_driver_tab --force` (or the device build) and inspect the generated `driver_tab_ios.*` to confirm the symbol appears.
 - The iOS NIF glue (now `priv/native/ios/mob_ble_nif.m` inside the extracted `mob_ble` plugin) compilation is handled by the plugin's native sources + mob_dev static NIF support.
 - The first post-merge Hex release must actually export the keys under `config :mob_dev` with the documented normalisation. If the schema differs, fall back to the rollback paragraph in the PR template.
 - Rollback is cheap: restore the two patch files + task + aliases from git; the old path is still known-good.
@@ -53,9 +53,9 @@ Next dev priority: pre-existing CI/infra reds (dialyzer tooling crash + artifact
 | Instrumented BLE test coverage on minSdk=28 fleet (permission shim) | You | Low | **DONE** — version-aware `GrantPermissionRule` shim (legacy BT + FINE_LOCATION for <31) in the four `*Test.kt` files. Tests now execute on T390; selftest preferred for evidence. | 5 (parallel) |
 | Reverse-direction smoke (Android emit → iOS observe) | You | Low — optional confidence pass | **DONE** — spot checks executed in 2026-05-18 session | 6 |
 
-**Carrier decision (locked)**: Direct-MX hybrid service-data path for iOS↔Android interoperability is rejected and must remain rejected. All hardware / evidence work focuses exclusively on the supported production MB-legacy + GATT-fetch path (coded in `dev.meshx.mob` main app).
+**Carrier decision (locked)**: Direct-MX hybrid service-data path for iOS↔Android interoperability is rejected and must remain rejected. All hardware / evidence work focuses exclusively on the supported production MB-legacy + GATT-fetch path (coded in `dev.mob.mob` main app).
 
-**mob_ble extraction status (2026-05-19, Phase 3 complete)**: All Phases 1+2+3 ("all that" closure) executed: root + `mob_ble` changelogs; trimmed publication-grade cutover announcement in `docs/releases/mob_ble_phase3_cutover_announcement.md`; full MOB_BLE_* forwarding + launch script + CONTRIBUTING; stray/stale markdown + Current State hygiene + final "meshx" prose sweep in plugin sources; `artifacts/local-ble/2026-05-19-mob-ble-cutover-XXX/` + manifest template + 5-step recipe; audits/checklists + migration doc synced; `mix hex.build` clean from apps/mob_ble (see /tmp/grok-impl-summary-2edba713.md). `mob_ble` 0.1.0 publication-ready (independent of patch upstreaming). Next: `mix hex.publish` + first device runs + post-publish updates + tag.
+**mob_ble extraction status (2026-05-19, Phase 3 complete)**: All Phases 1+2+3 ("all that" closure) executed: root + `mob_ble` changelogs; trimmed publication-grade cutover announcement in `docs/releases/mob_ble_phase3_cutover_announcement.md`; full MOB_BLE_* forwarding + launch script + CONTRIBUTING; stray/stale markdown + Current State hygiene + final "mob" prose sweep in plugin sources; `artifacts/local-ble/2026-05-19-mob-ble-cutover-XXX/` + manifest template + 5-step recipe; audits/checklists + migration doc synced; `mix hex.build` clean from apps/mob_ble (see /tmp/grok-impl-summary-2edba713.md). `mob_ble` 0.1.0 publication-ready (independent of patch upstreaming). Next: `mix hex.publish` + first device runs + post-publish updates + tag.
 
 ## Immediate On-Device Evidence Runs (executable now, pre-migration)
 
@@ -70,16 +70,16 @@ These are the concrete checklist items for T390 fleet coverage + positive eviden
    ```
 3. On T390 (and R52 for cross-check):
    ```sh
-   adb -s 5200f354f4fb277f shell am start -n dev.meshx.mob/.MainActivity \
-     --ez meshx_ble_selftest true \
-     --ez meshx_ble_selftest_send false \
-     --ez meshx_ble_fetch_on_beacon true \
+   adb -s 5200f354f4fb277f shell am start -n dev.mob.mob/.MainActivity \
+     --ez mob_ble_selftest true \
+     --ez mob_ble_selftest_send false \
+     --ez mob_ble_fetch_on_beacon true \
      --es mob_node_suffix t390 \
      --activity-clear-top
    ```
    (The intent flag triggers the built-in selftest that emits HEARTBEAT + exercises BleScanner callbacks.)
-4. Start a sender. Proven Android-only path: SM-T577U full-MX debug sender (`MESHX_MX_SEND=true`) with `meshx_ble_selftest_send=true` and `mob_node_suffix=t577u`. iPhone MB emitter remains useful for parity checks, but it was not required for the archived positive T390 proof.
-5. Observe in logcat / selftest output: clean heartbeats, `devices > 0`, `beacon_callbacks > 0`, at least one `MeshxBeaconFetch: fetch_start`, `fetch_response_received`, `envelope_parse":"ok"`, and `BleSelfTest: DISTINCT MESH MESSAGE kind=envelope`.
+4. Start a sender. Proven Android-only path: SM-T577U full-MX debug sender (`MESHX_MX_SEND=true`) with `mob_ble_selftest_send=true` and `mob_node_suffix=t577u`. iPhone MB emitter remains useful for parity checks, but it was not required for the archived positive T390 proof.
+5. Observe in logcat / selftest output: clean heartbeats, `devices > 0`, `beacon_callbacks > 0`, at least one `MobBeaconFetch: fetch_start`, `fetch_response_received`, `envelope_parse":"ok"`, and `BleSelfTest: DISTINCT MESH MESSAGE kind=envelope`.
 6. Use structured capture:
    ```sh
    scripts/capture-hybrid-run.sh --serial 5200f354f4fb277f --run-ts $RUN_TS --selftest --duration 120 --selftest-send false --node-suffix t390
@@ -105,7 +105,7 @@ When upstream migration lands, the order is: finish upstream dependency updates 
 Edit **only** the requirement in the mobile app (root mix.exs has no direct deps for these):
 
 ```elixir
-# apps/meshx_mobile_app/mix.exs
+# apps/mob_node/mix.exs
 {:mob, "~> 0.5"},                       # tighten upper bound to the exact post-merge release you recorded (e.g. "~> 0.5.19" or keep loose if semver-compatible)
 {:mob_dev, "~> 0.3", only: [:dev, :test], runtime: false},  # bump constraint to match the released version containing #6 (e.g. "~> 0.5")
 ```
@@ -123,7 +123,7 @@ mix deps.update mob mob_dev
 Verify:
 
 ```bash
-grep -A1 '"mob":\|"mob_dev":' mix.lock apps/meshx_mobile_app/mix.lock
+grep -A1 '"mob":\|"mob_dev":' mix.lock apps/mob_node/mix.lock
 # Expect the new version strings + new checksums from hex.pm
 ```
 
@@ -132,7 +132,7 @@ If the constraint was too loose and you pulled an older release, tighten it and 
 ## 2. Files to Delete (patches/)
 
 ```bash
-rm -f patches/01-mob_dev-meshx-build-additions.patch
+rm -f patches/01-mob_dev-mob-build-additions.patch
 rm -f patches/02-mob-static-nif-table.patch
 ```
 
@@ -142,7 +142,7 @@ Do **not** delete the `patches/` directory yet (it may be repurposed or removed 
 
 ### 3.1 Add the new extension-point config to `mob.exs`
 
-Edit `apps/meshx_mobile_app/mob.exs` (the file that is already gitignored and machine-specific).
+Edit `apps/mob_node/mob.exs` (the file that is already gitignored and machine-specific).
 
 Insert under the existing `config :mob_dev, ...`:
 
@@ -153,20 +153,20 @@ config :mob_dev,
   # NEW — replaces the content of the old downstream patch 01
   # Paths are relative to the app dir (or absolute); they are expanded at build time.
   ios_swift_sources: [
-    "../../meshx_mobile/Sources/MeshxMobile/BLAKE2s.swift",
-    "../../meshx_mobile/Sources/MeshxMobile/Frame.swift",
-    "../../meshx_mobile/Sources/MeshxMobile/Fragment.swift",
-    "../../meshx_mobile/Sources/MeshxMobile/Chunk.swift",
-    "../../meshx_mobile/Sources/MeshxMobile/Noise.swift",
-    "../../meshx_mobile/Sources/MeshxMobile/SecureSession.swift",
-    "../../meshx_mobile/Sources/MeshxMobile/BLE.swift",
-    "../../meshx_mobile/Sources/MeshxMobile/MessageEnvelope.swift",
-    "../../meshx_mobile/Sources/MeshxMobile/MessageAdvertisement.swift",
-    "../../meshx_mobile/Sources/MeshxMobile/MessageAdvertisementObserver.swift",
-    "../../meshx_mobile/Sources/MeshxMobile/MeshxFetchProtocol.swift",
-    "../../meshx_mobile/Sources/MeshxMobile/MeshxFetchGatt.swift",
-    "../../meshx_mobile/Sources/MeshxMobile/MeshxFetchGattResponder.swift",
-    "ios/MeshxBLEBridge.swift"
+    "../../mob_node/Sources/Mob.Node/BLAKE2s.swift",
+    "../../mob_node/Sources/Mob.Node/Frame.swift",
+    "../../mob_node/Sources/Mob.Node/Fragment.swift",
+    "../../mob_node/Sources/Mob.Node/Chunk.swift",
+    "../../mob_node/Sources/Mob.Node/Noise.swift",
+    "../../mob_node/Sources/Mob.Node/SecureSession.swift",
+    "../../mob_node/Sources/Mob.Node/BLE.swift",
+    "../../mob_node/Sources/Mob.Node/MessageEnvelope.swift",
+    "../../mob_node/Sources/Mob.Node/MessageAdvertisement.swift",
+    "../../mob_node/Sources/Mob.Node/MessageAdvertisementObserver.swift",
+    "../../mob_node/Sources/Mob.Node/MobFetchProtocol.swift",
+    "../../mob_node/Sources/Mob.Node/MobFetchGatt.swift",
+    "../../mob_node/Sources/Mob.Node/MobFetchGattResponder.swift",
+    "ios/MobBLEBridge.swift"
   ],
 
   # NEW — replaces the hand-edit in the old downstream patch 02
@@ -186,21 +186,21 @@ Save. (If you have a `mob.example.exs`, optionally sync a comment there too.)
 
 ### 3.2 Regenerate driver tables (optional but recommended for audit)
 
-After the config is in place and deps are compiled, the upstream `mix mob.regen_driver_tab` (or the build itself) will emit `priv/generated/driver_tab_ios.zig` (and android equivalent) that now includes the meshx entry. You can force it:
+After the config is in place and deps are compiled, the upstream `mix mob.regen_driver_tab` (or the build itself) will emit `priv/generated/driver_tab_ios.zig` (and android equivalent) that now includes the mob entry. You can force it:
 
 ```bash
 mix mob.regen_driver_tab --force
-# Inspect the generated file under _build or the priv path for "meshx_ble_nif_nif_init"
+# Inspect the generated file under _build or the priv path for "mob_ble_nif_nif_init"
 ```
 
 ### 3.3 Remove the patch task and its wiring
 
 1. Delete the task implementation:
    ```bash
-   rm -f apps/meshx_mobile_app/lib/mix/tasks/meshx.patch_deps.ex
+   rm -f apps/mob_node/lib/mix/tasks/mob.patch_deps.ex
    ```
 
-2. Edit `apps/meshx_mobile_app/mix.exs` (two mechanical deletions; the project file must still evaluate cleanly):
+2. Edit `apps/mob_node/mix.exs` (two mechanical deletions; the project file must still evaluate cleanly):
 
    - Delete the entire 4-line comment block immediately above `defp aliases/0` ("Project-local patches to vendored deps...").
    - Delete the whole `defp aliases do ... end` definition.
@@ -210,7 +210,7 @@ mix mob.regen_driver_tab --force
    ```elixir
    def project do
      [
-       app: :meshx_mobile_app,
+       app: :mob_node,
        ...
        deps: deps(),
        aliases: aliases(),           # <-- delete this line
@@ -221,7 +221,7 @@ mix mob.regen_driver_tab --force
 
    # Project-local patches ... (4-line comment block — delete entirely)
    defp aliases do
-     [ "deps.get": ["deps.get", "meshx.patch_deps"], ... ]
+     [ "deps.get": ["deps.get", "mob.patch_deps"], ... ]
    end
    ```
 
@@ -229,15 +229,15 @@ mix mob.regen_driver_tab --force
 
 3. Clean up any remaining calls inside the umbrella (search is safe because the task module is gone):
    ```bash
-   git grep -n meshx.patch_deps -- '*.ex' '*.exs' '*.md' | cat
+   git grep -n mob.patch_deps -- '*.ex' '*.exs' '*.md' | cat
    # The only hits should now be historical references in docs/ and the two READMEs below.
    ```
 
 ### 3.4 Update documentation references (so the tree no longer claims patches are required)
 
-- `apps/meshx_mobile_app/README.md` — remove or strike the paragraph that says "`mix deps.get` also applies project-local patches..." and the "keep the patches until..." sentence. Replace with a one-liner: "iOS native build now uses upstream `mob.exs :ios_swift_sources` + `:static_nifs` (see `docs/upstream_mob_migration_checklist.md` for the migration that removed the temporary patches)."
+- `apps/mob_node/README.md` — remove or strike the paragraph that says "`mix deps.get` also applies project-local patches..." and the "keep the patches until..." sentence. Replace with a one-liner: "iOS native build now uses upstream `mob.exs :ios_swift_sources` + `:static_nifs` (see `docs/upstream_mob_migration_checklist.md` for the migration that removed the temporary patches)."
 
-- `apps/meshx_mobile_app/CONTRIBUTING.md` — delete or heavily condense the entire "## Build-system patches for vendored mob/mob_dev" section and the "When you run into the patches" subsection. Add a short "Historical note" pointing to the migration PR and the checklist.
+- `apps/mob_node/CONTRIBUTING.md` — delete or heavily condense the entire "## Build-system patches for vendored mob/mob_dev" section and the "When you run into the patches" subsection. Add a short "Historical note" pointing to the migration PR and the checklist.
 
 - `patches/README.md` — replace the content with a tombstone:
   ```markdown
@@ -245,7 +245,7 @@ mix mob.regen_driver_tab --force
 
   This directory contained two temporary unified-diff patches for vendored
   `mob_dev 0.4.0` / `mob 0.5.18` that injected MeshX Swift sources and the
-  `meshx_ble_nif` static NIF registration.
+  `mob_ble_nif` static NIF registration.
 
   They were removed in the post-`GenericJam/mob_dev#6` + `mob_new#5` migration
   (see `docs/upstream_mob_migration_checklist.md` and the migration PR).
@@ -281,27 +281,27 @@ mix deps.get
 mix deps.compile
 
 # 3. Patch system is gone (negative test — the task must no longer be discoverable)
-mix meshx.patch_deps --check   # expected: "The task \"meshx.patch_deps\" could not be found" (or equivalent Mix error)
+mix mob.patch_deps --check   # expected: "The task \"mob.patch_deps\" could not be found" (or equivalent Mix error)
 # This confirms the aliases + task file removal succeeded. The meaningful positive verification is the `git grep` in 3.3 plus clean `mix deps.get` with no patch activity.
 
 # 4. Unit / property tests (umbrella)
 mix test --no-start   # or without --no-start if the startup row already allows it
 
 # 5. The focused-audit and release-manifest tests (these will have been edited — see §5)
-mix test apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_focused_remaining_items_audit_test.exs
-mix test apps/meshx_mobile_app/test/meshx_mobile_app/ble/focused_remaining_items_audit_artifact_test.exs
-mix test apps/meshx_mobile_app/test/mix/tasks/meshx_mobile_release_ci_test.exs
-mix test apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_project_readiness_test.exs
+mix test apps/mob_node/test/mob_node/ble/local_focused_remaining_items_audit_test.exs
+mix test apps/mob_node/test/mob_node/ble/focused_remaining_items_audit_artifact_test.exs
+mix test apps/mob_node/test/mix/tasks/mob_node_release_ci_test.exs
+mix test apps/mob_node/test/mob_node/ble/local_project_readiness_test.exs
 
 # 6. iOS device build (the real proof the Swift sources are still compiled in)
 # On a signed mac:
 mix mob.deploy --native   # or the harness equivalent that used to rely on the patch
-# Expect the build to succeed and the binary to contain the MeshxMobile symbols + the NIF.
+# Expect the build to succeed and the binary to contain the Mob.Node symbols + the NIF.
 
 # 7. End-to-end hardware smoke (the same one that validated the original patches)
 # SM-T577U (Android) → Coding iPad (iOS) responder path:
-#   Android: dev.meshx.mob.ble.IOSResponderFetchSmokeTest (or the hybrid variant)
-#   iOS:    the MeshxFetchGattResponder harness
+#   Android: dev.mob.mob.ble.IOSResponderFetchSmokeTest (or the hybrid variant)
+#   iOS:    the MobFetchGattResponder harness
 # Archive the three logs (Android instr, logcat, iPad responder) under a new
 # artifacts/local-ble/2026-05-XX-.../post-migration-responder/ directory.
 
@@ -318,15 +318,15 @@ After the build + smoke succeed, run the exact commands used for every prior rel
 DATE=2026-05-XX-sm-t577u-ipad9-post-mob-migration   # choose a real stamp
 mkdir -p artifacts/local-ble/$DATE/manifests
 
-mix meshx.mobile.remaining_items.audit --json --out artifacts/local-ble/$DATE/manifests/focused-remaining-items-audit.json
-mix meshx.mobile.remaining_items.audit | tee artifacts/local-ble/$DATE/manifests/focused-remaining-items-audit.txt
+mix mob.node.remaining_items.audit --json --out artifacts/local-ble/$DATE/manifests/focused-remaining-items-audit.json
+mix mob.node.remaining_items.audit | tee artifacts/local-ble/$DATE/manifests/focused-remaining-items-audit.txt
 
-mix meshx.mobile.local_release.artifact_bundle --json --out artifacts/local-ble/$DATE/manifests/local-release-artifact-bundle.json
-mix meshx.mobile.local_release.recent_evidence --json --out artifacts/local-ble/$DATE/manifests/local-release-recent-evidence.json
-mix meshx.mobile.local_release.manifest --json --out artifacts/local-ble/$DATE/manifests/local-release.json
+mix mob.node.local_release.artifact_bundle --json --out artifacts/local-ble/$DATE/manifests/local-release-artifact-bundle.json
+mix mob.node.local_release.recent_evidence --json --out artifacts/local-ble/$DATE/manifests/local-release-recent-evidence.json
+mix mob.node.local_release.manifest --json --out artifacts/local-ble/$DATE/manifests/local-release.json
 
 # Also refresh the readiness / completion ones if you are cutting a release
-mix meshx.mobile.local_readiness.audit --allow-open --out artifacts/local-ble/$DATE/manifests/local-readiness.json
+mix mob.node.local_readiness.audit --allow-open --out artifacts/local-ble/$DATE/manifests/local-readiness.json
 ...
 ```
 
@@ -340,7 +340,7 @@ This is the mechanical change that makes the objective tracker reflect reality.
 
 ### 5.1 Edit the audit module
 
-File: `apps/meshx_mobile_app/lib/meshx_mobile_app/ble/local_focused_remaining_items_audit.ex`
+File: `apps/mob_node/lib/mob_node/ble/local_focused_remaining_items_audit.ex`
 
 **A.** Move the atom between the two module attributes:
 
@@ -372,7 +372,7 @@ File: `apps/meshx_mobile_app/lib/meshx_mobile_app/ble/local_focused_remaining_it
     "artifacts/local-ble/2026-05-XX-.../manifests/patch-deps-check-post-migration.log",
     "artifacts/local-ble/2026-05-XX-.../post-migration-responder/android-instrumentation.log",
     # ... plus the PR link once the migration PR exists
-    "https://github.com/dl-alexandre/meshx/pull/NNNN"
+    "https://github.com/dl-alexandre/mob/pull/NNNN"
   ],
   # Substitution tokens used above (search/replace before committing):
   #   2026-05-XX-...  → real date stamp of your post-migration audit run (see §4.1)
@@ -381,8 +381,8 @@ File: `apps/meshx_mobile_app/lib/meshx_mobile_app/ble/local_focused_remaining_it
   observed_state: %{
     mob_dev_version: "0.5.x (post #6)",
     mob_version: "0.5.x (post #5)",
-    ios_swift_sources_config: "present in mob.exs (13 MeshxMobile + Bridge.swift)",
-    static_nifs_config: "meshx_ble_nif entry present",
+    ios_swift_sources_config: "present in mob.exs (13 Mob.Node + Bridge.swift)",
+    static_nifs_config: "mob_ble_nif entry present",
     patch_files_deleted: true,
     patch_task_deleted: true,
     aliases_removed: true,
@@ -390,7 +390,7 @@ File: `apps/meshx_mobile_app/lib/meshx_mobile_app/ble/local_focused_remaining_it
     ios_device_build: "success via upstream extension points",
     responder_smoke: "pass on SM-T577U → iPad12,1 after migration"
   },
-  remaining_gap: "None. MeshX now consumes the upstream :ios_swift_sources and :static_nifs extension points introduced by GenericJam/mob_dev#6 and mob_new#5. The two downstream patch files and the meshx.patch_deps task have been removed.",
+  remaining_gap: "None. MeshX now consumes the upstream :ios_swift_sources and :static_nifs extension points introduced by GenericJam/mob_dev#6 and mob_new#5. The two downstream patch files and the mob.patch_deps task have been removed.",
   completion_claim_allowed: true
 },
 ```
@@ -420,22 +420,22 @@ completion_decision: %{
 
 The following tests hard-code expectations; they must be edited in the same commit:
 
-1. `apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_focused_remaining_items_audit_test.exs`
+1. `apps/mob_node/test/mob_node/ble/local_focused_remaining_items_audit_test.exs`
    - Move the atom in the two list assertions.
    - Change the `assert upstream.completion_claim_allowed == false` (and the PR-state assertions) to the new completed values, or move them into a separate "completed upstream row" describe block.
    - Update the rows-order assertion.
 
-2. `apps/meshx_mobile_app/test/meshx_mobile_app/ble/focused_remaining_items_audit_artifact_test.exs`
+2. `apps/mob_node/test/mob_node/ble/focused_remaining_items_audit_artifact_test.exs`
    - Any `assert ... "upstreaming...` in incomplete_rows or the plain-text dump must be adjusted (some tests look for the string in the generated txt; they will now see it under completed).
 
-3. `apps/meshx_mobile_app/test/mix/tasks/meshx_mobile_release_ci_test.exs`
+3. `apps/mob_node/test/mix/tasks/mob_node_release_ci_test.exs`
    - The string that asserts the id is still inside `incomplete_rows` must be removed or negated.
 
-4. (light) `apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_project_readiness_test.exs` and any readiness text that mentioned "still needs downstream patches" — update the prose to past tense.
+4. (light) `apps/mob_node/test/mob_node/ble/local_project_readiness_test.exs` and any readiness text that mentioned "still needs downstream patches" — update the prose to past tense.
 
 Run the four test files above until they are all green. This is part of the verification gate.
 
-> The committed fixture `apps/meshx_mobile_app/tmp/remaining-items-audit-test/focused.json` (and any matching `.txt` in `artifacts/.../manifests/`) will be refreshed on the next run of the generator test / audit task; no manual edit of the fixture is required.
+> The committed fixture `apps/mob_node/tmp/remaining-items-audit-test/focused.json` (and any matching `.txt` in `artifacts/.../manifests/`) will be refreshed on the next run of the generator test / audit task; no manual edit of the fixture is required.
 
 ## 6. Commit Message + PR Template
 
@@ -444,11 +444,11 @@ Run the four test files above until they are all green. This is part of the veri
 ```
 chore(deps): migrate MeshX off downstream mob/mob_dev iOS patches (GenericJam#6 + #5)
 
-- Bump mob / mob_dev requirements in apps/meshx_mobile_app/mix.exs; update locks
-- Add :ios_swift_sources (13 MeshxMobile + Bridge) and :static_nifs (meshx_ble_nif)
+- Bump mob / mob_dev requirements in apps/mob_node/mix.exs; update locks
+- Add :ios_swift_sources (13 Mob.Node + Bridge) and :static_nifs (mob_ble_nif)
   entries to mob.exs — the exact replacement for the two downstream patches
 - Delete patches/01-*.patch and 02-*.patch
-- Remove lib/mix/tasks/meshx.patch_deps.ex and its three aliases
+- Remove lib/mix/tasks/mob.patch_deps.ex and its three aliases
 - Update README.md, CONTRIBUTING.md, patches/README.md, docs/* to remove
   "patches still required" language
 - Flip :upstreaming_mob_dev_mob_patches row in LocalFocusedRemainingItemsAudit
@@ -483,9 +483,9 @@ Full step-by-step that was executed is recorded in `docs/upstream_mob_migration_
 - [ ] `mix format --check-formatted && mix credo --format=oneline`
 - [ ] `mix deps.get && mix deps.compile` (new config paths exercised)
 - [ ] `mix test` (umbrella, including the four audit/release test files that were updated)
-- [ ] iOS device build via `mix mob.deploy --native` (or harness) succeeds with MeshxMobile symbols present
+- [ ] iOS device build via `mix mob.deploy --native` (or harness) succeeds with Mob.Node symbols present
 - [ ] Android→iOS responder smoke (SM-T577U + iPad) still passes end-to-end (new logs archived)
-- [ ] `mix meshx.mobile.remaining_items.audit` now shows the upstream row as complete with `completion_claim_allowed: true`
+- [ ] `mix mob.node.remaining_items.audit` now shows the upstream row as complete with `completion_claim_allowed: true`
 - [ ] New manifests committed under `artifacts/local-ble/2026-05-XX-.../`
 - [ ] `git diff --check` clean
 
@@ -521,10 +521,10 @@ cat docs/upstream_mob_migration_checklist.md | head -100
 grep -n "upstream_mob_migration_checklist" docs/upstream_mob_patches.md || echo "pointer not yet added (optional)"
 
 # 3. All commands mentioned are discoverable
-mix help | grep -E 'meshx|mob\.' | cat
+mix help | grep -E 'mob|mob\.' | cat
 
 # 4. The current audit still shows the row as incomplete (baseline)
-mix meshx.mobile.remaining_items.audit | grep -A2 upstreaming_mob_dev_mob_patches
+mix mob.node.remaining_items.audit | grep -A2 upstreaming_mob_dev_mob_patches
 ```
 
 When the real migration happens, simply follow the numbered sections in order.

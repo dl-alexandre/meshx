@@ -1,1 +1,1 @@
-/Users/developer/Library/Developer/Xcode/DerivedData/MeshxMobileHarness-frkcrjwllmkkwyaagolihqfrezak/Build/Products/Debug-iphoneos/Meshx Mobile Harness.app
+/Users/developer/Library/Developer/Xcode/DerivedData/Mob.NodeHarness-frkcrjwllmkkwyaagolihqfrezak/Build/Products/Debug-iphoneos/Mob Mobile Harness.app

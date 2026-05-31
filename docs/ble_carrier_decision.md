@@ -4,7 +4,7 @@ Which BLE advertising carrier is canonical for which path, and what
 gets retired once the hybrid strategy is validated on hardware.
 
 Companion to:
-- `apps/meshx_mobile_app/lib/meshx_mobile_app/ble/local_ios_advert_carrier_decision.ex` — typed carrier states + evidence.
+- `apps/mob_node/lib/mob_node/ble/local_ios_advert_carrier_decision.ex` — typed carrier states + evidence.
 - `docs/BLE_BRIDGE.md` — protocol-level wire format and PHY limitations.
 
 ## Status (2026-05-18)
@@ -70,7 +70,7 @@ Applied:
 Deferred (do when convenient, not blocking):
 
 - Strip the `USE_FULL_MX_ENVELOPES` flag handling that gates direct-MX emission on the iOS dispatch path.
-- Remove `MeshxBeaconFetchCoordinator` direct-MX dispatch paths that aren't needed for the GATT fetch route.
+- Remove `MobBeaconFetchCoordinator` direct-MX dispatch paths that aren't needed for the GATT fetch route.
 - Keep all the HYBRID_* log lines and correlation hooks — harmless and useful if iOS platform constraints change in a future release.
 - Keep `IOSAuxFullMxAdvertSmokeTest#emitsHybridMbCuePlusServiceDataFullMxEnvelope` and `IOSHybridDirectMxReceiveTest` as evidence-bundle tests; they document the carrier shape and would re-validate it cheaply if iOS evolves.
 

@@ -3,7 +3,7 @@
 05-17 05:44:40.501 29233 29283 I BluetoothAdapter: STATE_ON
 05-17 05:44:40.507 29233 29283 I BluetoothAdapter: STATE_ON
 05-17 05:44:40.510 29233 29283 I BluetoothAdapter: STATE_ON
-05-17 05:44:40.510 29233 29283 I MeshxBleDispatch: {"v":1,"event":"ble_capabilities","supports_extended_advertising":true,"max_advertising_data_length":1024,"is_multiple_advertisement_supported":true,"legacy_manufacturer_payload_budget":24}
+05-17 05:44:40.510 29233 29283 I MobBleDispatch: {"v":1,"event":"ble_capabilities","supports_extended_advertising":true,"max_advertising_data_length":1024,"is_multiple_advertisement_supported":true,"legacy_manufacturer_payload_budget":24}
 05-17 05:44:40.511 29233 29283 I BluetoothAdapter: STATE_ON
 05-17 05:44:40.512 29233 29283 I BluetoothAdapter: STATE_ON
 05-17 05:44:40.515 29233 29283 I BluetoothAdapter: STATE_ON
@@ -15,27 +15,27 @@
 05-17 05:44:40.521  1928  1939 I bt_stack: [INFO:le_advertising_manager.cc(157)] create advertising set, reg_id:-5116, id:2
 05-17 05:44:40.521  1928  2282 W bt_stack: le_advertising_manager :: create_extended_advertiser - id : 2
 05-17 05:44:40.522  1928  2282 W bt_stack: le_advertising_manager :: enable_advertiser - id : 2
-05-17 05:44:40.524 29233 29283 I MeshxBleDispatch: {"v":1,"event":"attempt_outcome","attempt_id":"selftest-1779021880500","message_id":"Z93qJUfePbpWTdmnhYL18w==","target_peer_id":"broadcast","target_device_ids":["broadcast"],"kind":"dispatched","reason":"legacy_beacon_fallback","adapter":"ble_android","outcome_at_ms":185552561}
-05-17 05:44:40.526 29233 29283 I MeshxBleNative: sendToPeer(broadcast, 31B) -> DISPATCHED reason=legacy_beacon_fallback
-05-17 05:44:40.526 29233 29283 I Elixir  : BleSelfTest: MESH MESSAGE SENT payload="hello-from-meshx-dev-1779021880" result=:ok
+05-17 05:44:40.524 29233 29283 I MobBleDispatch: {"v":1,"event":"attempt_outcome","attempt_id":"selftest-1779021880500","message_id":"Z93qJUfePbpWTdmnhYL18w==","target_peer_id":"broadcast","target_device_ids":["broadcast"],"kind":"dispatched","reason":"legacy_beacon_fallback","adapter":"ble_android","outcome_at_ms":185552561}
+05-17 05:44:40.526 29233 29283 I MobBleNative: sendToPeer(broadcast, 31B) -> DISPATCHED reason=legacy_beacon_fallback
+05-17 05:44:40.526 29233 29283 I Elixir  : BleSelfTest: MESH MESSAGE SENT payload="hello-from-mob-dev-1779021880" result=:ok
 05-17 05:44:40.528 29233 29283 W Elixir  : BleSelfTest: bridge error unknown: {"v":1,"event":"attempt_outcome","attempt_id":"selftest-1779021880500","message_id":"Z93qJUfePbpWTdmnhYL18w==","target_peer_id":"broadcast","target_device_ids":["broadcast"],"kind":"dispatched","reason":"legacy_beacon_fallback","adapter":"ble_android","outcome_at_ms":185552561}
-05-17 05:44:40.530 29233 29269 I BEAMout : 05:44:40.526 [info] BleSelfTest: MESH MESSAGE SENT payload="hello-from-meshx-dev-1779021880" result=:ok
+05-17 05:44:40.530 29233 29269 I BEAMout : 05:44:40.526 [info] BleSelfTest: MESH MESSAGE SENT payload="hello-from-mob-dev-1779021880" result=:ok
 05-17 05:44:40.530 29233 29269 I BEAMout : 05:44:40.528 [warning] BleSelfTest: bridge error unknown: {"v":1,"event":"attempt_outcome","attempt_id":"selftest-1779021880500","message_id":"Z93qJUfePbpWTdmnhYL18w==","target_peer_id":"broadcast","target_device_ids":["broadcast"],"kind":"dispatched","reason":"legacy_beacon_fallback","adapter":"ble_android","outcome_at_ms":185552561}
-05-17 05:44:40.553  1928  2260 E BtGatt.GattService: [GSIM LOG]: gsimLogHandler, msg: MESSAGE_ADV_SET_START, appName: dev.meshx.mob, id: 2, isLegacy: true
+05-17 05:44:40.553  1928  2260 E BtGatt.GattService: [GSIM LOG]: gsimLogHandler, msg: MESSAGE_ADV_SET_START, appName: dev.mob.mob, id: 2, isLegacy: true
 05-17 05:44:40.554 29233 29233 D BluetoothLeAdvertiser: onAdvertisingSetStarted(2, -7, 0)
-05-17 05:44:40.556 29233 29233 I MeshxBleDispatch: {"v":1,"event":"legacy_beacon_advertising_started","attempt_id":"selftest-1779021880500","beacon_size":22,"beacon":"TUIBAQEAnSoCIuGw2l0S94VXUXoT+Q==","message_id_hash":"nSoCIuGw2l0=","sender_peer_id_hash":"EveFV1F6E\/k=","payload_kind":"TX","envelope_version":1,"window_ms":5000,"data_carrier":"legacy_advertisement"}
+05-17 05:44:40.556 29233 29233 I MobBleDispatch: {"v":1,"event":"legacy_beacon_advertising_started","attempt_id":"selftest-1779021880500","beacon_size":22,"beacon":"TUIBAQEAnSoCIuGw2l0S94VXUXoT+Q==","message_id_hash":"nSoCIuGw2l0=","sender_peer_id_hash":"EveFV1F6E\/k=","payload_kind":"TX","envelope_version":1,"window_ms":5000,"data_carrier":"legacy_advertisement"}
 --------- beginning of system
 05-17 05:44:40.643  1200  2968 D ActivityManager: force stop from com.android.server.am.ActivityManagerService.forceStopPackage:4779 com.android.server.am.ActivityManagerShellCommand.runForceStop:1236 
-05-17 05:44:40.643  1200  2968 I ActivityManager: Force stopping dev.meshx.mob appid=10313 user=0: from pid 29561
-05-17 05:44:40.645  1200  2968 I ActivityManager: Killing 29233:dev.meshx.mob/u0a313 (adj 0): stop dev.meshx.mob due to from pid 29561
-05-17 05:44:40.647  1200  2968 D ActivityManager: proc ProcessRecord{9f19a2f 29233:dev.meshx.mob/u0a313} already removed. so we skip next process.
-05-17 05:44:40.648  1200  2968 W ActivityTaskManager: Force removing ActivityRecord{d90dd1 u0 dev.meshx.mob/.MainActivity} t418 f}}: app died, no saved state
+05-17 05:44:40.643  1200  2968 I ActivityManager: Force stopping dev.mob.mob appid=10313 user=0: from pid 29561
+05-17 05:44:40.645  1200  2968 I ActivityManager: Killing 29233:dev.mob.mob/u0a313 (adj 0): stop dev.mob.mob due to from pid 29561
+05-17 05:44:40.647  1200  2968 D ActivityManager: proc ProcessRecord{9f19a2f 29233:dev.mob.mob/u0a313} already removed. so we skip next process.
+05-17 05:44:40.648  1200  2968 W ActivityTaskManager: Force removing ActivityRecord{d90dd1 u0 dev.mob.mob/.MainActivity} t418 f}}: app died, no saved state
 05-17 05:44:40.649  1200  2968 D InputTransport: Input channel destroyed: 'df777b3', fd=881
-05-17 05:44:40.650  1200  2968 W InputManager-JNI: Input channel object 'df777b3 dev.meshx.mob/dev.meshx.mob.MainActivity (client)' was disposed without first being removed with the input manager!
+05-17 05:44:40.650  1200  2968 W InputManager-JNI: Input channel object 'df777b3 dev.mob.mob/dev.mob.mob.MainActivity (client)' was disposed without first being removed with the input manager!
 05-17 05:44:40.650  1200  2968 D InputTransport: Input channel destroyed: 'df777b3', fd=897
-05-17 05:44:40.650  1200  2968 V WindowManager: Remove Window{df777b3 u0 dev.meshx.mob/dev.meshx.mob.MainActivity}: mSurfaceController=null mAnimatingExit=false mRemoveOnExit=false mHasSurface=false surfaceShowing=false animating=false app-animation=false mWillReplaceWindow=false mDisplayFrozen=false callers=com.android.server.wm.WindowState.removeIfPossible:3219 com.android.server.wm.WindowToken.removeAllWindowsIfPossible:236 com.android.server.wm.ActivityRecord.removeIfPossible:5057 com.android.server.wm.ActivityRecord.onRemovedFromDisplay:5172 com.android.server.wm.DisplayContent.removeAppToken:1695 com.android.server.wm.ActivityRecord.removeFromHistory:4776 
+05-17 05:44:40.650  1200  2968 V WindowManager: Remove Window{df777b3 u0 dev.mob.mob/dev.mob.mob.MainActivity}: mSurfaceController=null mAnimatingExit=false mRemoveOnExit=false mHasSurface=false surfaceShowing=false animating=false app-animation=false mWillReplaceWindow=false mDisplayFrozen=false callers=com.android.server.wm.WindowState.removeIfPossible:3219 com.android.server.wm.WindowToken.removeAllWindowsIfPossible:236 com.android.server.wm.ActivityRecord.removeIfPossible:5057 com.android.server.wm.ActivityRecord.onRemovedFromDisplay:5172 com.android.server.wm.DisplayContent.removeAppToken:1695 com.android.server.wm.ActivityRecord.removeFromHistory:4776 
 05-17 05:44:40.651  1200  2968 D RestrictionPolicy: isScreenCaptureEnabled : ret=true userId=0
-05-17 05:44:40.651  1200  1247 W UsageStatsService: Unexpected activity event reported! (dev.meshx.mob/dev.meshx.mob.MainActivity event : 23 instanceId : 259291959)
+05-17 05:44:40.651  1200  1247 W UsageStatsService: Unexpected activity event reported! (dev.mob.mob/dev.mob.mob.MainActivity event : 23 instanceId : 259291959)
 05-17 05:44:40.651  1200  2968 I WindowManager: Cancelling animation restarting=true, leash=Surface(name=Surface(name=b80621 InputMethod)/@0x5e87407 - animation-leash of insets_animation)/@0xcd3f41b
 05-17 05:44:40.652  1200  2968 I WindowManager: Reparenting to original parent: Surface(name=WindowToken{bf4b1ad type=2011 android.os.Binder@f208ec4})/@0xbbdb934, destroy=false, surface=Surface(name=b80621 InputMethod)/@0x5e87407
 05-17 05:44:40.652  1200  2968 I WindowManager: Reparenting to leash, surface=Surface(name=b80621 InputMethod)/@0x5e87407, leashParent=Surface(name=WindowToken{bf4b1ad type=2011 android.os.Binder@f208ec4})/@0xbbdb934
@@ -48,26 +48,26 @@
 05-17 05:44:40.659 23472 23472 I MSHandlerLifeCycle: check: return. pkg=com.samsung.android.honeyboard isActivity=false callers=com.android.internal.policy.DecorView.setVisibility:4487 android.app.Dialog.hide:767 android.inputmethodservice.InputMethodService.removeImeSurface:1297 android.inputmethodservice.InputMethodService.scheduleImeSurfaceRemoval:1286 android.inputmethodservice.InputMethodService.-$$Nest$mscheduleImeSurfaceRemoval:0 
 05-17 05:44:40.659 23472 23472 I MSHandlerLifeCycle: removeMultiSplitHandler: no exist. decor=DecorView@325b854[InputMethod]
 05-17 05:44:40.660  1200  2968 D ActivityTaskManager: Top Process State changed to PROCESS_STATE_TOP_SLEEPING#2
-05-17 05:44:40.663   914   914 I Layer   : id=480 removeFromCurrentState df777b3 dev.meshx.mob/dev.meshx.mob.MainActivity#480 (93)
+05-17 05:44:40.663   914   914 I Layer   : id=480 removeFromCurrentState df777b3 dev.mob.mob/dev.mob.mob.MainActivity#480 (93)
 05-17 05:44:40.664   914   914 I Layer   : id=484 removeFromCurrentState Surface(name=b80621 InputMethod)/@0x5e87407 - animation-leash of insets_animation#484 (93)
 05-17 05:44:40.664   914   914 I Layer   : id=105 removeFromCurrentState b80621 InputMethod#105 (93)
 05-17 05:44:40.664   914   914 I Layer   : id=105 addToCurrentState b80621 InputMethod#105 (93)
-05-17 05:44:40.664   914   914 I Layer   : id=476 removeFromCurrentState ActivityRecord{d90dd1 u0 dev.meshx.mob/.MainActivity} t418}#476 (93)
+05-17 05:44:40.664   914   914 I Layer   : id=476 removeFromCurrentState ActivityRecord{d90dd1 u0 dev.mob.mob/.MainActivity} t418}#476 (93)
 05-17 05:44:40.664   914   914 I Layer   : id=475 removeFromCurrentState Task=418#475 (93)
 05-17 05:44:40.664   914   914 I Layer   : id=491 removeFromCurrentState Task=418#491 (93)
-05-17 05:44:40.664   914   914 I SurfaceFlinger: id=480 Removed df777b3 dev.meshx.mob/dev.meshx.mob.MainActivity#480 (93)
+05-17 05:44:40.664   914   914 I SurfaceFlinger: id=480 Removed df777b3 dev.mob.mob/dev.mob.mob.MainActivity#480 (93)
 05-17 05:44:40.664   914   914 I Layer   : id=469 Destroyed Surface(name=b80621 InputMethod)/@0x5e87407 - animation-leash of insets_animation#469
-05-17 05:44:40.665   914   914 I Layer   : id=480 Destroyed df777b3 dev.meshx.mob/dev.meshx.mob.MainActivity#480
+05-17 05:44:40.665   914   914 I Layer   : id=480 Destroyed df777b3 dev.mob.mob/dev.mob.mob.MainActivity#480
 05-17 05:44:40.668  2413  2413 I RecentsView: onTaskRemoved() taskId : 418
 05-17 05:44:40.669  2413  2413 I TopTaskTracker: onTaskRemoved : taskId = 418
 05-17 05:44:40.669  2413  2413 I RecentsView: onTaskRemoved() taskId : 418
 05-17 05:44:40.669  2413  2413 I TopTaskTracker: onTaskRemoved : taskId = 418
-05-17 05:44:40.669   914   937 I SurfaceFlinger: id=476 Removed ActivityRecord{d90dd1 u0 dev.meshx.mob/.MainActivity} t418}#476 (91)
+05-17 05:44:40.669   914   937 I SurfaceFlinger: id=476 Removed ActivityRecord{d90dd1 u0 dev.mob.mob/.MainActivity} t418}#476 (91)
 05-17 05:44:40.669   914   937 I SurfaceFlinger: id=491 Removed Task=418#491 (91)
 05-17 05:44:40.679   914   914 I Layer   : id=491 Destroyed Task=418#491
-05-17 05:44:40.679   914   914 I Layer   : id=476 Destroyed ActivityRecord{d90dd1 u0 dev.meshx.mob/.MainActivity} t418}#476
+05-17 05:44:40.679   914   914 I Layer   : id=476 Destroyed ActivityRecord{d90dd1 u0 dev.mob.mob/.MainActivity} t418}#476
 05-17 05:44:40.687  1200  1248 W BroadcastQueue: Background execution not allowed: receiving Intent { act=android.intent.action.PACKAGE_RESTARTED dat=package: flg=0x10 (has extras) } to android/com.kddi.android.CpaNotiReceiver
-05-17 05:44:40.688  1567  1567 D CarrierSvcBindHelper: onHandleForceStop: [dev.meshx.mob]
+05-17 05:44:40.688  1567  1567 D CarrierSvcBindHelper: onHandleForceStop: [dev.mob.mob]
 05-17 05:44:40.692  1567  1567 D CarrierSvcBindHelper: No carrier app for: 0
 05-17 05:44:40.693  1567  1567 D CarrierSvcBindHelper: No carrier app for: 1
 05-17 05:44:40.698  1948  1948 D RegisteredNfcFServicesCache: Service unchanged, not updating
@@ -78,7 +78,7 @@
 05-17 05:44:40.783  1200  3026 D InputTransport: Input channel destroyed: 'ClientS', fd=904
 05-17 05:44:40.783  1200  3026 V InputMethodManagerService: hideCurrentInputLocked : canceled, shouldHideSoftInput=false, mInputShown=false, mImeWindowVis=0
 05-17 05:44:40.784  1200  3026 I InputMethodBindingController: setCurrentMethodNotVisible: mVisibleBound=false, mHasConnection=true, caller = com.android.server.inputmethod.InputMethodManagerService.hideCurrentInputLocked:4300 com.android.server.inputmethod.InputMethodManagerService.removeClient:2807 com.android.server.inputmethod.InputMethodManagerService$ClientDeathRecipient.binderDied:679 android.os.IBinder$DeathRecipient.binderDied:323 android.os.BinderProxy.sendDeathNotice:781 <bottom of call stack> <bottom of call stack> <bottom of call stack> <bottom of call stack> <bottom of call stack> 
-05-17 05:44:40.784  1928  1941 D LeAppInfo: removeLeacReportedServerApp, appName: dev.meshx.mob
+05-17 05:44:40.784  1928  1941 D LeAppInfo: removeLeacReportedServerApp, appName: dev.mob.mob
 05-17 05:44:40.785  1928  1939 I bt_stack: [INFO:le_advertising_manager.cc(70)] Unregister in shim layer
 05-17 05:44:40.785  1928  2282 W bt_stack: le_advertising_manager :: remove_advertiser - id : 1
 05-17 05:44:40.786  1928  1939 I BtGatt.AdvertiseManager: error sending onAdvertisingSetStopped callback
@@ -90,10 +90,10 @@
 05-17 05:44:40.786  1928  1939 I BtGatt.AdvertiseManager: 	at com.android.bluetooth.gatt.AdvertiseManager$AdvertisingSetDeathRecipient.binderDied(AdvertiseManager.java:193)
 05-17 05:44:40.786  1928  1939 I BtGatt.AdvertiseManager: 	at android.os.IBinder$DeathRecipient.binderDied(IBinder.java:323)
 05-17 05:44:40.786  1928  1939 I BtGatt.AdvertiseManager: 	at android.os.BinderProxy.sendDeathNotice(BinderProxy.java:781)
-05-17 05:44:40.786  1928  2260 E BtGatt.GattService: [GSIM LOG]: gsimLogHandler, msg: MESSAGE_ADV_SET_STOP, appName: dev.meshx.mob, id: 2, isLegacy: true
-05-17 05:44:40.788  1200  2968 V ActivityManager: Got obituary of 29233:dev.meshx.mob
+05-17 05:44:40.786  1928  2260 E BtGatt.GattService: [GSIM LOG]: gsimLogHandler, msg: MESSAGE_ADV_SET_STOP, appName: dev.mob.mob, id: 2, isLegacy: true
+05-17 05:44:40.788  1200  2968 V ActivityManager: Got obituary of 29233:dev.mob.mob
 05-17 05:44:40.788  1200  1240 W ActivityManager: setHasOverlayUi called on unknown pid: 29233
-05-17 05:44:40.790  1928  2260 E BtGatt.GattService: [GSIM LOG]: gsimLogHandler, msg: MESSAGE_ADV_SET_STOP, appName: dev.meshx.mob, id: 1, isLegacy: true
+05-17 05:44:40.790  1928  2260 E BtGatt.GattService: [GSIM LOG]: gsimLogHandler, msg: MESSAGE_ADV_SET_STOP, appName: dev.mob.mob, id: 1, isLegacy: true
 05-17 05:44:40.791  1928  1941 D ActivityAttributionService: notifyActivityAttributionInfo UID=1002 packageName=com.android.bluetooth deviceAddress=no_active_device_address
 05-17 05:44:40.792  1928  3855 I BtGatt.AdvertiseManager: error sending onAdvertisingSetStopped callback
 05-17 05:44:40.792  1928  3855 I BtGatt.AdvertiseManager: android.os.DeadObjectException
@@ -108,39 +108,39 @@
 05-17 05:44:40.792  1928  2248 E BtGatt.ContextMap: remove() - removed: 2
 05-17 05:44:40.792  1928  2248 I bt_stack: [INFO:le_scanning_manager.cc(174)] Unregister in shim layer, scanner_id:2
 05-17 05:44:40.795   914   914 I Layer   : id=484 Destroyed Surface(name=b80621 InputMethod)/@0x5e87407 - animation-leash of insets_animation#484
-05-17 05:44:40.795  1928  2260 E BtGatt.GattService: [GSIM LOG]: gsimLogHandler, msg: MESSAGE_SCAN_STOP, appName: dev.meshx.mob, scannerId: 2, reportDelayMillis=0
+05-17 05:44:40.795  1928  2260 E BtGatt.GattService: [GSIM LOG]: gsimLogHandler, msg: MESSAGE_SCAN_STOP, appName: dev.mob.mob, scannerId: 2, reportDelayMillis=0
 05-17 05:44:40.799  2598  2598 I adbd    : Remote process closed the socket (on MSG_PEEK)
 05-17 05:44:40.800  1200  1250 I libprocessgroup: Successfully killed process cgroup uid 10313 pid 29233 in 153ms
 05-17 05:44:40.800  1200  1250 I ActivityManager: Process PhantomProcessRecord {f277d61 29282:29233:erl_child_setup/u0a313} died
 05-17 05:44:40.801   837   837 I Zygote  : Process 29233 exited due to signal 9 (Killed)
-05-17 05:44:40.802  1928  2260 E LeAppInfo: updateScanStopInfo(), There is NO scan process with :                                      dev.meshx.mob|    Normal|  LowPower| NonFilter|      true|
+05-17 05:44:40.802  1928  2260 E LeAppInfo: updateScanStopInfo(), There is NO scan process with :                                      dev.mob.mob|    Normal|  LowPower| NonFilter|      true|
 05-17 05:44:40.804  1928  2282 W bt_stack: Received command complete with op_code LE_SET_RANDOM_ADDRESS
 05-17 05:44:40.822  1200  1446 D ConnectivityService: reportNetworkActive, notify 1 listeners
 05-17 05:44:40.834  1200  1248 I SemDvfsHyPerManager: acquire hyper - APP_LAUNCH/1200@25, type = -999
 05-17 05:44:40.835  1200  3026 D ActivityTaskManager: startActivityAsUser: callingPid=29569, callingUid=2000, caller=com.android.server.wm.ActivityTaskManagerService.startActivityAsUser:1828 com.android.server.am.ActivityManagerService.startActivityAsUserWithFeature:3760 com.android.server.am.ActivityManagerShellCommand.runStartActivity:656 com.android.server.am.ActivityManagerShellCommand.onCommand:222 com.android.modules.utils.BasicShellCommandHandler.exec:97 android.os.ShellCommand.exec:38 com.android.server.am.ActivityManagerService.onShellCommand:11315 
 05-17 05:44:40.835   864   921 I HYPER-HAL: [RequestManager.cpp]acquire(): Acquired ID : 750950  [1200 / 25]    HINT : APP_LAUNCH    list : 
-05-17 05:44:40.836  1200  1240 I ChimeraSystemEventListener: appLaunchIntent package name is: dev.meshx.mob
+05-17 05:44:40.836  1200  1240 I ChimeraSystemEventListener: appLaunchIntent package name is: dev.mob.mob
 05-17 05:44:40.836   864   921 E HYPER-HAL: [HandlerSysfs.cpp]doResourceHandling(): Couldn't Open Sysfs - /sys/power/cstate_control
 05-17 05:44:40.836  2905  2905 I SemDvfsHyPerManager: acquire hyper - APP_START_SHORT/2905@12, type = -999
 05-17 05:44:40.837  1200  3026 D CompatibilityChangeReporter: Compat change id reported: 161252188; UID 10313; state: DISABLED
-05-17 05:44:40.838  1200  3026 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=dev.meshx.mob/.MainActivity (has extras)} from uid 2000
+05-17 05:44:40.838  1200  3026 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=dev.mob.mob/.MainActivity (has extras)} from uid 2000
 05-17 05:44:40.839  1200  3026 D CompatibilityChangeReporter: Compat change id reported: 194480991; UID 10313; state: ENABLED
-05-17 05:44:40.840  1200  3026 D ActivityTaskManager: TaskLaunchParamsModifier:task=null activity=ActivityRecord{a57bf12 u0 dev.meshx.mob/.MainActivity} display-id=0 display-windowing-mode=1 suggested-display-area=DefaultTaskDisplayArea@8828587
-05-17 05:44:40.840  1200  3026 D [secipm]: mSecIpmManager Preload dev.meshx.mob dex files
+05-17 05:44:40.840  1200  3026 D ActivityTaskManager: TaskLaunchParamsModifier:task=null activity=ActivityRecord{a57bf12 u0 dev.mob.mob/.MainActivity} display-id=0 display-windowing-mode=1 suggested-display-area=DefaultTaskDisplayArea@8828587
+05-17 05:44:40.840  1200  3026 D [secipm]: mSecIpmManager Preload dev.mob.mob dex files
 05-17 05:44:40.840   864   921 I HYPER-HAL: [RequestManager.cpp]acquire(): Acquired ID : 4255915  [2905 / 12]    HINT : APP_START    list : [TIMEOUT / 1500] 
-05-17 05:44:40.841  1200  3026 D ActivityTaskManager: TaskLaunchParamsModifier:task=null activity=ActivityRecord{a57bf12 u0 dev.meshx.mob/.MainActivity} t-1} display-id=0 display-windowing-mode=1 suggested-display-area=DefaultTaskDisplayArea@8828587 non-freeform-display display-area=DefaultTaskDisplayArea@8828587 maximized-bounds
+05-17 05:44:40.841  1200  3026 D ActivityTaskManager: TaskLaunchParamsModifier:task=null activity=ActivityRecord{a57bf12 u0 dev.mob.mob/.MainActivity} t-1} display-id=0 display-windowing-mode=1 suggested-display-area=DefaultTaskDisplayArea@8828587 non-freeform-display display-area=DefaultTaskDisplayArea@8828587 maximized-bounds
 05-17 05:44:40.841   914  1114 I SurfaceFlinger: id=492 createSurf flag=24004, Task=419#492
 05-17 05:44:40.842  1200  3026 D ActivityTaskManager: Top Process State changed to PROCESS_STATE_TOP_SLEEPING#2
-05-17 05:44:40.842  1200  3026 D ActivityTaskManager: TaskLaunchParamsModifier:task=Task{d8006e3 #419 type=standard A=10313:dev.meshx.mob U=0 visible=false visibleRequested=false mode=fullscreen translucent=true sz=0} activity=ActivityRecord{a57bf12 u0 dev.meshx.mob/.MainActivity} t-1} display-from-task=0 display-id=0 display-windowing-mode=1 suggested-display-area=DefaultTaskDisplayArea@8828587 non-freeform-display display-area=DefaultTaskDisplayArea@8828587 maximized-bounds
+05-17 05:44:40.842  1200  3026 D ActivityTaskManager: TaskLaunchParamsModifier:task=Task{d8006e3 #419 type=standard A=10313:dev.mob.mob U=0 visible=false visibleRequested=false mode=fullscreen translucent=true sz=0} activity=ActivityRecord{a57bf12 u0 dev.mob.mob/.MainActivity} t-1} display-from-task=0 display-id=0 display-windowing-mode=1 suggested-display-area=DefaultTaskDisplayArea@8828587 non-freeform-display display-area=DefaultTaskDisplayArea@8828587 maximized-bounds
 05-17 05:44:40.843  1200  3026 D CompatibilityChangeReporter: Compat change id reported: 174042980; UID 10313; state: DISABLED
 05-17 05:44:40.843  1200  3026 D CompatibilityChangeReporter: Compat change id reported: 184838306; UID 10313; state: DISABLED
 05-17 05:44:40.843  1200  3026 D CompatibilityChangeReporter: Compat change id reported: 185004937; UID 10313; state: DISABLED
-05-17 05:44:40.843   914  1114 I SurfaceFlinger: id=493 createSurf flag=80004, ActivityRecord{a57bf12 u0 dev.meshx.mob/.MainActivity} t419}#493
+05-17 05:44:40.843   914  1114 I SurfaceFlinger: id=493 createSurf flag=80004, ActivityRecord{a57bf12 u0 dev.mob.mob/.MainActivity} t419}#493
 05-17 05:44:40.844  1200  3026 D ActivityTaskManager: Temporarily retain top process state for launching app
 05-17 05:44:40.844  1200  3026 W WindowManager: Prepare app transition: mNextAppTransitionRequests=[TRANSIT_OPEN], mNextAppTransitionFlags=, displayId: 0 Callers=com.android.server.wm.DisplayContent.prepareAppTransition:6543 com.android.server.wm.DisplayContent.prepareAppTransition:6534 com.android.server.wm.Task.startActivityLocked:6851 com.android.server.wm.ActivityStarter.startActivityInner:3105 com.android.server.wm.ActivityStarter.startActivityUnchecked:2522 
 05-17 05:44:40.844  1200  3026 V WindowManager: Checking theme of starting window: 0x7f120005
 05-17 05:44:40.844  1200  3026 V WindowManager: Translucent=false Floating=false ShowWallpaper=false Disable=false
-05-17 05:44:40.844  1200  3026 D MARsPolicyManager: onPackageResumedFG pkgName = dev.meshx.mob, userId = 0
+05-17 05:44:40.844  1200  3026 D MARsPolicyManager: onPackageResumedFG pkgName = dev.mob.mob, userId = 0
 05-17 05:44:40.845  1200  3026 W WindowManager: Prepare app transition: mNextAppTransitionRequests=[TRANSIT_OPEN, TRANSIT_OPEN], mNextAppTransitionFlags=, displayId: 0 Callers=com.android.server.wm.DisplayContent.prepareAppTransition:6543 com.android.server.wm.TaskFragment.resumeTopActivity:1628 com.android.server.wm.TaskFragment.resumeTopActivity:1354 com.android.server.wm.Task.resumeTopActivityInnerLocked:6685 com.android.server.wm.Task.resumeTopActivityUncheckedLocked:6576 
 05-17 05:44:40.847  1200  3026 I Pageboost: stop alp
 05-17 05:44:40.847  1200  3026 I SemDvfsHyPerManager: acquire hyper - AMS_APP_LAUNCH/1200@15, type = -999
@@ -156,63 +156,63 @@
 05-17 05:44:40.852  1200  1240 D CompatibilityChangeReporter: Compat change id reported: 135754954; UID 10313; state: ENABLED
 05-17 05:44:40.852  1200  1249 D CompatibilityChangeReporter: Compat change id reported: 143937733; UID 10313; state: ENABLED
 05-17 05:44:40.858   837   837 D Zygote  : Forked child process 29576
-05-17 05:44:40.859  1200  1249 I ActivityManager: Start proc 29576:dev.meshx.mob/u0a313 for top-activity {dev.meshx.mob/dev.meshx.mob.MainActivity}
-05-17 05:44:40.859  1200  1249 D DynamicHiddenApp_BGProtectManager: [SecIpm] it's a ML_TYPE_EMPTYPROCESS protected process dev.meshx.mob
-05-17 05:44:40.877 29576 29576 I dev.meshx.mob: Late-enabling -Xcheck:jni
-05-17 05:44:40.909 29576 29576 I dev.meshx.mob: Using CollectorTypeCC GC.
+05-17 05:44:40.859  1200  1249 I ActivityManager: Start proc 29576:dev.mob.mob/u0a313 for top-activity {dev.mob.mob/dev.mob.mob.MainActivity}
+05-17 05:44:40.859  1200  1249 D DynamicHiddenApp_BGProtectManager: [SecIpm] it's a ML_TYPE_EMPTYPROCESS protected process dev.mob.mob
+05-17 05:44:40.877 29576 29576 I dev.mob.mob: Late-enabling -Xcheck:jni
+05-17 05:44:40.909 29576 29576 I dev.mob.mob: Using CollectorTypeCC GC.
 05-17 05:44:40.914  2598  2604 I adbd    : jdwp connection from 29576
 05-17 05:44:40.924 29576 29576 D nativeloader: Load libframework-connectivity-tiramisu-jni.so using APEX ns com_android_tethering for caller /apex/com.android.tethering/javalib/framework-connectivity-t.jar: ok
 05-17 05:44:40.928 29576 29576 D ActivityThread: setConscryptValidator
 05-17 05:44:40.928 29576 29576 D ActivityThread: setConscryptValidator - put
 05-17 05:44:40.933  1200  3026 D CompatibilityChangeReporter: Compat change id reported: 168419799; UID 10313; state: DISABLED
-05-17 05:44:40.934  1200  3026 I ActivityManager: DSS OFF for dev.meshx.mob
-05-17 05:44:40.936  1200  3026 I DexController: getTaskHasActivityIsWaitingToRun: r=ActivityRecord{a57bf12 u0 dev.meshx.mob/.MainActivity} t419}, app=ProcessRecord{3297799 29576:dev.meshx.mob/u0a313}
+05-17 05:44:40.934  1200  3026 I ActivityManager: DSS OFF for dev.mob.mob
+05-17 05:44:40.936  1200  3026 I DexController: getTaskHasActivityIsWaitingToRun: r=ActivityRecord{a57bf12 u0 dev.mob.mob/.MainActivity} t419}, app=ProcessRecord{3297799 29576:dev.mob.mob/u0a313}
 05-17 05:44:40.937  1200  3026 V WindowManager: rotationForOrientation(orient=SCREEN_ORIENTATION_USER (2), last=ROTATION_0 (0)); user=ROTATION_0 (0) 
 05-17 05:44:40.937  1200  3026 D WindowManager: rotationForOrientation, orientationSource=Window{339d9e9 u0 NotificationShade}
 05-17 05:44:40.937  1200  3026 V WindowManager: Computed rotation=ROTATION_0 (0) for display id=0 based on lastOrientation=SCREEN_ORIENTATION_USER (2) and oldRotation=ROTATION_0 (0), caller=com.android.server.wm.DisplayRotation.updateOrientation:432 com.android.server.wm.DisplayContent.updateOrientation:2003 com.android.server.wm.DisplayContent.updateOrientation:1903 com.android.server.wm.RootWindowContainer.ensureVisibilityAndConfig:2161 com.android.server.wm.ActivityTaskSupervisor.realStartActivityLocked:919 com.android.server.wm.RootWindowContainer$AttachApplicationHelper.test:4390 
 05-17 05:44:40.944  1200  3026 D TspStateManager: updateCustomValue customSetting=
 05-17 05:44:40.945  1200  3026 D TspStateManager: updateCustomValue customSetting=
-05-17 05:44:40.945  1200  3026 D SGM:PkgDataHelper: notifyAppCreate(), pkgName: dev.meshx.mob, userId: 0, sendRet: true
-05-17 05:44:40.946  1200  1419 D SGM:FgCheckThread: onLooperPrepared(), msg: MSG_APP_CREATE, pkgName: dev.meshx.mob, userId: 0
-05-17 05:44:40.946  1200  3026 D MARsPolicyManager: onPackageResumedFG pkgName = dev.meshx.mob, userId = 0
-05-17 05:44:40.946  1200  3026 D ActivityTaskManager: scheduleTopResumedActivityChanged, onTop=true r=ActivityRecord{a57bf12 u0 dev.meshx.mob/.MainActivity} t419} caller=com.android.server.wm.ActivityTaskSupervisor.scheduleTopResumedActivityStateIfNeeded:2591 com.android.server.wm.ActivityTaskSupervisor.updateTopResumedActivityIfNeeded:2583 com.android.server.wm.TaskFragment.setResumedActivity:508 com.android.server.wm.TaskFragment.onActivityStateChanged:820 com.android.server.wm.ActivityRecord.setState:6665 com.android.server.wm.Task.minimalResumeActivityLocked:6379 
-05-17 05:44:40.946  1200  3026 D InputDispatcher: Focused application(0): ActivityRecord{a57bf12 u0 dev.meshx.mob/.MainActivity} t419}
+05-17 05:44:40.945  1200  3026 D SGM:PkgDataHelper: notifyAppCreate(), pkgName: dev.mob.mob, userId: 0, sendRet: true
+05-17 05:44:40.946  1200  1419 D SGM:FgCheckThread: onLooperPrepared(), msg: MSG_APP_CREATE, pkgName: dev.mob.mob, userId: 0
+05-17 05:44:40.946  1200  3026 D MARsPolicyManager: onPackageResumedFG pkgName = dev.mob.mob, userId = 0
+05-17 05:44:40.946  1200  3026 D ActivityTaskManager: scheduleTopResumedActivityChanged, onTop=true r=ActivityRecord{a57bf12 u0 dev.mob.mob/.MainActivity} t419} caller=com.android.server.wm.ActivityTaskSupervisor.scheduleTopResumedActivityStateIfNeeded:2591 com.android.server.wm.ActivityTaskSupervisor.updateTopResumedActivityIfNeeded:2583 com.android.server.wm.TaskFragment.setResumedActivity:508 com.android.server.wm.TaskFragment.onActivityStateChanged:820 com.android.server.wm.ActivityRecord.setState:6665 com.android.server.wm.Task.minimalResumeActivityLocked:6379 
+05-17 05:44:40.946  1200  3026 D InputDispatcher: Focused application(0): ActivityRecord{a57bf12 u0 dev.mob.mob/.MainActivity} t419}
 05-17 05:44:40.947  1200  3026 D SGM:FgCheckThread: TaskStackListener.onTaskFocusChanged(), taskId=419, focused=true
-05-17 05:44:40.947  1200  3026 D SGM:FgCheckThread:   sendRunningComponentFocus(), pkgName: dev.meshx.mob, userId: 0
-05-17 05:44:40.947  1200  1419 D SGM:FgCheckThread: onLooperPrepared(), msg: MSG_TASK_FOCUSED, pkgName: dev.meshx.mob, userId: 0
+05-17 05:44:40.947  1200  3026 D SGM:FgCheckThread:   sendRunningComponentFocus(), pkgName: dev.mob.mob, userId: 0
+05-17 05:44:40.947  1200  1419 D SGM:FgCheckThread: onLooperPrepared(), msg: MSG_TASK_FOCUSED, pkgName: dev.mob.mob, userId: 0
 05-17 05:44:40.947  1200  1419 D SGM:FgCheckThread: handleTaskFocused().
-05-17 05:44:40.947  1200  1419 D SGM:FgCheckThread:   handleTaskFocused(), pkgName: dev.meshx.mob, userID:0
+05-17 05:44:40.947  1200  1419 D SGM:FgCheckThread:   handleTaskFocused(), pkgName: dev.mob.mob, userID:0
 05-17 05:44:40.947  1200  1419 D SGM:FgCheckThread: handleResume().
 05-17 05:44:40.947  1200  1419 D SGM:SystemHelper: callReleaseBlock needReleaseBlock:false
 05-17 05:44:40.947  1200  1419 D SGM:FgCheckThread:   handleResume(). device is locked yet. ignore
-05-17 05:44:40.949   914  1114 I SurfaceFlinger: id=494 createSurf flag=80000, d7d8e9d ActivityRecordInputSink dev.meshx.mob/.MainActivity#494
+05-17 05:44:40.949   914  1114 I SurfaceFlinger: id=494 createSurf flag=80000, d7d8e9d ActivityRecordInputSink dev.mob.mob/.MainActivity#494
 05-17 05:44:40.954  1200  3026 W WindowManager: Execute app transition: mNextAppTransitionRequests=[TRANSIT_OPEN, TRANSIT_OPEN], mNextAppTransitionFlags=, displayId: 0 Callers=com.android.server.wm.RootWindowContainer.executeAppTransitionForAllDisplay:2658 com.android.server.wm.ActivityTaskSupervisor.reportResumedActivityLocked:2343 com.android.server.wm.ActivityRecord.completeResumeLocked:7264 com.android.server.wm.Task.minimalResumeActivityLocked:6380 com.android.server.wm.ActivityTaskSupervisor.realStartActivityLocked:1151 
-05-17 05:44:40.954  1200  3026 D ActivityTaskManager: scheduleTopResumedActivityChanged, onTop=false r=ActivityRecord{a57bf12 u0 dev.meshx.mob/.MainActivity} t419} caller=com.android.server.wm.ActivityTaskSupervisor.updateTopResumedActivityIfNeeded:2566 com.android.server.wm.TaskFragment.setResumedActivity:508 com.android.server.wm.TaskFragment.onActivityStateChanged:805 com.android.server.wm.ActivityRecord.setState:6665 com.android.server.wm.TaskFragment.startPausing:1950 com.android.server.wm.TaskFragment.startPausing:1887 
+05-17 05:44:40.954  1200  3026 D ActivityTaskManager: scheduleTopResumedActivityChanged, onTop=false r=ActivityRecord{a57bf12 u0 dev.mob.mob/.MainActivity} t419} caller=com.android.server.wm.ActivityTaskSupervisor.updateTopResumedActivityIfNeeded:2566 com.android.server.wm.TaskFragment.setResumedActivity:508 com.android.server.wm.TaskFragment.onActivityStateChanged:805 com.android.server.wm.ActivityRecord.setState:6665 com.android.server.wm.TaskFragment.startPausing:1950 com.android.server.wm.TaskFragment.startPausing:1887 
 05-17 05:44:40.955  1200  1240 I ActivityManager: Changes in 10313 20 to 2, 0 to 15
 05-17 05:44:40.955  1200  1240 I AppOps  : updateUidProcState uid: 10313 procState: 2 capability:15
 05-17 05:44:40.955  1200  1462 D AS.MultiSoundManager: mForegroundUid = 10313
 05-17 05:44:40.955  1200  1240 I AppOps  : commitUidPendingStateLocked() :: UID - 10313, 700 > 200, 0 > 15
 05-17 05:44:40.955  1200  1240 I ActivityManager: updateOomAdj start time is before than pendingPid added, don't delete it
 05-17 05:44:40.959 29576 29576 D CompatibilityChangeReporter: Compat change id reported: 171979766; UID 10313; state: ENABLED
-05-17 05:44:40.959   914   914 I Layer   : id=494 removeFromCurrentState d7d8e9d ActivityRecordInputSink dev.meshx.mob/.MainActivity#494 (91)
-05-17 05:44:40.959   914   914 I SurfaceFlinger: id=494 Removed d7d8e9d ActivityRecordInputSink dev.meshx.mob/.MainActivity#494 (91)
-05-17 05:44:40.959   914   914 I Layer   : id=494 Destroyed d7d8e9d ActivityRecordInputSink dev.meshx.mob/.MainActivity#494
-05-17 05:44:40.961  2496  2542 I RequestManager_FLP: onOpChanged, op=0 / packageName=dev.meshx.mob
+05-17 05:44:40.959   914   914 I Layer   : id=494 removeFromCurrentState d7d8e9d ActivityRecordInputSink dev.mob.mob/.MainActivity#494 (91)
+05-17 05:44:40.959   914   914 I SurfaceFlinger: id=494 Removed d7d8e9d ActivityRecordInputSink dev.mob.mob/.MainActivity#494 (91)
+05-17 05:44:40.959   914   914 I Layer   : id=494 Destroyed d7d8e9d ActivityRecordInputSink dev.mob.mob/.MainActivity#494
+05-17 05:44:40.961  2496  2542 I RequestManager_FLP: onOpChanged, op=0 / packageName=dev.mob.mob
 05-17 05:44:40.961  1200  1433 V NetworkPolicy: getFirewallRuleWifi UID:10313 policy:0
-05-17 05:44:40.962  1200  1240 I GameSDK@LifeCycle: noteResumeComponent(): package name  : dev.meshx.mob
+05-17 05:44:40.962  1200  1240 I GameSDK@LifeCycle: noteResumeComponent(): package name  : dev.mob.mob
 05-17 05:44:40.963  1200  1257 D BatteryExternalStatsWorker: update stats : get-stats (63)
-05-17 05:44:40.964  1200  1240 D SGM:FgCheckThread: noteResumeComponent(), received pkgName: dev.meshx.mob, userId: 0
-05-17 05:44:40.964  1200  1419 D SGM:FgCheckThread: onLooperPrepared(), msg: MSG_APP_RESUME, pkgName: dev.meshx.mob, userid: 0
+05-17 05:44:40.964  1200  1240 D SGM:FgCheckThread: noteResumeComponent(), received pkgName: dev.mob.mob, userId: 0
+05-17 05:44:40.964  1200  1419 D SGM:FgCheckThread: onLooperPrepared(), msg: MSG_APP_RESUME, pkgName: dev.mob.mob, userid: 0
 05-17 05:44:40.964  1200  1484 I CocktailBarManagerServiceContainer: handleMessage: entry what = 5
 05-17 05:44:40.964  1200  1419 D SGM:FgCheckThread: handleResume().
 05-17 05:44:40.965  1200  1419 D SGM:SystemHelper: callReleaseBlock needReleaseBlock:false
 05-17 05:44:40.965  1200  1419 D SGM:FgCheckThread:   handleResume(). device is locked yet. ignore
 05-17 05:44:40.971  1200  1240 I ActivityManager: updateOomAdj start time is before than pendingPid added, don't delete it
-05-17 05:44:40.971  5662  5662 I ActivityUtils: HomePackage : com.sec.android.app.launcher, resumePackageName : dev.meshx.mob
-05-17 05:44:40.978 29576 29576 D nativeloader: Configuring clns-4 for other apk /data/app/~~7_JfJd_UlVswUeLwoiaLgQ==/dev.meshx.mob-ivO6cS7eflFfQcbbJp1V4A==/base.apk. target_sdk_version=34, uses_libraries=, library_path=/data/app/~~7_JfJd_UlVswUeLwoiaLgQ==/dev.meshx.mob-ivO6cS7eflFfQcbbJp1V4A==/lib/arm64:/data/app/~~7_JfJd_UlVswUeLwoiaLgQ==/dev.meshx.mob-ivO6cS7eflFfQcbbJp1V4A==/base.apk!/lib/arm64-v8a, permitted_path=/data:/mnt/expand:/data/user/0/dev.meshx.mob
+05-17 05:44:40.971  5662  5662 I ActivityUtils: HomePackage : com.sec.android.app.launcher, resumePackageName : dev.mob.mob
+05-17 05:44:40.978 29576 29576 D nativeloader: Configuring clns-4 for other apk /data/app/~~7_JfJd_UlVswUeLwoiaLgQ==/dev.mob.mob-ivO6cS7eflFfQcbbJp1V4A==/base.apk. target_sdk_version=34, uses_libraries=, library_path=/data/app/~~7_JfJd_UlVswUeLwoiaLgQ==/dev.mob.mob-ivO6cS7eflFfQcbbJp1V4A==/lib/arm64:/data/app/~~7_JfJd_UlVswUeLwoiaLgQ==/dev.mob.mob-ivO6cS7eflFfQcbbJp1V4A==/base.apk!/lib/arm64-v8a, permitted_path=/data:/mnt/expand:/data/user/0/dev.mob.mob
 05-17 05:44:40.988 29576 29576 D nativeloader: Load libframework-connectivity-jni.so using APEX ns com_android_tethering for caller /apex/com.android.tethering/javalib/framework-connectivity.jar: ok
-05-17 05:44:40.994 29576 29576 V GraphicsEnvironment: ANGLE Developer option for 'dev.meshx.mob' set to: 'default'
-05-17 05:44:40.994 29576 29576 V GraphicsEnvironment: ANGLE GameManagerService for dev.meshx.mob: false
+05-17 05:44:40.994 29576 29576 V GraphicsEnvironment: ANGLE Developer option for 'dev.mob.mob' set to: 'default'
+05-17 05:44:40.994 29576 29576 V GraphicsEnvironment: ANGLE GameManagerService for dev.mob.mob: false
 05-17 05:44:40.994 29576 29576 V GraphicsEnvironment: Neither updatable production driver nor prerelease driver is supported.
 05-17 05:44:40.998 29576 29576 D NetworkSecurityConfig: Using Network Security Config from resource network_security_config debugBuild: true
 05-17 05:44:41.023  1200  2968 D WifiNl80211Manager: Scan result ready event
@@ -246,7 +246,7 @@
 05-17 05:44:41.092  1200  1257 D BatteryExternalStatsWorker: Update bluetooth state
 05-17 05:44:41.092  1200  1257 D BatteryExternalStatsWorker: mStats lock released
 05-17 05:44:41.097 29576 29576 D CompatibilityChangeReporter: Compat change id reported: 183155436; UID 10313; state: ENABLED
-05-17 05:44:41.100  1200  1896 D MdnieScenarioControlService:  packageName : dev.meshx.mob    className : dev.meshx.mob.MainActivity
+05-17 05:44:41.100  1200  1896 D MdnieScenarioControlService:  packageName : dev.mob.mob    className : dev.mob.mob.MainActivity
 05-17 05:44:41.100  1200  1896 V MdnieScenarioControlService: setUIMode from UI function(3)
 05-17 05:44:41.109 29576 29576 I FirebaseApp: Device unlocked: initializing all Firebase APIs for app [DEFAULT]
 05-17 05:44:41.113  1200  1257 D BatteryExternalStatsWorker: Update wifi state
@@ -254,11 +254,11 @@
 05-17 05:44:41.145 29576 29603 D OpenGLRenderer: RenderThread::requireGlContext()
 05-17 05:44:41.145  1200  1257 D BatteryExternalStatsWorker: Update modem state
 05-17 05:44:41.145  1200  1257 D BatteryExternalStatsWorker: done updateExternalStatsLocked
-05-17 05:44:41.157 29576 29576 D nativeloader: Load /data/app/~~7_JfJd_UlVswUeLwoiaLgQ==/dev.meshx.mob-ivO6cS7eflFfQcbbJp1V4A==/lib/arm64/libmeshx_mobile_app.so using class loader ns clns-4 (caller=/data/app/~~7_JfJd_UlVswUeLwoiaLgQ==/dev.meshx.mob-ivO6cS7eflFfQcbbJp1V4A==/base.apk!classes3.dex): ok
-05-17 05:44:41.157 29576 29576 I MobNIF  : mob_ui_cache_class: looking up dev/meshx/mob/MobBridge
-05-17 05:44:41.159 29576 29576 I MobNIF  : mob_ui_cache_class: dev/meshx/mob/MobBridge cached OK
+05-17 05:44:41.157 29576 29576 D nativeloader: Load /data/app/~~7_JfJd_UlVswUeLwoiaLgQ==/dev.mob.mob-ivO6cS7eflFfQcbbJp1V4A==/lib/arm64/libmob_node.so using class loader ns clns-4 (caller=/data/app/~~7_JfJd_UlVswUeLwoiaLgQ==/dev.mob.mob-ivO6cS7eflFfQcbbJp1V4A==/base.apk!classes3.dex): ok
+05-17 05:44:41.157 29576 29576 I MobNIF  : mob_ui_cache_class: looking up dev/mob/mob/MobBridge
+05-17 05:44:41.159 29576 29576 I MobNIF  : mob_ui_cache_class: dev/mob/mob/MobBridge cached OK
 05-17 05:44:41.160 29576 29603 D OpenGLRenderer: RenderThread::setGrContext()
-05-17 05:44:41.161 29576 29576 I MeshxBleNif: meshx_ble_cache_class: MeshxBleNative cached
+05-17 05:44:41.161 29576 29576 I MobBleNif: mob_ble_cache_class: MobBleNative cached
 05-17 05:44:41.171  1200  2968 I GenerationRegistry: mBackingStore.isClosed() : false
 05-17 05:44:41.180  1200  2968 I GenerationRegistry: mBackingStore.isClosed() : false
 05-17 05:44:41.187  1200  1261 E MARsVersionManager: Package name: com.sec.android.app.shealth cannot be found.android.content.pm.PackageManager$NameNotFoundException: com.sec.android.app.shealth
@@ -279,16 +279,16 @@
 05-17 05:44:41.200  1200  1896 V MdnieScenarioControlService: mAclOffEnabled : false mAclPreviewState : false mAclCompensationState : false
 05-17 05:44:41.202  1200  1212 W System  : A resource failed to call HardwareBuffer.close. 
 05-17 05:44:41.205  1200  2968 D CompatibilityChangeReporter: Compat change id reported: 161145287; UID 10313; state: DISABLED
-05-17 05:44:41.206 29576 29576 I MeshxBleNative: init: application context set
+05-17 05:44:41.206 29576 29576 I MobBleNative: init: application context set
 05-17 05:44:41.206 29576 29576 I MeshX   : registered BluetoothAdapter state receiver
 05-17 05:44:41.206 29576 29576 I MeshX   : onCreate: MESHX_BLE_SELFTEST=1
 05-17 05:44:41.211 29576 29576 I MeshX   : onCreate — handing off to BEAM
 05-17 05:44:41.211 29576 29576 I MobBeam : mob_capture_beam_stdio: piping stdout/stderr to logcat (tag: BEAMout)
 05-17 05:44:41.213 29576 29576 I MobNIF  : _mob_bridge_init_activity: MobBridge.init called
-05-17 05:44:41.213 29576 29576 I MobBeam : mob_init_bridge: native lib dir = /data/app/~~7_JfJd_UlVswUeLwoiaLgQ==/dev.meshx.mob-ivO6cS7eflFfQcbbJp1V4A==/lib/arm64
-05-17 05:44:41.213 29576 29576 I MobBeam : mob_init_bridge: files dir = /data/user/0/dev.meshx.mob/files
-05-17 05:44:41.214 29576 29614 I MobBeam : mob_start_beam: re-dlopened self RTLD_GLOBAL: /data/app/~~7_JfJd_UlVswUeLwoiaLgQ==/dev.meshx.mob-ivO6cS7eflFfQcbbJp1V4A==/lib/arm64/libmeshx_mobile_app.so
-05-17 05:44:41.220 29576 29576 I MSHandlerLifeCycle: check: return. pkg=dev.meshx.mob parent=null callers=com.android.internal.policy.DecorView.setVisibility:4487 android.app.ActivityThread.handleResumeActivity:5491 android.app.servertransaction.ResumeActivityItem.execute:54 android.app.servertransaction.ActivityTransactionItem.execute:45 android.app.servertransaction.TransactionExecutor.executeLifecycleState:176 
+05-17 05:44:41.213 29576 29576 I MobBeam : mob_init_bridge: native lib dir = /data/app/~~7_JfJd_UlVswUeLwoiaLgQ==/dev.mob.mob-ivO6cS7eflFfQcbbJp1V4A==/lib/arm64
+05-17 05:44:41.213 29576 29576 I MobBeam : mob_init_bridge: files dir = /data/user/0/dev.mob.mob/files
+05-17 05:44:41.214 29576 29614 I MobBeam : mob_start_beam: re-dlopened self RTLD_GLOBAL: /data/app/~~7_JfJd_UlVswUeLwoiaLgQ==/dev.mob.mob-ivO6cS7eflFfQcbbJp1V4A==/lib/arm64/libmob_node.so
+05-17 05:44:41.220 29576 29576 I MSHandlerLifeCycle: check: return. pkg=dev.mob.mob parent=null callers=com.android.internal.policy.DecorView.setVisibility:4487 android.app.ActivityThread.handleResumeActivity:5491 android.app.servertransaction.ResumeActivityItem.execute:54 android.app.servertransaction.ActivityTransactionItem.execute:45 android.app.servertransaction.TransactionExecutor.executeLifecycleState:176 
 05-17 05:44:41.221 29576 29576 I MSHandlerLifeCycle: removeMultiSplitHandler: no exist. decor=DecorView@d21ac7e[]
 05-17 05:44:41.224 29576 29576 I SurfaceSyncer@7dbacf4: new SurfaceSyncer() = android.view.ViewRootImpl.<init>:1168 android.view.ViewRootImpl.<init>:1304 android.view.WindowManagerGlobal.addView:530 android.view.WindowManagerImpl.addView:170 android.app.ActivityThread.handleResumeActivity:5512 
 05-17 05:44:41.227 29576 29603 D NativeCustomFrequencyManager: [NativeCFMS] BpCustomFrequencyManager::BpCustomFrequencyManager()
@@ -296,25 +296,25 @@
 05-17 05:44:41.231  1200  2968 D InputTransport: Input channel constructed: '96fb740', fd=781
 05-17 05:44:41.231  1200  2968 D InputTransport: Input channel constructed: '96fb740', fd=784
 05-17 05:44:41.231  1200  2968 D InputTransport: Input channel constructed: '96fb740', fd=785
-05-17 05:44:41.232   914  1114 I SurfaceFlinger: id=495 createSurf flag=80004, 96fb740 dev.meshx.mob/dev.meshx.mob.MainActivity#495
+05-17 05:44:41.232   914  1114 I SurfaceFlinger: id=495 createSurf flag=80004, 96fb740 dev.mob.mob/dev.mob.mob.MainActivity#495
 05-17 05:44:41.233  1200  2968 D RestrictionPolicy: isScreenCaptureEnabled : ret=true userId=0
 05-17 05:44:41.233  1200  2968 D InputTransport: Input channel destroyed: '96fb740', fd=785
-05-17 05:44:41.234 29576 29576 D InsetsController: onStateChanged: InsetsState: {mDisplayFrame=Rect(0, 0 - 1200, 1920), mDisplayCutout=DisplayCutout{insets=Rect(0, 0 - 0, 0) waterfall=Insets{left=0, top=0, right=0, bottom=0} boundingRect={Bounds=[Rect(0, 0 - 0, 0), Rect(0, 0 - 0, 0), Rect(0, 0 - 0, 0), Rect(0, 0 - 0, 0)]} cutoutPathParserInfo={CutoutPathParserInfo{displayWidth=0 displayHeight=0 physicalDisplayWidth=0 physicalDisplayHeight=0 density={0.0} cutoutSpec={} rotation={0} scale={0.0} physicalPixelDisplaySizeRatio={0.0}}}}, mRoundedCorners=RoundedCorners{[RoundedCorner{position=TopLeft, radius=26, center=Point(26, 26)}, RoundedCorner{position=TopRight, radius=26, center=Point(1174, 26)}, RoundedCorner{position=BottomRight, radius=26, center=Point(1174, 1894)}, RoundedCorner{position=BottomLeft, radius=26, center=Point(26, 1894)}]}  mRoundedCornerFrame=Rect(0, 0 - 1200, 1920), mPrivacyIndicatorBounds=PrivacyIndicatorBounds {static bounds=Rect(1112, 0 - 1200, 48) rotation=0}, mSources= { InsetsSource: {mType=ITYPE_STATUS_BAR, mFrame=[0,0][1200,48], mVisible=true, mInsetsRoundedCornerFrame=false}, InsetsSource: {mType=ITYPE_TOP_MANDATORY_GESTURES, mFrame=[0,0][1200,48], mVisible=true, mInsetsRoundedCornerFrame=false}, InsetsSource: {mType=ITYPE_TOP_TAPPABLE_ELEMENT, mFrame=[0,0][1200,48], mVisible=true, mInsetsRoundedCornerFrame=false}, InsetsSource: {mType=ITYPE_IME, mFrame=[0,0][0,0], mVisible=false, mInsetsRoundedCornerFrame=false} } host=dev.meshx.mob/dev.meshx.mob.MainActivity from=android.view.ViewRootImpl.setView:1739
-05-17 05:44:41.236  1200  2968 D CoreBackPreview: Window{96fb740 u0 dev.meshx.mob/dev.meshx.mob.MainActivity}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@d6abfbe, mPriority=0}
+05-17 05:44:41.234 29576 29576 D InsetsController: onStateChanged: InsetsState: {mDisplayFrame=Rect(0, 0 - 1200, 1920), mDisplayCutout=DisplayCutout{insets=Rect(0, 0 - 0, 0) waterfall=Insets{left=0, top=0, right=0, bottom=0} boundingRect={Bounds=[Rect(0, 0 - 0, 0), Rect(0, 0 - 0, 0), Rect(0, 0 - 0, 0), Rect(0, 0 - 0, 0)]} cutoutPathParserInfo={CutoutPathParserInfo{displayWidth=0 displayHeight=0 physicalDisplayWidth=0 physicalDisplayHeight=0 density={0.0} cutoutSpec={} rotation={0} scale={0.0} physicalPixelDisplaySizeRatio={0.0}}}}, mRoundedCorners=RoundedCorners{[RoundedCorner{position=TopLeft, radius=26, center=Point(26, 26)}, RoundedCorner{position=TopRight, radius=26, center=Point(1174, 26)}, RoundedCorner{position=BottomRight, radius=26, center=Point(1174, 1894)}, RoundedCorner{position=BottomLeft, radius=26, center=Point(26, 1894)}]}  mRoundedCornerFrame=Rect(0, 0 - 1200, 1920), mPrivacyIndicatorBounds=PrivacyIndicatorBounds {static bounds=Rect(1112, 0 - 1200, 48) rotation=0}, mSources= { InsetsSource: {mType=ITYPE_STATUS_BAR, mFrame=[0,0][1200,48], mVisible=true, mInsetsRoundedCornerFrame=false}, InsetsSource: {mType=ITYPE_TOP_MANDATORY_GESTURES, mFrame=[0,0][1200,48], mVisible=true, mInsetsRoundedCornerFrame=false}, InsetsSource: {mType=ITYPE_TOP_TAPPABLE_ELEMENT, mFrame=[0,0][1200,48], mVisible=true, mInsetsRoundedCornerFrame=false}, InsetsSource: {mType=ITYPE_IME, mFrame=[0,0][0,0], mVisible=false, mInsetsRoundedCornerFrame=false} } host=dev.mob.mob/dev.mob.mob.MainActivity from=android.view.ViewRootImpl.setView:1739
+05-17 05:44:41.236  1200  2968 D CoreBackPreview: Window{96fb740 u0 dev.mob.mob/dev.mob.mob.MainActivity}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@d6abfbe, mPriority=0}
 05-17 05:44:41.236 29576 29576 I ViewRootImpl@ff32c1d[MainActivity]: setView = com.android.internal.policy.DecorView@d21ac7e TM=true
 05-17 05:44:41.239 29576 29576 D DecorView: isDeviceLocked = false
-05-17 05:44:41.239 29576 29576 I MSHandlerLifeCycle: check: return. pkg=dev.meshx.mob mode=fullscreen op=true locked=false callers=com.android.internal.policy.DecorView.setVisibility:4487 android.app.Activity.makeVisible:6819 android.app.ActivityThread.handleResumeActivity:5556 android.app.servertransaction.ResumeActivityItem.execute:54 android.app.servertransaction.ActivityTransactionItem.execute:45 
+05-17 05:44:41.239 29576 29576 I MSHandlerLifeCycle: check: return. pkg=dev.mob.mob mode=fullscreen op=true locked=false callers=com.android.internal.policy.DecorView.setVisibility:4487 android.app.Activity.makeVisible:6819 android.app.ActivityThread.handleResumeActivity:5556 android.app.servertransaction.ResumeActivityItem.execute:54 android.app.servertransaction.ActivityTransactionItem.execute:45 
 05-17 05:44:41.240 29576 29576 I MSHandlerLifeCycle: removeMultiSplitHandler: no exist. decor=DecorView@d21ac7e[MainActivity]
-05-17 05:44:41.243  1200  1240 D SGM:FgCheckThread: notePauseComponent(), received pkgName: dev.meshx.mob, userId: 0
+05-17 05:44:41.243  1200  1240 D SGM:FgCheckThread: notePauseComponent(), received pkgName: dev.mob.mob, userId: 0
 05-17 05:44:41.244  1200  1484 I CocktailBarManagerServiceContainer: handleMessage: entry what = 6
 05-17 05:44:41.289  1200  2968 I GenerationRegistry: mBackingStore.isClosed() : false
-05-17 05:44:41.312 29576 29576 W dev.meshx.mob: Method boolean androidx.compose.runtime.snapshots.SnapshotStateList.conditionalUpdate(boolean, kotlin.jvm.functions.Function1) failed lock verification and will run slower.
-05-17 05:44:41.312 29576 29576 W dev.meshx.mob: Common causes for lock verification issues are non-optimized dex code
-05-17 05:44:41.312 29576 29576 W dev.meshx.mob: and incorrect proguard optimizations.
-05-17 05:44:41.312 29576 29576 W dev.meshx.mob: Method boolean androidx.compose.runtime.snapshots.SnapshotStateList.conditionalUpdate$default(androidx.compose.runtime.snapshots.SnapshotStateList, boolean, kotlin.jvm.functions.Function1, int, java.lang.Object) failed lock verification and will run slower.
-05-17 05:44:41.312 29576 29576 W dev.meshx.mob: Method java.lang.Object androidx.compose.runtime.snapshots.SnapshotStateList.mutate(kotlin.jvm.functions.Function1) failed lock verification and will run slower.
-05-17 05:44:41.312 29576 29576 W dev.meshx.mob: Method void androidx.compose.runtime.snapshots.SnapshotStateList.update(boolean, kotlin.jvm.functions.Function1) failed lock verification and will run slower.
-05-17 05:44:41.312 29576 29576 W dev.meshx.mob: Method void androidx.compose.runtime.snapshots.SnapshotStateList.update$default(androidx.compose.runtime.snapshots.SnapshotStateList, boolean, kotlin.jvm.functions.Function1, int, java.lang.Object) failed lock verification and will run slower.
+05-17 05:44:41.312 29576 29576 W dev.mob.mob: Method boolean androidx.compose.runtime.snapshots.SnapshotStateList.conditionalUpdate(boolean, kotlin.jvm.functions.Function1) failed lock verification and will run slower.
+05-17 05:44:41.312 29576 29576 W dev.mob.mob: Common causes for lock verification issues are non-optimized dex code
+05-17 05:44:41.312 29576 29576 W dev.mob.mob: and incorrect proguard optimizations.
+05-17 05:44:41.312 29576 29576 W dev.mob.mob: Method boolean androidx.compose.runtime.snapshots.SnapshotStateList.conditionalUpdate$default(androidx.compose.runtime.snapshots.SnapshotStateList, boolean, kotlin.jvm.functions.Function1, int, java.lang.Object) failed lock verification and will run slower.
+05-17 05:44:41.312 29576 29576 W dev.mob.mob: Method java.lang.Object androidx.compose.runtime.snapshots.SnapshotStateList.mutate(kotlin.jvm.functions.Function1) failed lock verification and will run slower.
+05-17 05:44:41.312 29576 29576 W dev.mob.mob: Method void androidx.compose.runtime.snapshots.SnapshotStateList.update(boolean, kotlin.jvm.functions.Function1) failed lock verification and will run slower.
+05-17 05:44:41.312 29576 29576 W dev.mob.mob: Method void androidx.compose.runtime.snapshots.SnapshotStateList.update$default(androidx.compose.runtime.snapshots.SnapshotStateList, boolean, kotlin.jvm.functions.Function1, int, java.lang.Object) failed lock verification and will run slower.
 05-17 05:44:41.343  2905  3290 I SDHMS:l : onTaskStackChanged
 05-17 05:44:41.343  2413  2425 I RecentModel: onTaskStackChangedBackground
 05-17 05:44:41.346 29576 29576 I ViewRootImpl@ff32c1d[MainActivity]: performTraversals params={(0,0)(fillxfill) sim={adjust=resize forwardNavigation} ty=BASE_APPLICATION
@@ -333,7 +333,7 @@
 05-17 05:44:41.351 29576 29576 I ViewRootImpl@ff32c1d[MainActivity]:   bhv=DEFAULT
 05-17 05:44:41.351 29576 29576 I ViewRootImpl@ff32c1d[MainActivity]:   fitSides= naviIconColor=0
 05-17 05:44:41.351 29576 29576 I ViewRootImpl@ff32c1d[MainActivity]:   sfl=100000}
-05-17 05:44:41.352  1200  2968 V WindowManager: Relayout Window{96fb740 u0 dev.meshx.mob/dev.meshx.mob.MainActivity}: viewVisibility=8 req=1200x1920 d0
+05-17 05:44:41.352  1200  2968 V WindowManager: Relayout Window{96fb740 u0 dev.mob.mob/dev.mob.mob.MainActivity}: viewVisibility=8 req=1200x1920 d0
 05-17 05:44:41.355  1200  2968 V WindowManager: Relayout hash=96fb740, pid=29576, syncId=-1: mAttrs={(0,0)(fillxfill) sim={adjust=resize forwardNavigation} ty=BASE_APPLICATION
 05-17 05:44:41.355  1200  2968 V WindowManager:   fl=1810100
 05-17 05:44:41.355  1200  2968 V WindowManager:   pfl=16020040
@@ -344,11 +344,11 @@
 05-17 05:44:41.355  1200  2968 V WindowManager:   sfl=100000}
 05-17 05:44:41.357 29576 29576 I ViewRootImpl@ff32c1d[MainActivity]: Relayout returned: old=(0,0,1200,1920) new=(0,0,1200,1920) req=(1200,1920)8 dur=5 res=0x0 s={false 0x0} ch=false seqId=0
 05-17 05:44:41.371 29576 29576 I ViewRootImpl@ff32c1d[MainActivity]: stopped(true) old = false
-05-17 05:44:41.371 29576 29576 I ViewRootImpl@ff32c1d[MainActivity]: WindowStopped on dev.meshx.mob/dev.meshx.mob.MainActivity set to true
+05-17 05:44:41.371 29576 29576 I ViewRootImpl@ff32c1d[MainActivity]: WindowStopped on dev.mob.mob/dev.mob.mob.MainActivity set to true
 05-17 05:44:41.375 29576 29576 D DecorView: isDeviceLocked = false
-05-17 05:44:41.375 29576 29576 I MSHandlerLifeCycle: check: return. pkg=dev.meshx.mob mode=fullscreen op=true locked=false callers=com.android.internal.policy.DecorView.setVisibility:4487 android.app.ActivityThread.updateVisibility:5883 android.app.ActivityThread.handleStopActivity:5901 android.app.servertransaction.StopActivityItem.execute:43 android.app.servertransaction.ActivityTransactionItem.execute:45 
+05-17 05:44:41.375 29576 29576 I MSHandlerLifeCycle: check: return. pkg=dev.mob.mob mode=fullscreen op=true locked=false callers=com.android.internal.policy.DecorView.setVisibility:4487 android.app.ActivityThread.updateVisibility:5883 android.app.ActivityThread.handleStopActivity:5901 android.app.servertransaction.StopActivityItem.execute:43 android.app.servertransaction.ActivityTransactionItem.execute:45 
 05-17 05:44:41.375 29576 29576 I MSHandlerLifeCycle: removeMultiSplitHandler: no exist. decor=DecorView@d21ac7e[MainActivity]
-05-17 05:44:41.379  1200  2959 D ActivityTaskManager: mStartingWindow and mStartingData is null for token=ActivityRecord{a57bf12 u0 dev.meshx.mob/.MainActivity} t419}
+05-17 05:44:41.379  1200  2959 D ActivityTaskManager: mStartingWindow and mStartingData is null for token=ActivityRecord{a57bf12 u0 dev.mob.mob/.MainActivity} t419}
 05-17 05:44:41.380  1200  2959 I ActivityManager: Changes in 10313 2 to 12, 15 to 0
 05-17 05:44:41.541   864 29572 E HYPER-HAL: [HandlerSysfs.cpp]doResourceHandling(): Couldn't Open Sysfs - /sys/power/cstate_control
 05-17 05:44:41.541   864 29572 I HYPER-HAL: [RequestManager.cpp]releaseLocked(): Released ID : 750950
@@ -367,12 +367,12 @@
 05-17 05:44:42.976  5662  5662 I TrayVisibilityController: getComputedTrayVisible : keyguardState = 3
 05-17 05:44:42.976  5662  5662 I TrayVisibilityController: updateTrayVisible: State=3 visible=2 mCurrentVisible=2 specificMode=0
 05-17 05:44:42.977  5662  5662 I TrayStateController: setUiState 2 :  already 2
-05-17 05:44:43.347 29576 29580 I dev.meshx.mob: Compiler allocated 6148KB to compile void android.view.ViewRootImpl.performTraversals()
+05-17 05:44:43.347 29576 29580 I dev.mob.mob: Compiler allocated 6148KB to compile void android.view.ViewRootImpl.performTraversals()
 05-17 05:44:44.231 29576 29614 I MobBeam : mob_start_beam: focus timeout (3000 ms) — starting BEAM anyway
-05-17 05:44:44.231 29576 29614 I MobBeam : mob_start_beam: starting BEAM with module=meshx_mobile_app, argc=37
-05-17 05:44:44.232 29576 29614 I MobBeam : mob_start_beam: symlink erl_child_setup -> /data/app/~~7_JfJd_UlVswUeLwoiaLgQ==/dev.meshx.mob-ivO6cS7eflFfQcbbJp1V4A==/lib/arm64/liberl_child_setup.so
-05-17 05:44:44.233 29576 29614 I MobBeam : mob_start_beam: symlink inet_gethost -> /data/app/~~7_JfJd_UlVswUeLwoiaLgQ==/dev.meshx.mob-ivO6cS7eflFfQcbbJp1V4A==/lib/arm64/libinet_gethost.so
-05-17 05:44:44.233 29576 29614 I MobBeam : mob_start_beam: symlink epmd -> /data/app/~~7_JfJd_UlVswUeLwoiaLgQ==/dev.meshx.mob-ivO6cS7eflFfQcbbJp1V4A==/lib/arm64/libepmd.so
+05-17 05:44:44.231 29576 29614 I MobBeam : mob_start_beam: starting BEAM with module=mob_node, argc=37
+05-17 05:44:44.232 29576 29614 I MobBeam : mob_start_beam: symlink erl_child_setup -> /data/app/~~7_JfJd_UlVswUeLwoiaLgQ==/dev.mob.mob-ivO6cS7eflFfQcbbJp1V4A==/lib/arm64/liberl_child_setup.so
+05-17 05:44:44.233 29576 29614 I MobBeam : mob_start_beam: symlink inet_gethost -> /data/app/~~7_JfJd_UlVswUeLwoiaLgQ==/dev.mob.mob-ivO6cS7eflFfQcbbJp1V4A==/lib/arm64/libinet_gethost.so
+05-17 05:44:44.233 29576 29614 I MobBeam : mob_start_beam: symlink epmd -> /data/app/~~7_JfJd_UlVswUeLwoiaLgQ==/dev.mob.mob-ivO6cS7eflFfQcbbJp1V4A==/lib/arm64/libepmd.so
 05-17 05:44:44.233 29576 29614 E MobBeam : mob_start_beam: exqlite NIF missing from both nativeLibDir and priv/
 05-17 05:44:44.233 29576 29614 E MobBeam : mob_start_beam: sqlite3_nif.so (fallback) missing — NIF load will fail
 05-17 05:44:44.253  1200  1263 D MARsPolicyManager: triggerAction called!
@@ -400,23 +400,23 @@
 05-17 05:44:46.007 29576 29623 I Elixir  : step 4 starting
 05-17 05:44:46.007 29576 29623 I Elixir  : step 4 => android
 05-17 05:44:46.007 29576 29623 I Elixir  : step 5 starting
-05-17 05:44:46.391  2496  2542 I RequestManager_FLP: onOpChanged, op=0 / packageName=dev.meshx.mob
-05-17 05:44:46.602 29576 29623 I Elixir  : meshx_mobile_app: meshx_runtime started (11 apps)
-05-17 05:44:46.624 29576 29613 I BEAMout : 05:44:46.602 [info] meshx_mobile_app: meshx_runtime started (11 apps)
-05-17 05:44:46.633 29576 29623 I Elixir  : meshx_mobile_app: BLE.Observability started
-05-17 05:44:46.634 29576 29613 I BEAMout : 05:44:46.633 [info] meshx_mobile_app: BLE.Observability started
-05-17 05:44:46.645 29576 29623 I Elixir  : meshx_mobile_app: distribution up as meshx_mobile_app_android_dev@127.0.0.1
-05-17 05:44:46.657 29576 29613 I BEAMout : 05:44:46.645 [info] meshx_mobile_app: distribution up as meshx_mobile_app_android_dev@127.0.0.1
-05-17 05:44:46.657 29576 29623 I Elixir  : meshx_mobile_app: BLE self-test started
-05-17 05:44:46.658 29576 29623 I Elixir  : BleSelfTest: starting scan + advertising as meshx-dev
+05-17 05:44:46.391  2496  2542 I RequestManager_FLP: onOpChanged, op=0 / packageName=dev.mob.mob
+05-17 05:44:46.602 29576 29623 I Elixir  : mob_node: mob_runtime started (11 apps)
+05-17 05:44:46.624 29576 29613 I BEAMout : 05:44:46.602 [info] mob_node: mob_runtime started (11 apps)
+05-17 05:44:46.633 29576 29623 I Elixir  : mob_node: BLE.Observability started
+05-17 05:44:46.634 29576 29613 I BEAMout : 05:44:46.633 [info] mob_node: BLE.Observability started
+05-17 05:44:46.645 29576 29623 I Elixir  : mob_node: distribution up as mob_node_android_dev@127.0.0.1
+05-17 05:44:46.657 29576 29613 I BEAMout : 05:44:46.645 [info] mob_node: distribution up as mob_node_android_dev@127.0.0.1
+05-17 05:44:46.657 29576 29623 I Elixir  : mob_node: BLE self-test started
+05-17 05:44:46.658 29576 29623 I Elixir  : BleSelfTest: starting scan + advertising as mob-dev
 05-17 05:44:46.672  1200  1403 D BluetoothManagerService: mDisableBleCallbacks count 11
-05-17 05:44:46.673 29576 29623 I BluetoothAdapter: BluetoothAdapter() : dev.meshx.mob
+05-17 05:44:46.673 29576 29623 I BluetoothAdapter: BluetoothAdapter() : dev.mob.mob
 05-17 05:44:46.677 29576 29623 I BluetoothAdapter: STATE_ON
 05-17 05:44:46.678 29576 29623 I BluetoothAdapter: STATE_ON
 05-17 05:44:46.680 29576 29623 I BluetoothAdapter: STATE_ON
 05-17 05:44:46.682 29576 29623 I BluetoothAdapter: STATE_ON
 05-17 05:44:46.683 29576 29623 D BluetoothLeScanner: Start Scan with callback
-05-17 05:44:46.687  1928  1941 D BtGatt.ContextMap: add() - appUid: 10313, appPid: 29576, appName: dev.meshx.mob
+05-17 05:44:46.687  1928  1941 D BtGatt.ContextMap: add() - appUid: 10313, appPid: 29576, appName: dev.mob.mob
 05-17 05:44:46.688  1928  1941 I bt_stack: [INFO:le_scanning_manager.cc(167)] RegisterScanner in shim layer
 05-17 05:44:46.688  1928  2050 D BtGatt.GattService: onScannerRegistered() - UUID=bd77bdcc-1846-443c-87c5-a1e435827b24, scannerId=1, status=0
 05-17 05:44:46.689 29576 29586 D BluetoothLeScanner: onScannerRegistered() - status=0 scannerId=1 mScannerId=0
@@ -426,7 +426,7 @@
 05-17 05:44:46.698  1928  2248 W BtGatt.ScanManager: Cannot start unfiltered scan in screen-off. This scan will be resumed later: 1
 05-17 05:44:46.702 29576 29623 I BluetoothAdapter: STATE_ON
 05-17 05:44:46.703 29576 29623 I BluetoothAdapter: BLE support array set: [true, true, true, true, true, true]
-05-17 05:44:46.723 29576 29623 I BluetoothAdapter: BluetoothAdapter() : dev.meshx.mob
+05-17 05:44:46.723 29576 29623 I BluetoothAdapter: BluetoothAdapter() : dev.mob.mob
 05-17 05:44:46.732 29576 29623 I BluetoothAdapter: STATE_ON
 05-17 05:44:46.733 29576 29623 I BluetoothAdapter: STATE_ON
 05-17 05:44:46.734 29576 29623 I BluetoothAdapter: STATE_ON
@@ -436,14 +436,14 @@
 05-17 05:44:46.750  1928  2282 W bt_stack: le_advertising_manager :: create_extended_advertiser - id : 1
 05-17 05:44:46.750  1928  2282 W bt_stack: le_advertising_manager :: enable_advertiser - id : 1
 05-17 05:44:46.752  1928  2282 W bt_stack: register_client :: client registered!!!
-05-17 05:44:46.753  1928  2050 D AdapterProperties: Name is: meshx-dev
-05-17 05:44:46.755  1200  1248 W ProcessStats: Tracking association SourceState{843239c dev.meshx.mob/10313 Top #81442} whose proc state 1 is better than process ProcessState{31680a0 com.google.android.gms.persistent/10211 pkg=com.google.android.gms} proc state 2 (3 skipped)
-05-17 05:44:46.756 29576 29613 I BEAMout : 05:44:46.657 [info] meshx_mobile_app: BLE self-test started
-05-17 05:44:46.757 29576 29613 I BEAMout : 05:44:46.658 [info] BleSelfTest: starting scan + advertising as meshx-dev
+05-17 05:44:46.753  1928  2050 D AdapterProperties: Name is: mob-dev
+05-17 05:44:46.755  1200  1248 W ProcessStats: Tracking association SourceState{843239c dev.mob.mob/10313 Top #81442} whose proc state 1 is better than process ProcessState{31680a0 com.google.android.gms.persistent/10211 pkg=com.google.android.gms} proc state 2 (3 skipped)
+05-17 05:44:46.756 29576 29613 I BEAMout : 05:44:46.657 [info] mob_node: BLE self-test started
+05-17 05:44:46.757 29576 29613 I BEAMout : 05:44:46.658 [info] BleSelfTest: starting scan + advertising as mob-dev
 05-17 05:44:46.757  1200  1200 D SettingsProvider: isChangeAllowed() : name = bluetooth_name
-05-17 05:44:46.776  1928  2260 E BtGatt.GattService: [GSIM LOG]: gsimLogHandler, msg: MESSAGE_ADV_SET_START, appName: dev.meshx.mob, id: 1, isLegacy: true
+05-17 05:44:46.776  1928  2260 E BtGatt.GattService: [GSIM LOG]: gsimLogHandler, msg: MESSAGE_ADV_SET_START, appName: dev.mob.mob, id: 1, isLegacy: true
 05-17 05:44:46.776 29576 29576 D BluetoothLeAdvertiser: onAdvertisingSetStarted(1, -7, 0)
-05-17 05:44:46.806 29576 29630 D ProfileInstaller: Installing profile for dev.meshx.mob
+05-17 05:44:46.806 29576 29630 D ProfileInstaller: Installing profile for dev.mob.mob
 05-17 05:44:46.850   864 29575 I HYPER-HAL: [RequestManager.cpp]releaseLocked(): Released ID : 4261754
 05-17 05:44:46.894 29576 29623 I Elixir  : BleSelfTest: start_scan=:ok start_advertising=:ok
 05-17 05:44:46.896 29576 29613 I BEAMout : 05:44:46.894 [info] BleSelfTest: start_scan=:ok start_advertising=:ok
@@ -452,20 +452,20 @@
 05-17 05:44:47.713 29576 29623 I Elixir  : step 5 => {ok,<0.135.0>}
 05-17 05:44:47.786 29576 29576 D CompatibilityChangeReporter: Compat change id reported: 171228096; UID 10313; state: ENABLED
 05-17 05:44:48.782 29576 29576 I Choreographer: Skipped 34 frames!  The application may be doing too much work on its main thread.
-05-17 05:44:48.967  1200  2959 D SGM:GameManager: identifyForegroundApp. dev.meshx.mob, mCurrentUserId: 0, callerUserId: 0
-05-17 05:44:48.968  1200  2959 D SGM:PkgDataHelper: getGamePkgData(). dev.meshx.mob
+05-17 05:44:48.967  1200  2959 D SGM:GameManager: identifyForegroundApp. dev.mob.mob, mCurrentUserId: 0, callerUserId: 0
+05-17 05:44:48.968  1200  2959 D SGM:PkgDataHelper: getGamePkgData(). dev.mob.mob
 05-17 05:44:48.968 26586 26654 I PolicyManager: [#CMH#] Is foreground game app: false
 05-17 05:44:49.642 29576 29623 I Elixir  : Mob.Dist: waiting for EPMD (adb reverse tcp:4369 tcp:4369)...
 05-17 05:44:50.664   869   869 E sehhealth-service: Could not open /sys/class/power_supply/battery/lrp
 05-17 05:44:50.905   602   602 D io_stats: !@   8,0 r 983669 32572516 w 537468 54712952 d 0 0 f 0 0 iot 472560 0 th 0 0 0 pt 0 inp 0 0 185138.478
-05-17 05:44:51.896 29576 29623 I Elixir  : BleSelfTest: HEARTBEAT events=0 devices=0 meshx_peers=0 sent=0 distinct_msgs=0 beacon_callbacks=0 envelopes=0
-05-17 05:44:51.896 29576 29613 I BEAMout : 05:44:51.896 [info] BleSelfTest: HEARTBEAT events=0 devices=0 meshx_peers=0 sent=0 distinct_msgs=0 beacon_callbacks=0 envelopes=0
+05-17 05:44:51.896 29576 29623 I Elixir  : BleSelfTest: HEARTBEAT events=0 devices=0 mob_peers=0 sent=0 distinct_msgs=0 beacon_callbacks=0 envelopes=0
+05-17 05:44:51.896 29576 29613 I BEAMout : 05:44:51.896 [info] BleSelfTest: HEARTBEAT events=0 devices=0 mob_peers=0 sent=0 distinct_msgs=0 beacon_callbacks=0 envelopes=0
 05-17 05:44:51.976  1200  1243 E Watchdog: !@Sync: 6168 heap: 66 / 89 FD: 905 [2026-05-17 05:44:51.975]
 05-17 05:44:53.900 29576 29623 I BluetoothAdapter: STATE_ON
 05-17 05:44:53.901 29576 29623 I BluetoothAdapter: STATE_ON
 05-17 05:44:53.907 29576 29623 I BluetoothAdapter: STATE_ON
 05-17 05:44:53.909 29576 29623 I BluetoothAdapter: STATE_ON
-05-17 05:44:53.910 29576 29623 I MeshxBleDispatch: {"v":1,"event":"ble_capabilities","supports_extended_advertising":true,"max_advertising_data_length":1024,"is_multiple_advertisement_supported":true,"legacy_manufacturer_payload_budget":24}
+05-17 05:44:53.910 29576 29623 I MobBleDispatch: {"v":1,"event":"ble_capabilities","supports_extended_advertising":true,"max_advertising_data_length":1024,"is_multiple_advertisement_supported":true,"legacy_manufacturer_payload_budget":24}
 05-17 05:44:53.910 29576 29623 I BluetoothAdapter: STATE_ON
 05-17 05:44:53.911 29576 29623 I BluetoothAdapter: STATE_ON
 05-17 05:44:53.916 29576 29623 I BluetoothAdapter: STATE_ON
@@ -477,17 +477,17 @@
 05-17 05:44:53.922  1928  1941 I bt_stack: [INFO:le_advertising_manager.cc(157)] create advertising set, reg_id:-5118, id:2
 05-17 05:44:53.922  1928  2282 W bt_stack: le_advertising_manager :: create_extended_advertiser - id : 2
 05-17 05:44:53.922  1928  2282 W bt_stack: le_advertising_manager :: enable_advertiser - id : 2
-05-17 05:44:53.926 29576 29623 I MeshxBleDispatch: {"v":1,"event":"attempt_outcome","attempt_id":"selftest-1779021893898","message_id":"YXueTdC0\/NhVSTmnilLaDQ==","target_peer_id":"broadcast","target_device_ids":["broadcast"],"kind":"dispatched","reason":"legacy_beacon_fallback","adapter":"ble_android","outcome_at_ms":185565960}
-05-17 05:44:53.931 29576 29623 I MeshxBleNative: sendToPeer(broadcast, 31B) -> DISPATCHED reason=legacy_beacon_fallback
-05-17 05:44:53.944 29576 29623 I Elixir  : BleSelfTest: MESH MESSAGE SENT payload="hello-from-meshx-dev-1779021893" result=:ok
-05-17 05:44:53.945 29576 29613 I BEAMout : 05:44:53.944 [info] BleSelfTest: MESH MESSAGE SENT payload="hello-from-meshx-dev-1779021893" result=:ok
-05-17 05:44:53.946  1928  2260 E BtGatt.GattService: [GSIM LOG]: gsimLogHandler, msg: MESSAGE_ADV_SET_START, appName: dev.meshx.mob, id: 2, isLegacy: true
+05-17 05:44:53.926 29576 29623 I MobBleDispatch: {"v":1,"event":"attempt_outcome","attempt_id":"selftest-1779021893898","message_id":"YXueTdC0\/NhVSTmnilLaDQ==","target_peer_id":"broadcast","target_device_ids":["broadcast"],"kind":"dispatched","reason":"legacy_beacon_fallback","adapter":"ble_android","outcome_at_ms":185565960}
+05-17 05:44:53.931 29576 29623 I MobBleNative: sendToPeer(broadcast, 31B) -> DISPATCHED reason=legacy_beacon_fallback
+05-17 05:44:53.944 29576 29623 I Elixir  : BleSelfTest: MESH MESSAGE SENT payload="hello-from-mob-dev-1779021893" result=:ok
+05-17 05:44:53.945 29576 29613 I BEAMout : 05:44:53.944 [info] BleSelfTest: MESH MESSAGE SENT payload="hello-from-mob-dev-1779021893" result=:ok
+05-17 05:44:53.946  1928  2260 E BtGatt.GattService: [GSIM LOG]: gsimLogHandler, msg: MESSAGE_ADV_SET_START, appName: dev.mob.mob, id: 2, isLegacy: true
 05-17 05:44:53.967 29576 29576 D BluetoothLeAdvertiser: onAdvertisingSetStarted(2, -7, 0)
-05-17 05:44:53.973 29576 29576 I MeshxBleDispatch: {"v":1,"event":"legacy_beacon_advertising_started","attempt_id":"selftest-1779021893898","beacon_size":22,"beacon":"TUIBAQEA6XbCDpZQQQoS94VXUXoT+Q==","message_id_hash":"6XbCDpZQQQo=","sender_peer_id_hash":"EveFV1F6E\/k=","payload_kind":"TX","envelope_version":1,"window_ms":5000,"data_carrier":"legacy_advertisement"}
+05-17 05:44:53.973 29576 29576 I MobBleDispatch: {"v":1,"event":"legacy_beacon_advertising_started","attempt_id":"selftest-1779021893898","beacon_size":22,"beacon":"TUIBAQEA6XbCDpZQQQoS94VXUXoT+Q==","message_id_hash":"6XbCDpZQQQo=","sender_peer_id_hash":"EveFV1F6E\/k=","payload_kind":"TX","envelope_version":1,"window_ms":5000,"data_carrier":"legacy_advertisement"}
 05-17 05:44:54.009 29576 29623 W Elixir  : BleSelfTest: bridge error unknown: {"v":1,"event":"attempt_outcome","attempt_id":"selftest-1779021893898","message_id":"YXueTdC0\/NhVSTmnilLaDQ==","target_peer_id":"broadcast","target_device_ids":["broadcast"],"kind":"dispatched","reason":"legacy_beacon_fallback","adapter":"ble_android","outcome_at_ms":185565960}
 05-17 05:44:54.010 29576 29613 I BEAMout : 05:44:54.009 [warning] BleSelfTest: bridge error unknown: {"v":1,"event":"attempt_outcome","attempt_id":"selftest-1779021893898","message_id":"YXueTdC0\/NhVSTmnilLaDQ==","target_peer_id":"broadcast","target_device_ids":["broadcast"],"kind":"dispatched","reason":"legacy_beacon_fallback","adapter":"ble_android","outcome_at_ms":185565960}
-05-17 05:44:56.897 29576 29623 I Elixir  : BleSelfTest: HEARTBEAT events=1 devices=0 meshx_peers=0 sent=1 distinct_msgs=0 beacon_callbacks=0 envelopes=0
-05-17 05:44:56.898 29576 29613 I BEAMout : 05:44:56.897 [info] BleSelfTest: HEARTBEAT events=1 devices=0 meshx_peers=0 sent=1 distinct_msgs=0 beacon_callbacks=0 envelopes=0
+05-17 05:44:56.897 29576 29623 I Elixir  : BleSelfTest: HEARTBEAT events=1 devices=0 mob_peers=0 sent=1 distinct_msgs=0 beacon_callbacks=0 envelopes=0
+05-17 05:44:56.898 29576 29613 I BEAMout : 05:44:56.897 [info] BleSelfTest: HEARTBEAT events=1 devices=0 mob_peers=0 sent=1 distinct_msgs=0 beacon_callbacks=0 envelopes=0
 05-17 05:44:56.906   602   602 D io_stats: !@   8,0 r 983669 32572516 w 537469 54712956 d 0 0 f 0 0 iot 472564 0 th 0 0 0 pt 0 inp 0 0 185144.479
 05-17 05:44:57.234 29576 29623 I Elixir  : Mob.Dist: no EPMD on port 4369 after 10s -- skipping dist (run mix mob.connect to enable)
 05-17 05:44:57.438  1707  1707 I wpa_supplicant: Heartbeat 18495
@@ -500,7 +500,7 @@
 05-17 05:44:58.987 29576 29576 D BluetoothLeAdvertiser: Stop AdvertingSet
 05-17 05:44:58.989  1928  1941 I bt_stack: [INFO:le_advertising_manager.cc(70)] Unregister in shim layer
 05-17 05:44:58.990  1928  2282 W bt_stack: le_advertising_manager :: remove_advertiser - id : 2
-05-17 05:44:58.990  1928  2260 E BtGatt.GattService: [GSIM LOG]: gsimLogHandler, msg: MESSAGE_ADV_SET_STOP, appName: dev.meshx.mob, id: 2, isLegacy: true
+05-17 05:44:58.990  1928  2260 E BtGatt.GattService: [GSIM LOG]: gsimLogHandler, msg: MESSAGE_ADV_SET_STOP, appName: dev.mob.mob, id: 2, isLegacy: true
 05-17 05:44:58.994 29576 29576 D BluetoothLeAdvertiser: onAdvertisingSetStopped(2)
 05-17 05:44:59.287  1200  1263 D MARsPolicyManager: triggerAction called!
 05-17 05:44:59.287  1200  1263 I NSLocationMonitor: getGPSUsingApps() called
@@ -509,7 +509,7 @@
 05-17 05:45:00.948 29576 29623 I BluetoothAdapter: STATE_ON
 05-17 05:45:00.950 29576 29623 I BluetoothAdapter: STATE_ON
 05-17 05:45:00.951 29576 29623 I BluetoothAdapter: STATE_ON
-05-17 05:45:00.952 29576 29623 I MeshxBleDispatch: {"v":1,"event":"ble_capabilities","supports_extended_advertising":true,"max_advertising_data_length":1024,"is_multiple_advertisement_supported":true,"legacy_manufacturer_payload_budget":24}
+05-17 05:45:00.952 29576 29623 I MobBleDispatch: {"v":1,"event":"ble_capabilities","supports_extended_advertising":true,"max_advertising_data_length":1024,"is_multiple_advertisement_supported":true,"legacy_manufacturer_payload_budget":24}
 05-17 05:45:00.952 29576 29623 I BluetoothAdapter: STATE_ON
 05-17 05:45:00.954 29576 29623 I BluetoothAdapter: STATE_ON
 05-17 05:45:00.956 29576 29623 I BluetoothAdapter: STATE_ON
@@ -521,34 +521,34 @@
 05-17 05:45:00.962  1928  1941 I bt_stack: [INFO:le_advertising_manager.cc(157)] create advertising set, reg_id:-5119, id:2
 05-17 05:45:00.962  1928  2282 W bt_stack: le_advertising_manager :: create_extended_advertiser - id : 2
 05-17 05:45:00.962  1928  2282 W bt_stack: le_advertising_manager :: enable_advertiser - id : 2
-05-17 05:45:00.964 29576 29623 I MeshxBleDispatch: {"v":1,"event":"attempt_outcome","attempt_id":"selftest-1779021900947","message_id":"A6Mll7daf02rJOyxT+4tcw==","target_peer_id":"broadcast","target_device_ids":["broadcast"],"kind":"dispatched","reason":"legacy_beacon_fallback","adapter":"ble_android","outcome_at_ms":185573008}
-05-17 05:45:00.965 29576 29623 I MeshxBleNative: sendToPeer(broadcast, 31B) -> DISPATCHED reason=legacy_beacon_fallback
-05-17 05:45:00.965 29576 29623 I Elixir  : BleSelfTest: MESH MESSAGE SENT payload="hello-from-meshx-dev-1779021900" result=:ok
+05-17 05:45:00.964 29576 29623 I MobBleDispatch: {"v":1,"event":"attempt_outcome","attempt_id":"selftest-1779021900947","message_id":"A6Mll7daf02rJOyxT+4tcw==","target_peer_id":"broadcast","target_device_ids":["broadcast"],"kind":"dispatched","reason":"legacy_beacon_fallback","adapter":"ble_android","outcome_at_ms":185573008}
+05-17 05:45:00.965 29576 29623 I MobBleNative: sendToPeer(broadcast, 31B) -> DISPATCHED reason=legacy_beacon_fallback
+05-17 05:45:00.965 29576 29623 I Elixir  : BleSelfTest: MESH MESSAGE SENT payload="hello-from-mob-dev-1779021900" result=:ok
 05-17 05:45:00.966 29576 29623 W Elixir  : BleSelfTest: bridge error unknown: {"v":1,"event":"attempt_outcome","attempt_id":"selftest-1779021900947","message_id":"A6Mll7daf02rJOyxT+4tcw==","target_peer_id":"broadcast","target_device_ids":["broadcast"],"kind":"dispatched","reason":"legacy_beacon_fallback","adapter":"ble_android","outcome_at_ms":185573008}
-05-17 05:45:00.968 29576 29613 I BEAMout : 05:45:00.965 [info] BleSelfTest: MESH MESSAGE SENT payload="hello-from-meshx-dev-1779021900" result=:ok
+05-17 05:45:00.968 29576 29613 I BEAMout : 05:45:00.965 [info] BleSelfTest: MESH MESSAGE SENT payload="hello-from-mob-dev-1779021900" result=:ok
 05-17 05:45:00.968 29576 29613 I BEAMout : 05:45:00.966 [warning] BleSelfTest: bridge error unknown: {"v":1,"event":"attempt_outcome","attempt_id":"selftest-1779021900947","message_id":"A6Mll7daf02rJOyxT+4tcw==","target_peer_id":"broadcast","target_device_ids":["broadcast"],"kind":"dispatched","reason":"legacy_beacon_fallback","adapter":"ble_android","outcome_at_ms":185573008}
-05-17 05:45:00.979  1928  2260 E BtGatt.GattService: [GSIM LOG]: gsimLogHandler, msg: MESSAGE_ADV_SET_START, appName: dev.meshx.mob, id: 2, isLegacy: true
+05-17 05:45:00.979  1928  2260 E BtGatt.GattService: [GSIM LOG]: gsimLogHandler, msg: MESSAGE_ADV_SET_START, appName: dev.mob.mob, id: 2, isLegacy: true
 05-17 05:45:01.012 29576 29576 D BluetoothLeAdvertiser: onAdvertisingSetStarted(2, -7, 0)
-05-17 05:45:01.016 29576 29576 I MeshxBleDispatch: {"v":1,"event":"legacy_beacon_advertising_started","attempt_id":"selftest-1779021900947","beacon_size":22,"beacon":"TUIBAQEAO\/OebJeOCWgS94VXUXoT+Q==","message_id_hash":"O\/OebJeOCWg=","sender_peer_id_hash":"EveFV1F6E\/k=","payload_kind":"TX","envelope_version":1,"window_ms":5000,"data_carrier":"legacy_advertisement"}
-05-17 05:45:01.899 29576 29623 I Elixir  : BleSelfTest: HEARTBEAT events=2 devices=0 meshx_peers=0 sent=2 distinct_msgs=0 beacon_callbacks=0 envelopes=0
-05-17 05:45:01.900 29576 29613 I BEAMout : 05:45:01.899 [info] BleSelfTest: HEARTBEAT events=2 devices=0 meshx_peers=0 sent=2 distinct_msgs=0 beacon_callbacks=0 envelopes=0
+05-17 05:45:01.016 29576 29576 I MobBleDispatch: {"v":1,"event":"legacy_beacon_advertising_started","attempt_id":"selftest-1779021900947","beacon_size":22,"beacon":"TUIBAQEAO\/OebJeOCWgS94VXUXoT+Q==","message_id_hash":"O\/OebJeOCWg=","sender_peer_id_hash":"EveFV1F6E\/k=","payload_kind":"TX","envelope_version":1,"window_ms":5000,"data_carrier":"legacy_advertisement"}
+05-17 05:45:01.899 29576 29623 I Elixir  : BleSelfTest: HEARTBEAT events=2 devices=0 mob_peers=0 sent=2 distinct_msgs=0 beacon_callbacks=0 envelopes=0
+05-17 05:45:01.900 29576 29613 I BEAMout : 05:45:01.899 [info] BleSelfTest: HEARTBEAT events=2 devices=0 mob_peers=0 sent=2 distinct_msgs=0 beacon_callbacks=0 envelopes=0
 05-17 05:45:06.017 29576 29576 I BluetoothAdapter: STATE_ON
 05-17 05:45:06.017 29576 29576 I BluetoothAdapter: STATE_ON
 05-17 05:45:06.017 29576 29576 I BluetoothAdapter: STATE_ON
 05-17 05:45:06.018 29576 29576 D BluetoothLeAdvertiser: Stop AdvertingSet
 05-17 05:45:06.021  1928  1941 I bt_stack: [INFO:le_advertising_manager.cc(70)] Unregister in shim layer
 05-17 05:45:06.022  1928  2282 W bt_stack: le_advertising_manager :: remove_advertiser - id : 2
-05-17 05:45:06.022  1928  2260 E BtGatt.GattService: [GSIM LOG]: gsimLogHandler, msg: MESSAGE_ADV_SET_STOP, appName: dev.meshx.mob, id: 2, isLegacy: true
+05-17 05:45:06.022  1928  2260 E BtGatt.GattService: [GSIM LOG]: gsimLogHandler, msg: MESSAGE_ADV_SET_STOP, appName: dev.mob.mob, id: 2, isLegacy: true
 05-17 05:45:06.057 29576 29576 D BluetoothLeAdvertiser: onAdvertisingSetStopped(2)
-05-17 05:45:06.901 29576 29623 I Elixir  : BleSelfTest: HEARTBEAT events=2 devices=0 meshx_peers=0 sent=2 distinct_msgs=0 beacon_callbacks=0 envelopes=0
-05-17 05:45:06.902 29576 29613 I BEAMout : 05:45:06.900 [info] BleSelfTest: HEARTBEAT events=2 devices=0 meshx_peers=0 sent=2 distinct_msgs=0 beacon_callbacks=0 envelopes=0
+05-17 05:45:06.901 29576 29623 I Elixir  : BleSelfTest: HEARTBEAT events=2 devices=0 mob_peers=0 sent=2 distinct_msgs=0 beacon_callbacks=0 envelopes=0
+05-17 05:45:06.902 29576 29613 I BEAMout : 05:45:06.900 [info] BleSelfTest: HEARTBEAT events=2 devices=0 mob_peers=0 sent=2 distinct_msgs=0 beacon_callbacks=0 envelopes=0
 05-17 05:45:07.172  2905  3764 I SDHMS:D : SIOP:: AP:209 BAT:215 USB:218 CHG:226 PA:212 WIFI:212 BLK:213 SKIN:286 SKINF:286 SKINB:242 LRP:286 LRF:286 LRB:242 
 05-17 05:45:07.447  1707  1707 I wpa_supplicant: Heartbeat 18496
 05-17 05:45:07.969 29576 29623 I BluetoothAdapter: STATE_ON
 05-17 05:45:07.969 29576 29623 I BluetoothAdapter: STATE_ON
 05-17 05:45:07.971 29576 29623 I BluetoothAdapter: STATE_ON
 05-17 05:45:07.973 29576 29623 I BluetoothAdapter: STATE_ON
-05-17 05:45:07.974 29576 29623 I MeshxBleDispatch: {"v":1,"event":"ble_capabilities","supports_extended_advertising":true,"max_advertising_data_length":1024,"is_multiple_advertisement_supported":true,"legacy_manufacturer_payload_budget":24}
+05-17 05:45:07.974 29576 29623 I MobBleDispatch: {"v":1,"event":"ble_capabilities","supports_extended_advertising":true,"max_advertising_data_length":1024,"is_multiple_advertisement_supported":true,"legacy_manufacturer_payload_budget":24}
 05-17 05:45:07.974 29576 29623 I BluetoothAdapter: STATE_ON
 05-17 05:45:07.976 29576 29623 I BluetoothAdapter: STATE_ON
 05-17 05:45:07.980 29576 29623 I BluetoothAdapter: STATE_ON
@@ -560,26 +560,26 @@
 05-17 05:45:07.986  1928  1941 I bt_stack: [INFO:le_advertising_manager.cc(157)] create advertising set, reg_id:-5120, id:2
 05-17 05:45:07.986  1928  2282 W bt_stack: le_advertising_manager :: create_extended_advertiser - id : 2
 05-17 05:45:07.987  1928  2282 W bt_stack: le_advertising_manager :: enable_advertiser - id : 2
-05-17 05:45:07.989 29576 29623 I MeshxBleDispatch: {"v":1,"event":"attempt_outcome","attempt_id":"selftest-1779021907968","message_id":"HgCN9yGU79QXtMQMjk7bog==","target_peer_id":"broadcast","target_device_ids":["broadcast"],"kind":"dispatched","reason":"legacy_beacon_fallback","adapter":"ble_android","outcome_at_ms":185580029}
-05-17 05:45:07.991 29576 29623 I MeshxBleNative: sendToPeer(broadcast, 31B) -> DISPATCHED reason=legacy_beacon_fallback
-05-17 05:45:07.992 29576 29623 I Elixir  : BleSelfTest: MESH MESSAGE SENT payload="hello-from-meshx-dev-1779021907" result=:ok
+05-17 05:45:07.989 29576 29623 I MobBleDispatch: {"v":1,"event":"attempt_outcome","attempt_id":"selftest-1779021907968","message_id":"HgCN9yGU79QXtMQMjk7bog==","target_peer_id":"broadcast","target_device_ids":["broadcast"],"kind":"dispatched","reason":"legacy_beacon_fallback","adapter":"ble_android","outcome_at_ms":185580029}
+05-17 05:45:07.991 29576 29623 I MobBleNative: sendToPeer(broadcast, 31B) -> DISPATCHED reason=legacy_beacon_fallback
+05-17 05:45:07.992 29576 29623 I Elixir  : BleSelfTest: MESH MESSAGE SENT payload="hello-from-mob-dev-1779021907" result=:ok
 05-17 05:45:07.993 29576 29623 W Elixir  : BleSelfTest: bridge error unknown: {"v":1,"event":"attempt_outcome","attempt_id":"selftest-1779021907968","message_id":"HgCN9yGU79QXtMQMjk7bog==","target_peer_id":"broadcast","target_device_ids":["broadcast"],"kind":"dispatched","reason":"legacy_beacon_fallback","adapter":"ble_android","outcome_at_ms":185580029}
-05-17 05:45:07.995 29576 29613 I BEAMout : 05:45:07.992 [info] BleSelfTest: MESH MESSAGE SENT payload="hello-from-meshx-dev-1779021907" result=:ok
+05-17 05:45:07.995 29576 29613 I BEAMout : 05:45:07.992 [info] BleSelfTest: MESH MESSAGE SENT payload="hello-from-mob-dev-1779021907" result=:ok
 05-17 05:45:07.996 29576 29613 I BEAMout : 05:45:07.993 [warning] BleSelfTest: bridge error unknown: {"v":1,"event":"attempt_outcome","attempt_id":"selftest-1779021907968","message_id":"HgCN9yGU79QXtMQMjk7bog==","target_peer_id":"broadcast","target_device_ids":["broadcast"],"kind":"dispatched","reason":"legacy_beacon_fallback","adapter":"ble_android","outcome_at_ms":185580029}
-05-17 05:45:08.012  1928  2260 E BtGatt.GattService: [GSIM LOG]: gsimLogHandler, msg: MESSAGE_ADV_SET_START, appName: dev.meshx.mob, id: 2, isLegacy: true
+05-17 05:45:08.012  1928  2260 E BtGatt.GattService: [GSIM LOG]: gsimLogHandler, msg: MESSAGE_ADV_SET_START, appName: dev.mob.mob, id: 2, isLegacy: true
 05-17 05:45:08.040 29576 29576 D BluetoothLeAdvertiser: onAdvertisingSetStarted(2, -7, 0)
-05-17 05:45:08.045 29576 29576 I MeshxBleDispatch: {"v":1,"event":"legacy_beacon_advertising_started","attempt_id":"selftest-1779021907968","beacon_size":22,"beacon":"TUIBAQEARg0f6c1qMXoS94VXUXoT+Q==","message_id_hash":"Rg0f6c1qMXo=","sender_peer_id_hash":"EveFV1F6E\/k=","payload_kind":"TX","envelope_version":1,"window_ms":5000,"data_carrier":"legacy_advertisement"}
+05-17 05:45:08.045 29576 29576 I MobBleDispatch: {"v":1,"event":"legacy_beacon_advertising_started","attempt_id":"selftest-1779021907968","beacon_size":22,"beacon":"TUIBAQEARg0f6c1qMXoS94VXUXoT+Q==","message_id_hash":"Rg0f6c1qMXo=","sender_peer_id_hash":"EveFV1F6E\/k=","payload_kind":"TX","envelope_version":1,"window_ms":5000,"data_carrier":"legacy_advertisement"}
 05-17 05:45:08.911   602   602 D io_stats: !@   8,0 r 983671 32572580 w 537470 54712960 d 0 0 f 0 0 iot 472568 0 th 0 0 0 pt 0 inp 0 0 185156.484
 05-17 05:45:10.258  1200  1474 D UsbStatsMonitor: 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 53021371269139
-05-17 05:45:11.902 29576 29623 I Elixir  : BleSelfTest: HEARTBEAT events=3 devices=0 meshx_peers=0 sent=3 distinct_msgs=0 beacon_callbacks=0 envelopes=0
-05-17 05:45:11.903 29576 29613 I BEAMout : 05:45:11.902 [info] BleSelfTest: HEARTBEAT events=3 devices=0 meshx_peers=0 sent=3 distinct_msgs=0 beacon_callbacks=0 envelopes=0
+05-17 05:45:11.902 29576 29623 I Elixir  : BleSelfTest: HEARTBEAT events=3 devices=0 mob_peers=0 sent=3 distinct_msgs=0 beacon_callbacks=0 envelopes=0
+05-17 05:45:11.903 29576 29613 I BEAMout : 05:45:11.902 [info] BleSelfTest: HEARTBEAT events=3 devices=0 mob_peers=0 sent=3 distinct_msgs=0 beacon_callbacks=0 envelopes=0
 05-17 05:45:13.046 29576 29576 I BluetoothAdapter: STATE_ON
 05-17 05:45:13.046 29576 29576 I BluetoothAdapter: STATE_ON
 05-17 05:45:13.046 29576 29576 I BluetoothAdapter: STATE_ON
 05-17 05:45:13.047 29576 29576 D BluetoothLeAdvertiser: Stop AdvertingSet
 05-17 05:45:13.050  1928  1941 I bt_stack: [INFO:le_advertising_manager.cc(70)] Unregister in shim layer
 05-17 05:45:13.050  1928  2282 W bt_stack: le_advertising_manager :: remove_advertiser - id : 2
-05-17 05:45:13.051  1928  2260 E BtGatt.GattService: [GSIM LOG]: gsimLogHandler, msg: MESSAGE_ADV_SET_STOP, appName: dev.meshx.mob, id: 2, isLegacy: true
+05-17 05:45:13.051  1928  2260 E BtGatt.GattService: [GSIM LOG]: gsimLogHandler, msg: MESSAGE_ADV_SET_STOP, appName: dev.mob.mob, id: 2, isLegacy: true
 05-17 05:45:13.084 29576 29576 D BluetoothLeAdvertiser: onAdvertisingSetStopped(2)
 05-17 05:45:14.327  1200  1263 D MARsPolicyManager: triggerAction called!
 05-17 05:45:14.328  1200  1263 I NSLocationMonitor: getGPSUsingApps() called
@@ -588,7 +588,7 @@
 05-17 05:45:14.996 29576 29623 I BluetoothAdapter: STATE_ON
 05-17 05:45:14.997 29576 29623 I BluetoothAdapter: STATE_ON
 05-17 05:45:14.999 29576 29623 I BluetoothAdapter: STATE_ON
-05-17 05:45:14.999 29576 29623 I MeshxBleDispatch: {"v":1,"event":"ble_capabilities","supports_extended_advertising":true,"max_advertising_data_length":1024,"is_multiple_advertisement_supported":true,"legacy_manufacturer_payload_budget":24}
+05-17 05:45:14.999 29576 29623 I MobBleDispatch: {"v":1,"event":"ble_capabilities","supports_extended_advertising":true,"max_advertising_data_length":1024,"is_multiple_advertisement_supported":true,"legacy_manufacturer_payload_budget":24}
 05-17 05:45:14.999 29576 29623 I BluetoothAdapter: STATE_ON
 05-17 05:45:15.001 29576 29623 I BluetoothAdapter: STATE_ON
 05-17 05:45:15.004 29576 29623 I BluetoothAdapter: STATE_ON
@@ -600,17 +600,17 @@
 05-17 05:45:15.010  1928  1941 I bt_stack: [INFO:le_advertising_manager.cc(157)] create advertising set, reg_id:-5121, id:2
 05-17 05:45:15.011  1928  2282 W bt_stack: le_advertising_manager :: create_extended_advertiser - id : 2
 05-17 05:45:15.011  1928  2282 W bt_stack: le_advertising_manager :: enable_advertiser - id : 2
-05-17 05:45:15.012 29576 29623 I MeshxBleDispatch: {"v":1,"event":"attempt_outcome","attempt_id":"selftest-1779021914995","message_id":"Feo5yDhSJuszmovTHi0Nsw==","target_peer_id":"broadcast","target_device_ids":["broadcast"],"kind":"dispatched","reason":"legacy_beacon_fallback","adapter":"ble_android","outcome_at_ms":185587056}
-05-17 05:45:15.013 29576 29623 I MeshxBleNative: sendToPeer(broadcast, 31B) -> DISPATCHED reason=legacy_beacon_fallback
-05-17 05:45:15.014 29576 29623 I Elixir  : BleSelfTest: MESH MESSAGE SENT payload="hello-from-meshx-dev-1779021914" result=:ok
+05-17 05:45:15.012 29576 29623 I MobBleDispatch: {"v":1,"event":"attempt_outcome","attempt_id":"selftest-1779021914995","message_id":"Feo5yDhSJuszmovTHi0Nsw==","target_peer_id":"broadcast","target_device_ids":["broadcast"],"kind":"dispatched","reason":"legacy_beacon_fallback","adapter":"ble_android","outcome_at_ms":185587056}
+05-17 05:45:15.013 29576 29623 I MobBleNative: sendToPeer(broadcast, 31B) -> DISPATCHED reason=legacy_beacon_fallback
+05-17 05:45:15.014 29576 29623 I Elixir  : BleSelfTest: MESH MESSAGE SENT payload="hello-from-mob-dev-1779021914" result=:ok
 05-17 05:45:15.016 29576 29623 W Elixir  : BleSelfTest: bridge error unknown: {"v":1,"event":"attempt_outcome","attempt_id":"selftest-1779021914995","message_id":"Feo5yDhSJuszmovTHi0Nsw==","target_peer_id":"broadcast","target_device_ids":["broadcast"],"kind":"dispatched","reason":"legacy_beacon_fallback","adapter":"ble_android","outcome_at_ms":185587056}
-05-17 05:45:15.018 29576 29613 I BEAMout : 05:45:15.014 [info] BleSelfTest: MESH MESSAGE SENT payload="hello-from-meshx-dev-1779021914" result=:ok
+05-17 05:45:15.018 29576 29613 I BEAMout : 05:45:15.014 [info] BleSelfTest: MESH MESSAGE SENT payload="hello-from-mob-dev-1779021914" result=:ok
 05-17 05:45:15.019 29576 29613 I BEAMout : 05:45:15.015 [warning] BleSelfTest: bridge error unknown: {"v":1,"event":"attempt_outcome","attempt_id":"selftest-1779021914995","message_id":"Feo5yDhSJuszmovTHi0Nsw==","target_peer_id":"broadcast","target_device_ids":["broadcast"],"kind":"dispatched","reason":"legacy_beacon_fallback","adapter":"ble_android","outcome_at_ms":185587056}
-05-17 05:45:15.036  1928  2260 E BtGatt.GattService: [GSIM LOG]: gsimLogHandler, msg: MESSAGE_ADV_SET_START, appName: dev.meshx.mob, id: 2, isLegacy: true
+05-17 05:45:15.036  1928  2260 E BtGatt.GattService: [GSIM LOG]: gsimLogHandler, msg: MESSAGE_ADV_SET_START, appName: dev.mob.mob, id: 2, isLegacy: true
 05-17 05:45:15.036 29576 29576 D BluetoothLeAdvertiser: onAdvertisingSetStarted(2, -7, 0)
-05-17 05:45:15.038 29576 29576 I MeshxBleDispatch: {"v":1,"event":"legacy_beacon_advertising_started","attempt_id":"selftest-1779021914995","beacon_size":22,"beacon":"TUIBAQEALUmnmk1lMu0S94VXUXoT+Q==","message_id_hash":"LUmnmk1lMu0=","sender_peer_id_hash":"EveFV1F6E\/k=","payload_kind":"TX","envelope_version":1,"window_ms":5000,"data_carrier":"legacy_advertisement"}
-05-17 05:45:16.903 29576 29623 I Elixir  : BleSelfTest: HEARTBEAT events=4 devices=0 meshx_peers=0 sent=4 distinct_msgs=0 beacon_callbacks=0 envelopes=0
-05-17 05:45:16.904 29576 29613 I BEAMout : 05:45:16.903 [info] BleSelfTest: HEARTBEAT events=4 devices=0 meshx_peers=0 sent=4 distinct_msgs=0 beacon_callbacks=0 envelopes=0
+05-17 05:45:15.038 29576 29576 I MobBleDispatch: {"v":1,"event":"legacy_beacon_advertising_started","attempt_id":"selftest-1779021914995","beacon_size":22,"beacon":"TUIBAQEALUmnmk1lMu0S94VXUXoT+Q==","message_id_hash":"LUmnmk1lMu0=","sender_peer_id_hash":"EveFV1F6E\/k=","payload_kind":"TX","envelope_version":1,"window_ms":5000,"data_carrier":"legacy_advertisement"}
+05-17 05:45:16.903 29576 29623 I Elixir  : BleSelfTest: HEARTBEAT events=4 devices=0 mob_peers=0 sent=4 distinct_msgs=0 beacon_callbacks=0 envelopes=0
+05-17 05:45:16.904 29576 29613 I BEAMout : 05:45:16.903 [info] BleSelfTest: HEARTBEAT events=4 devices=0 mob_peers=0 sent=4 distinct_msgs=0 beacon_callbacks=0 envelopes=0
 05-17 05:45:16.945 26869 26939 I ContactsProvider_EventLog: cp_s: [CONTACT con(408) dat(2678) acc({google(2)=408, com.google.android.apps.tachyon(6)=41}) calls([]) Iso(US) uId(0) ]
 05-17 05:45:16.945 26869 26939 I ContactsProvider_EventLog: cp_s: [ agr({[2 ,6]=41, [2]=367}) ]
 05-17 05:45:16.945 26869 26939 I ContactsProvider_EventLog: cp_s: [ cnt({acore(26869)=1}) ]
@@ -624,17 +624,17 @@
 05-17 05:45:20.047 29576 29576 D BluetoothLeAdvertiser: Stop AdvertingSet
 05-17 05:45:20.050  1928  1941 I bt_stack: [INFO:le_advertising_manager.cc(70)] Unregister in shim layer
 05-17 05:45:20.050  1928  2282 W bt_stack: le_advertising_manager :: remove_advertiser - id : 2
-05-17 05:45:20.050  1928  2260 E BtGatt.GattService: [GSIM LOG]: gsimLogHandler, msg: MESSAGE_ADV_SET_STOP, appName: dev.meshx.mob, id: 2, isLegacy: true
+05-17 05:45:20.050  1928  2260 E BtGatt.GattService: [GSIM LOG]: gsimLogHandler, msg: MESSAGE_ADV_SET_STOP, appName: dev.mob.mob, id: 2, isLegacy: true
 05-17 05:45:20.055 29576 29576 D BluetoothLeAdvertiser: onAdvertisingSetStopped(2)
 05-17 05:45:20.827   869   869 E sehhealth-service: Could not open /sys/class/power_supply/battery/lrp
-05-17 05:45:21.905 29576 29623 I Elixir  : BleSelfTest: HEARTBEAT events=4 devices=0 meshx_peers=0 sent=4 distinct_msgs=0 beacon_callbacks=0 envelopes=0
-05-17 05:45:21.907 29576 29613 I BEAMout : 05:45:21.905 [info] BleSelfTest: HEARTBEAT events=4 devices=0 meshx_peers=0 sent=4 distinct_msgs=0 beacon_callbacks=0 envelopes=0
+05-17 05:45:21.905 29576 29623 I Elixir  : BleSelfTest: HEARTBEAT events=4 devices=0 mob_peers=0 sent=4 distinct_msgs=0 beacon_callbacks=0 envelopes=0
+05-17 05:45:21.907 29576 29613 I BEAMout : 05:45:21.905 [info] BleSelfTest: HEARTBEAT events=4 devices=0 mob_peers=0 sent=4 distinct_msgs=0 beacon_callbacks=0 envelopes=0
 05-17 05:45:21.985  1200  1243 E Watchdog: !@Sync: 6169 heap: 67 / 89 FD: 905 [2026-05-17 05:45:21.984]
 05-17 05:45:22.018 29576 29623 I BluetoothAdapter: STATE_ON
 05-17 05:45:22.018 29576 29623 I BluetoothAdapter: STATE_ON
 05-17 05:45:22.021 29576 29623 I BluetoothAdapter: STATE_ON
 05-17 05:45:22.023 29576 29623 I BluetoothAdapter: STATE_ON
-05-17 05:45:22.023 29576 29623 I MeshxBleDispatch: {"v":1,"event":"ble_capabilities","supports_extended_advertising":true,"max_advertising_data_length":1024,"is_multiple_advertisement_supported":true,"legacy_manufacturer_payload_budget":24}
+05-17 05:45:22.023 29576 29623 I MobBleDispatch: {"v":1,"event":"ble_capabilities","supports_extended_advertising":true,"max_advertising_data_length":1024,"is_multiple_advertisement_supported":true,"legacy_manufacturer_payload_budget":24}
 05-17 05:45:22.023 29576 29623 I BluetoothAdapter: STATE_ON
 05-17 05:45:22.027 29576 29623 I BluetoothAdapter: STATE_ON
 05-17 05:45:22.029 29576 29623 I BluetoothAdapter: STATE_ON
@@ -646,27 +646,27 @@
 05-17 05:45:22.037  1928  1941 I bt_stack: [INFO:le_advertising_manager.cc(157)] create advertising set, reg_id:-5122, id:2
 05-17 05:45:22.037  1928  2282 W bt_stack: le_advertising_manager :: create_extended_advertiser - id : 2
 05-17 05:45:22.038  1928  2282 W bt_stack: le_advertising_manager :: enable_advertiser - id : 2
-05-17 05:45:22.040 29576 29623 I MeshxBleDispatch: {"v":1,"event":"attempt_outcome","attempt_id":"selftest-1779021922017","message_id":"3l9dUElXeKdj4dgsT06HkQ==","target_peer_id":"broadcast","target_device_ids":["broadcast"],"kind":"dispatched","reason":"legacy_beacon_fallback","adapter":"ble_android","outcome_at_ms":185594078}
-05-17 05:45:22.041 29576 29623 I MeshxBleNative: sendToPeer(broadcast, 31B) -> DISPATCHED reason=legacy_beacon_fallback
-05-17 05:45:22.042 29576 29623 I Elixir  : BleSelfTest: MESH MESSAGE SENT payload="hello-from-meshx-dev-1779021922" result=:ok
+05-17 05:45:22.040 29576 29623 I MobBleDispatch: {"v":1,"event":"attempt_outcome","attempt_id":"selftest-1779021922017","message_id":"3l9dUElXeKdj4dgsT06HkQ==","target_peer_id":"broadcast","target_device_ids":["broadcast"],"kind":"dispatched","reason":"legacy_beacon_fallback","adapter":"ble_android","outcome_at_ms":185594078}
+05-17 05:45:22.041 29576 29623 I MobBleNative: sendToPeer(broadcast, 31B) -> DISPATCHED reason=legacy_beacon_fallback
+05-17 05:45:22.042 29576 29623 I Elixir  : BleSelfTest: MESH MESSAGE SENT payload="hello-from-mob-dev-1779021922" result=:ok
 05-17 05:45:22.043 29576 29623 W Elixir  : BleSelfTest: bridge error unknown: {"v":1,"event":"attempt_outcome","attempt_id":"selftest-1779021922017","message_id":"3l9dUElXeKdj4dgsT06HkQ==","target_peer_id":"broadcast","target_device_ids":["broadcast"],"kind":"dispatched","reason":"legacy_beacon_fallback","adapter":"ble_android","outcome_at_ms":185594078}
-05-17 05:45:22.044 29576 29613 I BEAMout : 05:45:22.042 [info] BleSelfTest: MESH MESSAGE SENT payload="hello-from-meshx-dev-1779021922" result=:ok
+05-17 05:45:22.044 29576 29613 I BEAMout : 05:45:22.042 [info] BleSelfTest: MESH MESSAGE SENT payload="hello-from-mob-dev-1779021922" result=:ok
 05-17 05:45:22.047 29576 29613 I BEAMout : 05:45:22.043 [warning] BleSelfTest: bridge error unknown: {"v":1,"event":"attempt_outcome","attempt_id":"selftest-1779021922017","message_id":"3l9dUElXeKdj4dgsT06HkQ==","target_peer_id":"broadcast","target_device_ids":["broadcast"],"kind":"dispatched","reason":"legacy_beacon_fallback","adapter":"ble_android","outcome_at_ms":185594078}
-05-17 05:45:22.058  1928  2260 E BtGatt.GattService: [GSIM LOG]: gsimLogHandler, msg: MESSAGE_ADV_SET_START, appName: dev.meshx.mob, id: 2, isLegacy: true
+05-17 05:45:22.058  1928  2260 E BtGatt.GattService: [GSIM LOG]: gsimLogHandler, msg: MESSAGE_ADV_SET_START, appName: dev.mob.mob, id: 2, isLegacy: true
 05-17 05:45:22.089 29576 29576 D BluetoothLeAdvertiser: onAdvertisingSetStarted(2, -7, 0)
-05-17 05:45:22.094 29576 29576 I MeshxBleDispatch: {"v":1,"event":"legacy_beacon_advertising_started","attempt_id":"selftest-1779021922017","beacon_size":22,"beacon":"TUIBAQEAcyjq0lULaHcS94VXUXoT+Q==","message_id_hash":"cyjq0lULaHc=","sender_peer_id_hash":"EveFV1F6E\/k=","payload_kind":"TX","envelope_version":1,"window_ms":5000,"data_carrier":"legacy_advertisement"}
+05-17 05:45:22.094 29576 29576 I MobBleDispatch: {"v":1,"event":"legacy_beacon_advertising_started","attempt_id":"selftest-1779021922017","beacon_size":22,"beacon":"TUIBAQEAcyjq0lULaHcS94VXUXoT+Q==","message_id_hash":"cyjq0lULaHc=","sender_peer_id_hash":"EveFV1F6E\/k=","payload_kind":"TX","envelope_version":1,"window_ms":5000,"data_carrier":"legacy_advertisement"}
 05-17 05:45:22.663  1200  1457 W DeviceStorageMonitorService: updateBroadcasts(/data) oldLevel:0, newLevel:0, seq:1
 05-17 05:45:22.665  1200  1457 D DeviceStorageMonitorService: Available File Node Number is [13185215]
 05-17 05:45:22.665  1200  1457 W DeviceStorageMonitorService: updateBroadcasts_filenode(/data) fn_oldLevel:0, fn_newLevel:0, seq:1
-05-17 05:45:26.907 29576 29623 I Elixir  : BleSelfTest: HEARTBEAT events=5 devices=0 meshx_peers=0 sent=5 distinct_msgs=0 beacon_callbacks=0 envelopes=0
-05-17 05:45:26.908 29576 29613 I BEAMout : 05:45:26.907 [info] BleSelfTest: HEARTBEAT events=5 devices=0 meshx_peers=0 sent=5 distinct_msgs=0 beacon_callbacks=0 envelopes=0
+05-17 05:45:26.907 29576 29623 I Elixir  : BleSelfTest: HEARTBEAT events=5 devices=0 mob_peers=0 sent=5 distinct_msgs=0 beacon_callbacks=0 envelopes=0
+05-17 05:45:26.908 29576 29613 I BEAMout : 05:45:26.907 [info] BleSelfTest: HEARTBEAT events=5 devices=0 mob_peers=0 sent=5 distinct_msgs=0 beacon_callbacks=0 envelopes=0
 05-17 05:45:27.101 29576 29576 I BluetoothAdapter: STATE_ON
 05-17 05:45:27.102 29576 29576 I BluetoothAdapter: STATE_ON
 05-17 05:45:27.102 29576 29576 I BluetoothAdapter: STATE_ON
 05-17 05:45:27.104 29576 29576 D BluetoothLeAdvertiser: Stop AdvertingSet
 05-17 05:45:27.107  1928  1941 I bt_stack: [INFO:le_advertising_manager.cc(70)] Unregister in shim layer
 05-17 05:45:27.107  1928  2282 W bt_stack: le_advertising_manager :: remove_advertiser - id : 2
-05-17 05:45:27.108  1928  2260 E BtGatt.GattService: [GSIM LOG]: gsimLogHandler, msg: MESSAGE_ADV_SET_STOP, appName: dev.meshx.mob, id: 2, isLegacy: true
+05-17 05:45:27.108  1928  2260 E BtGatt.GattService: [GSIM LOG]: gsimLogHandler, msg: MESSAGE_ADV_SET_STOP, appName: dev.mob.mob, id: 2, isLegacy: true
 05-17 05:45:27.113 29576 29576 D BluetoothLeAdvertiser: onAdvertisingSetStopped(2)
 05-17 05:45:27.468  1707  1707 I wpa_supplicant: Heartbeat 18498
 05-17 05:45:27.664   914   914 I SurfaceFlinger: SFWD update time=185175237497282
@@ -675,7 +675,7 @@
 05-17 05:45:29.046 29576 29623 I BluetoothAdapter: STATE_ON
 05-17 05:45:29.048 29576 29623 I BluetoothAdapter: STATE_ON
 05-17 05:45:29.050 29576 29623 I BluetoothAdapter: STATE_ON
-05-17 05:45:29.051 29576 29623 I MeshxBleDispatch: {"v":1,"event":"ble_capabilities","supports_extended_advertising":true,"max_advertising_data_length":1024,"is_multiple_advertisement_supported":true,"legacy_manufacturer_payload_budget":24}
+05-17 05:45:29.051 29576 29623 I MobBleDispatch: {"v":1,"event":"ble_capabilities","supports_extended_advertising":true,"max_advertising_data_length":1024,"is_multiple_advertisement_supported":true,"legacy_manufacturer_payload_budget":24}
 05-17 05:45:29.052 29576 29623 I BluetoothAdapter: STATE_ON
 05-17 05:45:29.054 29576 29623 I BluetoothAdapter: STATE_ON
 05-17 05:45:29.057 29576 29623 I BluetoothAdapter: STATE_ON
@@ -687,20 +687,20 @@
 05-17 05:45:29.066  1928  1941 I bt_stack: [INFO:le_advertising_manager.cc(157)] create advertising set, reg_id:-5123, id:2
 05-17 05:45:29.067  1928  2282 W bt_stack: le_advertising_manager :: create_extended_advertiser - id : 2
 05-17 05:45:29.067  1928  2282 W bt_stack: le_advertising_manager :: enable_advertiser - id : 2
-05-17 05:45:29.069 29576 29623 I MeshxBleDispatch: {"v":1,"event":"attempt_outcome","attempt_id":"selftest-1779021929045","message_id":"\/9o8oiLV05QDaeKZozC4\/w==","target_peer_id":"broadcast","target_device_ids":["broadcast"],"kind":"dispatched","reason":"legacy_beacon_fallback","adapter":"ble_android","outcome_at_ms":185601106}
-05-17 05:45:29.071 29576 29623 I MeshxBleNative: sendToPeer(broadcast, 31B) -> DISPATCHED reason=legacy_beacon_fallback
-05-17 05:45:29.072 29576 29623 I Elixir  : BleSelfTest: MESH MESSAGE SENT payload="hello-from-meshx-dev-1779021929" result=:ok
+05-17 05:45:29.069 29576 29623 I MobBleDispatch: {"v":1,"event":"attempt_outcome","attempt_id":"selftest-1779021929045","message_id":"\/9o8oiLV05QDaeKZozC4\/w==","target_peer_id":"broadcast","target_device_ids":["broadcast"],"kind":"dispatched","reason":"legacy_beacon_fallback","adapter":"ble_android","outcome_at_ms":185601106}
+05-17 05:45:29.071 29576 29623 I MobBleNative: sendToPeer(broadcast, 31B) -> DISPATCHED reason=legacy_beacon_fallback
+05-17 05:45:29.072 29576 29623 I Elixir  : BleSelfTest: MESH MESSAGE SENT payload="hello-from-mob-dev-1779021929" result=:ok
 05-17 05:45:29.073 29576 29623 W Elixir  : BleSelfTest: bridge error unknown: {"v":1,"event":"attempt_outcome","attempt_id":"selftest-1779021929045","message_id":"\/9o8oiLV05QDaeKZozC4\/w==","target_peer_id":"broadcast","target_device_ids":["broadcast"],"kind":"dispatched","reason":"legacy_beacon_fallback","adapter":"ble_android","outcome_at_ms":185601106}
-05-17 05:45:29.074 29576 29613 I BEAMout : 05:45:29.071 [info] BleSelfTest: MESH MESSAGE SENT payload="hello-from-meshx-dev-1779021929" result=:ok
+05-17 05:45:29.074 29576 29613 I BEAMout : 05:45:29.071 [info] BleSelfTest: MESH MESSAGE SENT payload="hello-from-mob-dev-1779021929" result=:ok
 05-17 05:45:29.075 29576 29613 I BEAMout : 05:45:29.072 [warning] BleSelfTest: bridge error unknown: {"v":1,"event":"attempt_outcome","attempt_id":"selftest-1779021929045","message_id":"\/9o8oiLV05QDaeKZozC4\/w==","target_peer_id":"broadcast","target_device_ids":["broadcast"],"kind":"dispatched","reason":"legacy_beacon_fallback","adapter":"ble_android","outcome_at_ms":185601106}
-05-17 05:45:29.092  1928  2260 E BtGatt.GattService: [GSIM LOG]: gsimLogHandler, msg: MESSAGE_ADV_SET_START, appName: dev.meshx.mob, id: 2, isLegacy: true
+05-17 05:45:29.092  1928  2260 E BtGatt.GattService: [GSIM LOG]: gsimLogHandler, msg: MESSAGE_ADV_SET_START, appName: dev.mob.mob, id: 2, isLegacy: true
 05-17 05:45:29.092 29576 29576 D BluetoothLeAdvertiser: onAdvertisingSetStarted(2, -7, 0)
-05-17 05:45:29.095 29576 29576 I MeshxBleDispatch: {"v":1,"event":"legacy_beacon_advertising_started","attempt_id":"selftest-1779021929045","beacon_size":22,"beacon":"TUIBAQEA73kpwz2KzU8S94VXUXoT+Q==","message_id_hash":"73kpwz2KzU8=","sender_peer_id_hash":"EveFV1F6E\/k=","payload_kind":"TX","envelope_version":1,"window_ms":5000,"data_carrier":"legacy_advertisement"}
+05-17 05:45:29.095 29576 29576 I MobBleDispatch: {"v":1,"event":"legacy_beacon_advertising_started","attempt_id":"selftest-1779021929045","beacon_size":22,"beacon":"TUIBAQEA73kpwz2KzU8S94VXUXoT+Q==","message_id_hash":"73kpwz2KzU8=","sender_peer_id_hash":"EveFV1F6E\/k=","payload_kind":"TX","envelope_version":1,"window_ms":5000,"data_carrier":"legacy_advertisement"}
 05-17 05:45:29.367  1200  1263 D MARsPolicyManager: triggerAction called!
 05-17 05:45:29.367  1200  1263 I NSLocationMonitor: getGPSUsingApps() called
 05-17 05:45:29.379  2496  2509 I NSLocationManager_FLP: getGPSUsingApps, NO_FREEZE={5013} / FREEZE={10207}
-05-17 05:45:31.909 29576 29623 I Elixir  : BleSelfTest: HEARTBEAT events=6 devices=0 meshx_peers=0 sent=6 distinct_msgs=0 beacon_callbacks=0 envelopes=0
-05-17 05:45:31.910 29576 29613 I BEAMout : 05:45:31.909 [info] BleSelfTest: HEARTBEAT events=6 devices=0 meshx_peers=0 sent=6 distinct_msgs=0 beacon_callbacks=0 envelopes=0
+05-17 05:45:31.909 29576 29623 I Elixir  : BleSelfTest: HEARTBEAT events=6 devices=0 mob_peers=0 sent=6 distinct_msgs=0 beacon_callbacks=0 envelopes=0
+05-17 05:45:31.910 29576 29613 I BEAMout : 05:45:31.909 [info] BleSelfTest: HEARTBEAT events=6 devices=0 mob_peers=0 sent=6 distinct_msgs=0 beacon_callbacks=0 envelopes=0
 05-17 05:45:32.921   602   602 D io_stats: !@   8,0 r 983671 32572580 w 537478 54712996 d 0 0 f 0 0 iot 472576 0 th 0 0 0 pt 0 inp 0 0 185180.494
 05-17 05:45:34.096 29576 29576 I BluetoothAdapter: STATE_ON
 05-17 05:45:34.096 29576 29576 I BluetoothAdapter: STATE_ON
@@ -708,13 +708,13 @@
 05-17 05:45:34.098 29576 29576 D BluetoothLeAdvertiser: Stop AdvertingSet
 05-17 05:45:34.100  1928  1941 I bt_stack: [INFO:le_advertising_manager.cc(70)] Unregister in shim layer
 05-17 05:45:34.101  1928  2282 W bt_stack: le_advertising_manager :: remove_advertiser - id : 2
-05-17 05:45:34.101  1928  2260 E BtGatt.GattService: [GSIM LOG]: gsimLogHandler, msg: MESSAGE_ADV_SET_STOP, appName: dev.meshx.mob, id: 2, isLegacy: true
+05-17 05:45:34.101  1928  2260 E BtGatt.GattService: [GSIM LOG]: gsimLogHandler, msg: MESSAGE_ADV_SET_STOP, appName: dev.mob.mob, id: 2, isLegacy: true
 05-17 05:45:34.103 29576 29576 D BluetoothLeAdvertiser: onAdvertisingSetStopped(2)
 05-17 05:45:36.075 29576 29623 I BluetoothAdapter: STATE_ON
 05-17 05:45:36.076 29576 29623 I BluetoothAdapter: STATE_ON
 05-17 05:45:36.078 29576 29623 I BluetoothAdapter: STATE_ON
 05-17 05:45:36.080 29576 29623 I BluetoothAdapter: STATE_ON
-05-17 05:45:36.080 29576 29623 I MeshxBleDispatch: {"v":1,"event":"ble_capabilities","supports_extended_advertising":true,"max_advertising_data_length":1024,"is_multiple_advertisement_supported":true,"legacy_manufacturer_payload_budget":24}
+05-17 05:45:36.080 29576 29623 I MobBleDispatch: {"v":1,"event":"ble_capabilities","supports_extended_advertising":true,"max_advertising_data_length":1024,"is_multiple_advertisement_supported":true,"legacy_manufacturer_payload_budget":24}
 05-17 05:45:36.081 29576 29623 I BluetoothAdapter: STATE_ON
 05-17 05:45:36.083 29576 29623 I BluetoothAdapter: STATE_ON
 05-17 05:45:36.086 29576 29623 I BluetoothAdapter: STATE_ON
@@ -726,52 +726,52 @@
 05-17 05:45:36.094  1928  1941 I bt_stack: [INFO:le_advertising_manager.cc(157)] create advertising set, reg_id:-5124, id:2
 05-17 05:45:36.095  1928  2282 W bt_stack: le_advertising_manager :: create_extended_advertiser - id : 2
 05-17 05:45:36.095  1928  2282 W bt_stack: le_advertising_manager :: enable_advertiser - id : 2
-05-17 05:45:36.097 29576 29623 I MeshxBleDispatch: {"v":1,"event":"attempt_outcome","attempt_id":"selftest-1779021936074","message_id":"5FPR2zWRJ6KP6PIWf9awjg==","target_peer_id":"broadcast","target_device_ids":["broadcast"],"kind":"dispatched","reason":"legacy_beacon_fallback","adapter":"ble_android","outcome_at_ms":185608135}
-05-17 05:45:36.098 29576 29623 I MeshxBleNative: sendToPeer(broadcast, 31B) -> DISPATCHED reason=legacy_beacon_fallback
-05-17 05:45:36.098 29576 29623 I Elixir  : BleSelfTest: MESH MESSAGE SENT payload="hello-from-meshx-dev-1779021936" result=:ok
+05-17 05:45:36.097 29576 29623 I MobBleDispatch: {"v":1,"event":"attempt_outcome","attempt_id":"selftest-1779021936074","message_id":"5FPR2zWRJ6KP6PIWf9awjg==","target_peer_id":"broadcast","target_device_ids":["broadcast"],"kind":"dispatched","reason":"legacy_beacon_fallback","adapter":"ble_android","outcome_at_ms":185608135}
+05-17 05:45:36.098 29576 29623 I MobBleNative: sendToPeer(broadcast, 31B) -> DISPATCHED reason=legacy_beacon_fallback
+05-17 05:45:36.098 29576 29623 I Elixir  : BleSelfTest: MESH MESSAGE SENT payload="hello-from-mob-dev-1779021936" result=:ok
 05-17 05:45:36.100 29576 29623 W Elixir  : BleSelfTest: bridge error unknown: {"v":1,"event":"attempt_outcome","attempt_id":"selftest-1779021936074","message_id":"5FPR2zWRJ6KP6PIWf9awjg==","target_peer_id":"broadcast","target_device_ids":["broadcast"],"kind":"dispatched","reason":"legacy_beacon_fallback","adapter":"ble_android","outcome_at_ms":185608135}
-05-17 05:45:36.101 29576 29613 I BEAMout : 05:45:36.098 [info] BleSelfTest: MESH MESSAGE SENT payload="hello-from-meshx-dev-1779021936" result=:ok
+05-17 05:45:36.101 29576 29613 I BEAMout : 05:45:36.098 [info] BleSelfTest: MESH MESSAGE SENT payload="hello-from-mob-dev-1779021936" result=:ok
 05-17 05:45:36.102 29576 29613 I BEAMout : 05:45:36.099 [warning] BleSelfTest: bridge error unknown: {"v":1,"event":"attempt_outcome","attempt_id":"selftest-1779021936074","message_id":"5FPR2zWRJ6KP6PIWf9awjg==","target_peer_id":"broadcast","target_device_ids":["broadcast"],"kind":"dispatched","reason":"legacy_beacon_fallback","adapter":"ble_android","outcome_at_ms":185608135}
-05-17 05:45:36.122  1928  2260 E BtGatt.GattService: [GSIM LOG]: gsimLogHandler, msg: MESSAGE_ADV_SET_START, appName: dev.meshx.mob, id: 2, isLegacy: true
+05-17 05:45:36.122  1928  2260 E BtGatt.GattService: [GSIM LOG]: gsimLogHandler, msg: MESSAGE_ADV_SET_START, appName: dev.mob.mob, id: 2, isLegacy: true
 05-17 05:45:36.142 29576 29576 D BluetoothLeAdvertiser: onAdvertisingSetStarted(2, -7, 0)
-05-17 05:45:36.146 29576 29576 I MeshxBleDispatch: {"v":1,"event":"legacy_beacon_advertising_started","attempt_id":"selftest-1779021936074","beacon_size":22,"beacon":"TUIBAQEARwVkofHc5TQS94VXUXoT+Q==","message_id_hash":"RwVkofHc5TQ=","sender_peer_id_hash":"EveFV1F6E\/k=","payload_kind":"TX","envelope_version":1,"window_ms":5000,"data_carrier":"legacy_advertisement"}
-05-17 05:45:36.911 29576 29623 I Elixir  : BleSelfTest: HEARTBEAT events=7 devices=0 meshx_peers=0 sent=7 distinct_msgs=0 beacon_callbacks=0 envelopes=0
-05-17 05:45:36.913 29576 29613 I BEAMout : 05:45:36.911 [info] BleSelfTest: HEARTBEAT events=7 devices=0 meshx_peers=0 sent=7 distinct_msgs=0 beacon_callbacks=0 envelopes=0
+05-17 05:45:36.146 29576 29576 I MobBleDispatch: {"v":1,"event":"legacy_beacon_advertising_started","attempt_id":"selftest-1779021936074","beacon_size":22,"beacon":"TUIBAQEARwVkofHc5TQS94VXUXoT+Q==","message_id_hash":"RwVkofHc5TQ=","sender_peer_id_hash":"EveFV1F6E\/k=","payload_kind":"TX","envelope_version":1,"window_ms":5000,"data_carrier":"legacy_advertisement"}
+05-17 05:45:36.911 29576 29623 I Elixir  : BleSelfTest: HEARTBEAT events=7 devices=0 mob_peers=0 sent=7 distinct_msgs=0 beacon_callbacks=0 envelopes=0
+05-17 05:45:36.913 29576 29613 I BEAMout : 05:45:36.911 [info] BleSelfTest: HEARTBEAT events=7 devices=0 mob_peers=0 sent=7 distinct_msgs=0 beacon_callbacks=0 envelopes=0
 05-17 05:45:37.174  2905  3764 I SDHMS:D : SIOP:: AP:208 BAT:215 USB:218 CHG:226 PA:212 WIFI:212 BLK:213 SKIN:286 SKINF:286 SKINB:241 LRP:286 LRF:286 LRB:241 
 05-17 05:45:37.472  1707  1707 I wpa_supplicant: Heartbeat 18499
 05-17 05:45:38.072  1200  2959 D ActivityManager: force stop from com.android.server.am.ActivityManagerService.forceStopPackage:4779 com.android.server.am.ActivityManagerShellCommand.runForceStop:1236 
-05-17 05:45:38.072  1200  2959 I ActivityManager: Force stopping dev.meshx.mob appid=10313 user=0: from pid 29634
-05-17 05:45:38.076  1200  2959 I ActivityManager: Killing 29576:dev.meshx.mob/u0a313 (adj 0): stop dev.meshx.mob due to from pid 29634
-05-17 05:45:38.083  1200  2959 D ActivityManager: proc ProcessRecord{3297799 29576:dev.meshx.mob/u0a313} already removed. so we skip next process.
-05-17 05:45:38.084  1200  2959 W ActivityTaskManager: Force removing ActivityRecord{a57bf12 u0 dev.meshx.mob/.MainActivity} t419 f}}: app died, no saved state
+05-17 05:45:38.072  1200  2959 I ActivityManager: Force stopping dev.mob.mob appid=10313 user=0: from pid 29634
+05-17 05:45:38.076  1200  2959 I ActivityManager: Killing 29576:dev.mob.mob/u0a313 (adj 0): stop dev.mob.mob due to from pid 29634
+05-17 05:45:38.083  1200  2959 D ActivityManager: proc ProcessRecord{3297799 29576:dev.mob.mob/u0a313} already removed. so we skip next process.
+05-17 05:45:38.084  1200  2959 W ActivityTaskManager: Force removing ActivityRecord{a57bf12 u0 dev.mob.mob/.MainActivity} t419 f}}: app died, no saved state
 05-17 05:45:38.085  1200  2959 D InputTransport: Input channel destroyed: '96fb740', fd=781
-05-17 05:45:38.085  1200  2959 W InputManager-JNI: Input channel object '96fb740 dev.meshx.mob/dev.meshx.mob.MainActivity (client)' was disposed without first being removed with the input manager!
+05-17 05:45:38.085  1200  2959 W InputManager-JNI: Input channel object '96fb740 dev.mob.mob/dev.mob.mob.MainActivity (client)' was disposed without first being removed with the input manager!
 05-17 05:45:38.085  1200  2959 D InputTransport: Input channel destroyed: '96fb740', fd=784
-05-17 05:45:38.085  1200  2959 V WindowManager: Remove Window{96fb740 u0 dev.meshx.mob/dev.meshx.mob.MainActivity}: mSurfaceController=null mAnimatingExit=false mRemoveOnExit=false mHasSurface=false surfaceShowing=false animating=false app-animation=false mWillReplaceWindow=false mDisplayFrozen=false callers=com.android.server.wm.WindowState.removeIfPossible:3219 com.android.server.wm.WindowToken.removeAllWindowsIfPossible:236 com.android.server.wm.ActivityRecord.removeIfPossible:5057 com.android.server.wm.ActivityRecord.onRemovedFromDisplay:5172 com.android.server.wm.DisplayContent.removeAppToken:1695 com.android.server.wm.ActivityRecord.removeFromHistory:4776 
+05-17 05:45:38.085  1200  2959 V WindowManager: Remove Window{96fb740 u0 dev.mob.mob/dev.mob.mob.MainActivity}: mSurfaceController=null mAnimatingExit=false mRemoveOnExit=false mHasSurface=false surfaceShowing=false animating=false app-animation=false mWillReplaceWindow=false mDisplayFrozen=false callers=com.android.server.wm.WindowState.removeIfPossible:3219 com.android.server.wm.WindowToken.removeAllWindowsIfPossible:236 com.android.server.wm.ActivityRecord.removeIfPossible:5057 com.android.server.wm.ActivityRecord.onRemovedFromDisplay:5172 com.android.server.wm.DisplayContent.removeAppToken:1695 com.android.server.wm.ActivityRecord.removeFromHistory:4776 
 05-17 05:45:38.086  1200  2959 D RestrictionPolicy: isScreenCaptureEnabled : ret=true userId=0
 05-17 05:45:38.086  1200  2959 V WindowManager: Nulling last startingData
-05-17 05:45:38.086  1200  1247 W UsageStatsService: Unexpected activity event reported! (dev.meshx.mob/dev.meshx.mob.MainActivity event : 23 instanceId : 137251040)
+05-17 05:45:38.086  1200  1247 W UsageStatsService: Unexpected activity event reported! (dev.mob.mob/dev.mob.mob.MainActivity event : 23 instanceId : 137251040)
 05-17 05:45:38.092  1200  2959 D ActivityTaskManager: Top Process State changed to PROCESS_STATE_TOP_SLEEPING#2
 05-17 05:45:38.096  2413  2413 I RecentsView: onTaskRemoved() taskId : 419
 05-17 05:45:38.097  2413  2413 I TopTaskTracker: onTaskRemoved : taskId = 419
 05-17 05:45:38.097  2413  2413 I RecentsView: onTaskRemoved() taskId : 419
 05-17 05:45:38.097  2413  2413 I TopTaskTracker: onTaskRemoved : taskId = 419
-05-17 05:45:38.105   914   914 I Layer   : id=495 removeFromCurrentState 96fb740 dev.meshx.mob/dev.meshx.mob.MainActivity#495 (91)
-05-17 05:45:38.106   914   914 I Layer   : id=493 removeFromCurrentState ActivityRecord{a57bf12 u0 dev.meshx.mob/.MainActivity} t419}#493 (91)
+05-17 05:45:38.105   914   914 I Layer   : id=495 removeFromCurrentState 96fb740 dev.mob.mob/dev.mob.mob.MainActivity#495 (91)
+05-17 05:45:38.106   914   914 I Layer   : id=493 removeFromCurrentState ActivityRecord{a57bf12 u0 dev.mob.mob/.MainActivity} t419}#493 (91)
 05-17 05:45:38.106   914   914 I Layer   : id=492 removeFromCurrentState Task=419#492 (91)
-05-17 05:45:38.106   914   914 I SurfaceFlinger: id=493 Removed ActivityRecord{a57bf12 u0 dev.meshx.mob/.MainActivity} t419}#493 (91)
+05-17 05:45:38.106   914   914 I SurfaceFlinger: id=493 Removed ActivityRecord{a57bf12 u0 dev.mob.mob/.MainActivity} t419}#493 (91)
 05-17 05:45:38.106   914   914 I SurfaceFlinger: id=492 Removed Task=419#492 (91)
-05-17 05:45:38.106   914   914 I SurfaceFlinger: id=495 Removed 96fb740 dev.meshx.mob/dev.meshx.mob.MainActivity#495 (91)
+05-17 05:45:38.106   914   914 I SurfaceFlinger: id=495 Removed 96fb740 dev.mob.mob/dev.mob.mob.MainActivity#495 (91)
 05-17 05:45:38.106   914   914 I Layer   : id=492 Destroyed Task=419#492
-05-17 05:45:38.106   914   914 I Layer   : id=493 Destroyed ActivityRecord{a57bf12 u0 dev.meshx.mob/.MainActivity} t419}#493
-05-17 05:45:38.106   914   914 I Layer   : id=495 Destroyed 96fb740 dev.meshx.mob/dev.meshx.mob.MainActivity#495
-05-17 05:45:38.109  1567  1567 D CarrierSvcBindHelper: onHandleForceStop: [dev.meshx.mob]
+05-17 05:45:38.106   914   914 I Layer   : id=493 Destroyed ActivityRecord{a57bf12 u0 dev.mob.mob/.MainActivity} t419}#493
+05-17 05:45:38.106   914   914 I Layer   : id=495 Destroyed 96fb740 dev.mob.mob/dev.mob.mob.MainActivity#495
+05-17 05:45:38.109  1567  1567 D CarrierSvcBindHelper: onHandleForceStop: [dev.mob.mob]
 05-17 05:45:38.110  1567  1567 D CarrierSvcBindHelper: No carrier app for: 0
 05-17 05:45:38.112  1567  1567 D CarrierSvcBindHelper: No carrier app for: 1
 05-17 05:45:38.121  1948  1948 D RegisteredNfcFServicesCache: Service unchanged, not updating
 05-17 05:45:38.126  1200  1248 W BroadcastQueue: Background execution not allowed: receiving Intent { act=android.intent.action.PACKAGE_RESTARTED dat=package: flg=0x10 (has extras) } to android/com.kddi.android.CpaNotiReceiver
 05-17 05:45:38.187  1200  3026 D InputMethodManagerService: removeClient
-05-17 05:45:38.187  1928  1941 D LeAppInfo: removeLeacReportedServerApp, appName: dev.meshx.mob
+05-17 05:45:38.187  1928  1941 D LeAppInfo: removeLeacReportedServerApp, appName: dev.mob.mob
 05-17 05:45:38.188  1928  2699 I bt_stack: [INFO:le_advertising_manager.cc(70)] Unregister in shim layer
 05-17 05:45:38.188  1928  1940 I bt_stack: [INFO:le_advertising_manager.cc(70)] Unregister in shim layer
 05-17 05:45:38.188  1928  2282 W bt_stack: le_advertising_manager :: remove_advertiser - id : 2
@@ -794,17 +794,17 @@
 05-17 05:45:38.189  1928  1940 I BtGatt.AdvertiseManager: 	at com.android.bluetooth.gatt.AdvertiseManager$AdvertisingSetDeathRecipient.binderDied(AdvertiseManager.java:193)
 05-17 05:45:38.189  1928  1940 I BtGatt.AdvertiseManager: 	at android.os.IBinder$DeathRecipient.binderDied(IBinder.java:323)
 05-17 05:45:38.189  1928  1940 I BtGatt.AdvertiseManager: 	at android.os.BinderProxy.sendDeathNotice(BinderProxy.java:781)
-05-17 05:45:38.189  1928  2260 E BtGatt.GattService: [GSIM LOG]: gsimLogHandler, msg: MESSAGE_ADV_SET_STOP, appName: dev.meshx.mob, id: 2, isLegacy: true
+05-17 05:45:38.189  1928  2260 E BtGatt.GattService: [GSIM LOG]: gsimLogHandler, msg: MESSAGE_ADV_SET_STOP, appName: dev.mob.mob, id: 2, isLegacy: true
 05-17 05:45:38.190  2598  2598 I adbd    : Remote process closed the socket (on MSG_PEEK)
-05-17 05:45:38.191  1928  2260 E BtGatt.GattService: [GSIM LOG]: gsimLogHandler, msg: MESSAGE_ADV_SET_STOP, appName: dev.meshx.mob, id: 1, isLegacy: true
-05-17 05:45:38.195  1200  1218 V ActivityManager: Got obituary of 29576:dev.meshx.mob
+05-17 05:45:38.191  1928  2260 E BtGatt.GattService: [GSIM LOG]: gsimLogHandler, msg: MESSAGE_ADV_SET_STOP, appName: dev.mob.mob, id: 1, isLegacy: true
+05-17 05:45:38.195  1200  1218 V ActivityManager: Got obituary of 29576:dev.mob.mob
 05-17 05:45:38.195  1200  1240 W ActivityManager: setHasOverlayUi called on unknown pid: 29576
 05-17 05:45:38.198  1928  1941 D ActivityAttributionService: notifyActivityAttributionInfo UID=1002 packageName=com.android.bluetooth deviceAddress=no_active_device_address
 05-17 05:45:38.200  1928  2248 D BtGatt.ContextMap: remove() - id: 1
 05-17 05:45:38.200  1928  2248 E BtGatt.ContextMap: remove() - removed: 1
 05-17 05:45:38.201  1928  2248 I bt_stack: [INFO:le_scanning_manager.cc(174)] Unregister in shim layer, scanner_id:1
 05-17 05:45:38.201   837   837 I Zygote  : Process 29576 exited due to signal 9 (Killed)
-05-17 05:45:38.206  1928  2260 E BtGatt.GattService: [GSIM LOG]: gsimLogHandler, msg: MESSAGE_SCAN_STOP, appName: dev.meshx.mob, scannerId: 1, reportDelayMillis=0
+05-17 05:45:38.206  1928  2260 E BtGatt.GattService: [GSIM LOG]: gsimLogHandler, msg: MESSAGE_SCAN_STOP, appName: dev.mob.mob, scannerId: 1, reportDelayMillis=0
 05-17 05:45:38.206  1200  1250 I libprocessgroup: Successfully killed process cgroup uid 10313 pid 29576 in 127ms
-05-17 05:45:38.208  1928  2260 E LeAppInfo: updateScanStopInfo(), There is NO scan process with :                                      dev.meshx.mob|    Normal|LowLatency| NonFilter|      true|
+05-17 05:45:38.208  1928  2260 E LeAppInfo: updateScanStopInfo(), There is NO scan process with :                                      dev.mob.mob|    Normal|LowLatency| NonFilter|      true|
 05-17 05:45:38.213  1928  2282 W bt_stack: Received command complete with op_code LE_SET_RANDOM_ADDRESS

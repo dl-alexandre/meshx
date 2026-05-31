@@ -14,10 +14,10 @@ Production defaults:
 
 ```bash
 export MIX_ENV=prod
-export MESHX_STORE_DATA_DIR=/var/lib/meshx/store
+export MESHX_STORE_DATA_DIR=/var/lib/mob/store
 ```
 
-`MeshxStore.DB` creates the parent data directory on startup.
+`Mob.Store.DB` creates the parent data directory on startup.
 
 ## Database
 
@@ -43,20 +43,20 @@ supported.
 Use separate OS processes for local multi-node TCP testing:
 
 ```bash
-iex --sname meshx_a -S mix
-iex --sname meshx_b -S mix
+iex --sname mob_a -S mix
+iex --sname mob_b -S mix
 ```
 
-Then attach `MeshxTransport.TCP` in each shell with different listen ports.
+Then attach `Mob.Routing.TCP` in each shell with different listen ports.
 
 The repository also includes smoke-test scripts used by the test suite:
 
 ```bash
 MIX_ENV=test \
 MESHX_NODE_ID=receiver \
-MESHX_READY_FILE=/tmp/meshx_receiver.port \
-MESHX_PAYLOAD_FILE=/tmp/meshx_payload.term \
-MESHX_STORE_DATA_DIR=/tmp/meshx_receiver_store \
+MESHX_READY_FILE=/tmp/mob_receiver.port \
+MESHX_PAYLOAD_FILE=/tmp/mob_payload.term \
+MESHX_STORE_DATA_DIR=/tmp/mob_receiver_store \
 mix run scripts/tcp_receiver.exs
 ```
 
@@ -66,9 +66,9 @@ After the receiver writes its port file, run:
 MIX_ENV=test \
 MESHX_NODE_ID=sender \
 MESHX_RECEIVER_ID=receiver \
-MESHX_RECEIVER_PORT="$(cat /tmp/meshx_receiver.port)" \
+MESHX_RECEIVER_PORT="$(cat /tmp/mob_receiver.port)" \
 MESHX_PAYLOAD="hello from another BEAM" \
-MESHX_STORE_DATA_DIR=/tmp/meshx_sender_store \
+MESHX_STORE_DATA_DIR=/tmp/mob_sender_store \
 mix run scripts/tcp_sender.exs
 ```
 
@@ -95,7 +95,7 @@ Runtime emits events to subscribed processes. Noise decode/decrypt failures are
 logged as warnings and returned as errors to callers instead of crashing session
 processes.
 
-Runtime telemetry is emitted under the `[:meshx_runtime, ...]` prefix for
+Runtime telemetry is emitted under the `[:mob_runtime, ...]` prefix for
 routing, send/drop/retry, fragmentation, ACK, discovery, backpressure, and Noise
 lifecycle events. See `docs/METRICS.md` for event names and suggested
 Prometheus/StatsD mappings.
@@ -106,7 +106,7 @@ Current alpha limits:
 
 - One runtime node per BEAM VM.
 - TCP and UDP are built-in transports. BLE is available through bridge modules;
-  Linux deployments can use `MeshxTransportBLE.BluezBridge`, while iOS and
+  Linux deployments can use `Mob.Routing.BLE.BluezBridge`, while iOS and
   Android deployments need platform-native bridge modules.
 - Peer identity is transport-provided and should be paired with secure sessions
   before sending private data.

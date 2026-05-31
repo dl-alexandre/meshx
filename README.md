@@ -37,7 +37,7 @@ Add MeshX to your `mix.exs`:
 ```elixir
 defp deps do
   [
-    {:meshx_runtime, git: "https://github.com/dl-alexandre/meshx.git"}
+    {:mob_runtime, git: "https://github.com/dl-alexandre/mob.git"}
   ]
 end
 ```
@@ -50,21 +50,21 @@ Start a node and send a packet:
 
 ```elixir
 # Start the runtime application (usually in your supervision tree)
-{:ok, _apps} = Application.ensure_all_started(:meshx_runtime)
+{:ok, _apps} = Application.ensure_all_started(:mob_runtime)
 
 # Attach a TCP transport
-{:ok, tcp} = MeshxTransport.TCP.start_link(id: "node-a", event_target: MeshxRuntime.Router)
-:ok = MeshxRuntime.Router.attach_transport(:tcp, MeshxTransport.TCP, tcp)
+{:ok, tcp} = Mob.Routing.TCP.start_link(id: "node-a", event_target: Mob.Runtime.Router)
+:ok = Mob.Runtime.Router.attach_transport(:tcp, Mob.Routing.TCP, tcp)
 
 # Connect to a peer
-:ok = MeshxTransport.TCP.connect(tcp, {127, 0, 0, 1}, 4040)
+:ok = Mob.Routing.TCP.connect(tcp, {127, 0, 0, 1}, 4040)
 
 # Send a packet (encrypted via Noise XX if secure session exists)
-packet = MeshxProtocol.Packet.new(:data, 1, "hello")
-:ok = MeshxRuntime.Router.send_packet("peer-b", packet, store: true, secure: true)
+packet = Mob.Protocol.Packet.new(:data, 1, "hello")
+:ok = Mob.Runtime.Router.send_packet("peer-b", packet, store: true, secure: true)
 ```
 
-Packets with `store: true` are queued in `MeshxStore.Outbox` when the peer is
+Packets with `store: true` are queued in `Mob.Store.Outbox` when the peer is
 offline and replayed automatically when it reappears on any transport.
 
 ## Architecture
@@ -74,32 +74,32 @@ child apps:
 
 ### Core Libraries
 
-- **`meshx_protocol`** — Compact binary framing, TTL, gossip primitives, and fragmentation
-- **`meshx_noise`** — Noise XX session wrapper over Decibel
-- **`meshx_store`** — CubDB persistence, ETS dedupe, relay cache, and outbox
-- **`meshx_transport`** — Transport behavior plus in-memory and TCP transports
-- **`meshx_transport_ble`** — Bluetooth Low Energy (BLE) native bridge adapter
-- **`meshx_mob`** — Mobile platform context and transport metadata helpers
+- **`mob_protocol`** — Compact binary framing, TTL, gossip primitives, and fragmentation
+- **`mob_noise`** — Noise XX session wrapper over Decibel
+- **`mob_store`** — CubDB persistence, ETS dedupe, relay cache, and outbox
+- **`mob_routing`** — Transport behavior plus in-memory and TCP transports
+- **`mob_routing_ble`** — Bluetooth Low Energy (BLE) native bridge adapter
+- **`mob_node`** — Mobile platform context and transport metadata helpers
 
 ### Runtime
 
-- **`meshx_runtime`** — Top-level OTP application. Depends on all other components and starts the supervision tree.
+- **`mob_runtime`** — Top-level OTP application. Depends on all other components and starts the supervision tree.
 
 ### Mobile App
 
-- **`meshx_mobile_app`** — Mob-based iOS app shell. Runs the MeshX runtime inside
+- **`mob_node`** — Mob-based iOS app shell. Runs the MeshX runtime inside
   the on-device BEAM and delegates platform BLE to a native bridge contract.
 
 ## Implemented Components
 
-- `MeshxProtocol.Packet`, `Ack`, `Framing`, `Fragment`, `Gossip`, and `Codec`
-- `MeshxNoise.Session` and `MeshxNoise.Supervisor`
-- `MeshxStore.DB`, `Identity`, `Trust`, `Message`, `Outbox`, `Dedupe`, and `RelayCache`
-- `MeshxTransport.Peer`, `Capabilities`, `Event`, `Memory`, `Memory.Hub`, `TCP`, `UDP`, and `QUIC`
-- `MeshxTransportBLE.Bridge`, `NoopBridge`, `PortBridge`, and `BluezBridge`
-- `MeshxMob.Platform`
-- `MeshxMobileApp.Session`, `HomeScreen`, and native bridge contract
-- `MeshxRuntime.SessionManager`, `FragmentBuffer`, `PeerRegistry`, `Router`, `Outbox`, and `Topology`
+- `Mob.Protocol.Packet`, `Ack`, `Framing`, `Fragment`, `Gossip`, and `Codec`
+- `Mob.Noise.Session` and `Mob.Noise.Supervisor`
+- `Mob.Store.DB`, `Identity`, `Trust`, `Message`, `Outbox`, `Dedupe`, and `RelayCache`
+- `Mob.Routing.Peer`, `Capabilities`, `Event`, `Memory`, `Memory.Hub`, `TCP`, `UDP`, and `QUIC`
+- `Mob.Routing.BLE.Bridge`, `NoopBridge`, `PortBridge`, and `BluezBridge`
+- `Mob.Node.Platform`
+- `Mob.Node.Session`, `HomeScreen`, and native bridge contract
+- `Mob.Runtime.SessionManager`, `FragmentBuffer`, `PeerRegistry`, `Router`, `Outbox`, and `Topology`
 
 ## Transport and Runtime Status
 
@@ -108,51 +108,51 @@ child apps:
 | TCP | ✅ Stable | Production-ready for local networks |
 | UDP | ✅ Stable | Best-effort datagram delivery |
 | BLE | ⚠️ Partial | BlueZ bridge works on Linux; iOS/Android bridges are application-specific |
-| QUIC | ✅ Implemented | Requires `:quicer` optional dep; detection is runtime via `MeshxTransport.QUIC.available?/0` |
-| mDNS Discovery | ✅ Stable | LAN peer discovery via `MeshxRuntime.Discovery` |
+| QUIC | ✅ Implemented | Requires `:quicer` optional dep; detection is runtime via `Mob.Routing.QUIC.available?/0` |
+| mDNS Discovery | ✅ Stable | LAN peer discovery via `Mob.Runtime.Discovery` |
 
 The runtime starts all transports you attach. Unattached transports have no
 overhead. The supervision tree restarts transports automatically on failure.
 
 ## Secure Routing
 
-`MeshxRuntime.Router.ensure_secure_session/2` performs a Noise XX handshake with
+`Mob.Runtime.Router.ensure_secure_session/2` performs a Noise XX handshake with
 a peer over existing transports using non-relayed `:control` packets. Once the
 session is established, `Router.send_packet/3` with `secure: true` encrypts the
 packet payload and sets the protocol encrypted flag.
 
 ## Fragmentation
 
-`MeshxRuntime.Router` fragments outbound packets when `:mtu` is provided or a
+`Mob.Runtime.Router` fragments outbound packets when `:mtu` is provided or a
 peer advertises `metadata.mtu`. Fragments carry the encoded original frame, so
 reassembly preserves packet type, flags, TTL, and encrypted payloads. Inbound
-fragments are buffered by `MeshxRuntime.FragmentBuffer` and delivered only after
+fragments are buffered by `Mob.Runtime.FragmentBuffer` and delivered only after
 the original packet has been fully reassembled.
 
 ## Store And Forward
 
-`Router.send_packet/3` with `store: true` queues packets in `MeshxStore.Outbox`
-when a peer is not currently reachable. `MeshxRuntime.Outbox` subscribes to peer
+`Router.send_packet/3` with `store: true` queues packets in `Mob.Store.Outbox`
+when a peer is not currently reachable. `Mob.Runtime.Outbox` subscribes to peer
 discovery events and replays matching pending packets when the destination peer
 appears. Replayed rows remain pending until an ACK arrives; missing ACKs trigger
 retry attempts until `max_attempts` marks the row failed.
 
 ## TCP Transport
 
-`MeshxTransport.TCP` provides a real node-to-node transport for local networks
+`Mob.Routing.TCP` provides a real node-to-node transport for local networks
 and test deployments. Endpoints listen on a TCP port, exchange peer IDs and
 metadata during a transport handshake, then carry MeshX protocol frames as
 length-prefixed TCP messages. Runtime nodes attach it the same way as other
 transports:
 
 ```elixir
-{:ok, tcp} = MeshxTransport.TCP.start_link(id: "node-a", event_target: MeshxRuntime.Router)
-:ok = MeshxRuntime.Router.attach_transport(:tcp, MeshxTransport.TCP, tcp)
-:ok = MeshxTransport.TCP.connect(tcp, {127, 0, 0, 1}, remote_port)
+{:ok, tcp} = Mob.Routing.TCP.start_link(id: "node-a", event_target: Mob.Runtime.Router)
+:ok = Mob.Runtime.Router.attach_transport(:tcp, Mob.Routing.TCP, tcp)
+:ok = Mob.Routing.TCP.connect(tcp, {127, 0, 0, 1}, remote_port)
 ```
 
 TCP and UDP provide general-purpose node-to-node transports. BLE is exposed
-through `meshx_transport_ble`; Linux deployments can use the bundled BlueZ
+through `mob_routing_ble`; Linux deployments can use the bundled BlueZ
 bridge, while iOS and Android deployments provide CoreBluetooth/Android BLE
 bridge modules behind the same behaviour.
 
@@ -181,7 +181,7 @@ does not:
 
 Delivered packets with the ACK-requested flag generate direct ACK packets back to
 the previous hop. ACKs mark matching outbox rows sent. Peers can advertise
-`MeshxTransport.Capabilities` through metadata, including MTU, secure-required,
+`Mob.Routing.Capabilities` through metadata, including MTU, secure-required,
 relay willingness, protocol version, and background mode.
 
 ## Relay Policy
@@ -194,13 +194,13 @@ Relay broadcasts skip peers that advertise `relay: false`.
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│                   meshx_runtime                     │
+│                   mob_runtime                     │
 │  (Application + Supervisor)                         │
 ├─────────────────────────────────────────────────────┤
-│  meshx_protocol   meshx_noise     meshx_store      │
-│  meshx_transport  meshx_transport_ble  meshx_mob   │
+│  mob_protocol   mob_noise     mob_store      │
+│  mob_routing  mob_routing_ble  mob_node   │
 ├─────────────────────────────────────────────────────┤
-│                   meshx_mobile_app                  │
+│                   mob_node                  │
 │       (Mob iOS shell + mobile session boundary)     │
 └─────────────────────────────────────────────────────┘
 ```
@@ -215,7 +215,7 @@ All components follow BEAM-oriented design practices:
 ## Development
 
 ```bash
-cd meshx
+cd mob
 
 # Build everything
 mix deps.get

@@ -1,6 +1,6 @@
 --------- beginning of main
 05-18 15:51:13.143 22964 23005 I TestRunner: run started: 1 tests
-05-18 15:51:13.144 22964 23005 I TestRunner: started: emitsHybridMbCuePlusServiceDataFullMxEnvelope(dev.meshx.mob.ble.IOSAuxFullMxAdvertSmokeTest)
+05-18 15:51:13.144 22964 23005 I TestRunner: started: emitsHybridMbCuePlusServiceDataFullMxEnvelope(dev.mob.mob.ble.IOSAuxFullMxAdvertSmokeTest)
 05-18 15:51:13.232 22964 23005 I HybridExperiment: Hybrid experiment started messageId=10ff615c6c868872a4c4d8bdab60bad0 (watch iOS for DIRECT_MX_SERVICE_DATA_WITH_MAGIC + this messageId)
-05-18 15:51:19.233 22964 23005 I TestRunner: finished: emitsHybridMbCuePlusServiceDataFullMxEnvelope(dev.meshx.mob.ble.IOSAuxFullMxAdvertSmokeTest)
+05-18 15:51:19.233 22964 23005 I TestRunner: finished: emitsHybridMbCuePlusServiceDataFullMxEnvelope(dev.mob.mob.ble.IOSAuxFullMxAdvertSmokeTest)
 05-18 15:51:19.246 22964 23005 I TestRunner: run finished: 1 tests, 0 failed, 0 ignored

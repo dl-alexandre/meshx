@@ -1,3 +1,0 @@
-05-24 12:00:01.000 100 200 I Elixir: MeshxAppEvent: {"schema":"meshx_rt_event.v1","run_id":"rt-01-synthetic-fail","at_unix_ms":1000,"at_monotonic_ms":1000,"source":"probe","phase":"app","event":"mob_app_start","metadata":{"platform":"android"}}
-05-24 12:00:05.000 100 200 I MeshxBle: {"v":1,"event":"received_message_beacon","received_device_id":"pixel-7","rssi":-48}
-05-24 12:00:06.000 100 200 I Elixir: MeshxAppEvent: {"schema":"meshx_rt_event.v1","run_id":"rt-01-synthetic-fail","at_unix_ms":6000,"at_monotonic_ms":6000,"source":"ble_event","phase":"receive","event":"mesh_message_received","metadata":{"message_id":"late-only","sender_peer_id":"iphone-14"}}

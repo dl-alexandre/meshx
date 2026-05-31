@@ -38,7 +38,7 @@ The separate iOS responder hardware path is now validated:
 
 Evidence:
 
-- iOS harness served one MX envelope through `MeshxFetchGattResponder`.
+- iOS harness served one MX envelope through `MobFetchGattResponder`.
 - Android instrumented test `IOSResponderFetchSmokeTest` scanned the
   iOS fetch-service cue, connected, wrote MFQ, read MFR, parsed the
   returned MX envelope, and passed on hardware.
@@ -62,10 +62,10 @@ waking both devices and dismissing keyguard still failed the standalone
 M40 interop harness in both directions before service discovery:
 
 ```text
-/tmp/meshx-android-m40-current/sm-t577u-responder.log
-/tmp/meshx-android-m40-current/sm-t390-requester.log
-/tmp/meshx-android-m40-current/sm-t390-responder.log
-/tmp/meshx-android-m40-current/sm-t577u-requester.log
+/tmp/mob-android-m40-current/sm-t577u-responder.log
+/tmp/mob-android-m40-current/sm-t390-requester.log
+/tmp/mob-android-m40-current/sm-t390-responder.log
+/tmp/mob-android-m40-current/sm-t577u-requester.log
 ```
 
 Re-running the same known-bad pair is not new positive evidence unless

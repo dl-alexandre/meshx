@@ -1,5 +1,5 @@
 
-dev.meshx.mob.ble.IOSAuxFullMxAdvertSmokeTest:.
+dev.mob.mob.ble.IOSAuxFullMxAdvertSmokeTest:.
 
 Time: 6.102
 

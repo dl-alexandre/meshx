@@ -37,7 +37,7 @@ filter scans on it.
 
 UUIDs are configurable at node startup. A client and server **must** be
 configured with the same triple to interoperate. The defaults above are
-what `MeshxTransportBLE.BluezBridge` uses out of the box.
+what `Mob.Routing.BLE.BluezBridge` uses out of the box.
 
 **Direction convention.** RX and TX are named from the perspective of the
 *characteristic owner*. To send a frame to a peer, write to that peer's
@@ -298,7 +298,7 @@ packet     = {type: data, flags: encrypted, payload: ciphertext, ...}
 Nonces are managed by the Noise library and are monotonic. **Sessions
 are not resumable.** If the underlying transport drops the peer
 (`peer_down`), both sides MUST tear down their Noise state and
-renegotiate from message 1. (See `MeshxRuntime.SessionManager.drop/1`.)
+renegotiate from message 1. (See `Mob.Runtime.SessionManager.drop/1`.)
 
 ### AAD
 
@@ -406,7 +406,7 @@ FRAGMENT_HEADER_SIZE     = 6     # orig_msg_id + index + total (§4)
   negotiated, chunk size will be small; use the negotiated MTU, not
   the advertised one.
 - **Background mode.** Both platforms suspend BLE radio access in deep
-  background. The MeshX `meshx_mob` platform context tracks this; a
+  background. The MeshX `mob_node` platform context tracks this; a
   mobile client should likewise gate sends and pause keep-alives when
   in `:suspended`.
 - **Pairing.** The handshake is end-to-end at the Noise layer; OS-level
@@ -429,7 +429,7 @@ cases also need a **connectionless** path so two peers can exchange
 *references* to messages without establishing a Noise session —
 useful for proximity announce, neighbor presence, and store-and-
 forward hint propagation. This is the advert-only profile served by
-`MeshxMobileApp.BLE` + `meshx_transport_ble` on Android and iOS.
+`Mob.Node.BLE` + `mob_routing_ble` on Android and iOS.
 
 ### Manufacturer data envelope
 
@@ -451,7 +451,7 @@ plain `DeviceDiscovered` / `AdvertisementReceived` event.
 
 ### `MX` — Full v1 envelope
 
-The full envelope (`MeshxMobileApp.BLE.MessageEnvelope` v1) starts
+The full envelope (`Mob.Node.BLE.MessageEnvelope` v1) starts
 with `'M','X', VERSION (1), 0` and carries:
 
 ```
@@ -505,7 +505,7 @@ Header field semantics:
 - `flags` — reserved, must be `0`.
 
 A receiver that sees a beacon and wants the full payload retrieves
-it via the GATT-fetch protocol (`MeshxFetchGatt`) keyed on the
+it via the GATT-fetch protocol (`MobFetchGatt`) keyed on the
 `message_id_hash`. Subscribers operating in the advert-only profile
 treat the beacon itself as the delivery: it proves the sender was
 in range at time T announcing a message with those coordinates.
@@ -542,12 +542,12 @@ are base64-encoded:
 ```
 
 The set of `event` tags is closed and corresponds 1:1 to the
-`MeshxMobileApp.BLE.Events.*` Elixir structs (`device_discovered`,
+`Mob.Node.BLE.Events.*` Elixir structs (`device_discovered`,
 `advertisement_received`, `received_message`, `received_message_beacon`,
 `connection_state_changed`, `peer_authenticated`, `message_received`,
 `device_lost`, `advert_gossip_outcome`, `error`).
 
-The Elixir `MeshxMobileApp.BLE.BridgeProtocol` decoder accepts the
+The Elixir `Mob.Node.BLE.BridgeProtocol` decoder accepts the
 JSON form (with base64 binary fields) *and* the raw atom-keyed-map
 form produced by the iOS NIF directly. Binary fields carried as
 base64 on the JSON path are recursively decoded by `atomize_top_level`

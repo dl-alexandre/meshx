@@ -10,7 +10,7 @@ intended emitter-receiver pair.
 
 ## Devices
 
-- **Emitter:** iPhone 13 (DairyPhoneDeaux, UDID `1780F216-CB5C-560B-A86F-85D31F79ADEF`) — `MeshxMobileHarness` launched via `devicectl` with `--meshx-auto-direct-mx-hybrid-advertise`. **Screen unlocked and kept awake for the full window.**
+- **Emitter:** iPhone 13 (DairyPhoneDeaux, UDID `1780F216-CB5C-560B-A86F-85D31F79ADEF`) — `Mob.NodeHarness` launched via `devicectl` with `--mob-auto-direct-mx-hybrid-advertise`. **Screen unlocked and kept awake for the full window.**
 - **Receiver:** SM-T390 (`5200f354f4fb277f`), Android 9 / API 28 — `IOSHybridDirectMxReceiveTest` with the version-aware permission shim.
 
 ## Run

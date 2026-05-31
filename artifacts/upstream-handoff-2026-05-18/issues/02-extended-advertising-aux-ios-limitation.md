@@ -19,7 +19,7 @@ In every case the iPhone/iPad continued to receive the 22-byte MB legacy beacons
 
 `artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/android-aux-full-mx-ios-observe/summary.md` (SM-T577U sender, iPad12,1 observer, 276 MB beacons observed, 0 direct MX).
 
-Additional raw-advert logging via the iOS harness (`--meshx-log-raw-advert-data`) is available to inspect exactly which `advertisementData` keys arrive.
+Additional raw-advert logging via the iOS harness (`--mob-log-raw-advert-data`) is available to inspect exactly which `advertisementData` keys arrive.
 
 ## Request
 

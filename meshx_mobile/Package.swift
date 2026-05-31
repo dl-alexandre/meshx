@@ -2,38 +2,38 @@
 import PackageDescription
 
 let package = Package(
-    name: "MeshxMobile",
+    name: "Mob.Node",
     platforms: [
         .iOS(.v16),
         .macOS(.v13)
     ],
     products: [
-        .library(name: "MeshxMobile", targets: ["MeshxMobile"]),
-        .executable(name: "MeshxNoiseInteropCLI", targets: ["MeshxNoiseInteropCLI"]),
-        .executable(name: "MeshxMessageObserverCLI", targets: ["MeshxMessageObserverCLI"])
+        .library(name: "Mob.Node", targets: ["Mob.Node"]),
+        .executable(name: "Mob.NoiseInteropCLI", targets: ["Mob.NoiseInteropCLI"]),
+        .executable(name: "MobMessageObserverCLI", targets: ["MobMessageObserverCLI"])
     ],
     targets: [
-        .target(name: "MeshxMobile"),
+        .target(name: "Mob.Node"),
         .executableTarget(
-            name: "MeshxNoiseInteropCLI",
-            dependencies: ["MeshxMobile"]
+            name: "Mob.NoiseInteropCLI",
+            dependencies: ["Mob.Node"]
         ),
         .executableTarget(
-            name: "MeshxMessageObserverCLI",
-            dependencies: ["MeshxMobile"],
+            name: "MobMessageObserverCLI",
+            dependencies: ["Mob.Node"],
             exclude: ["Info.plist"],
             linkerSettings: [
                 .unsafeFlags([
                     "-Xlinker", "-sectcreate",
                     "-Xlinker", "__TEXT",
                     "-Xlinker", "__info_plist",
-                    "-Xlinker", "Sources/MeshxMessageObserverCLI/Info.plist"
+                    "-Xlinker", "Sources/MobMessageObserverCLI/Info.plist"
                 ])
             ]
         ),
         .testTarget(
-            name: "MeshxMobileTests",
-            dependencies: ["MeshxMobile"]
+            name: "Mob.NodeTests",
+            dependencies: ["Mob.Node"]
         )
     ]
 )

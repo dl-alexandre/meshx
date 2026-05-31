@@ -15,21 +15,21 @@ Android-only bundles under `2026-05-12-sm-t577u-sm-t390/` and
 | Android sender (USB) | `R52W90AW7EN` | Samsung SM-T577U | Android 13 / API 33 |
 | Android sender (ambient) | `sender_peer_id_hash=f70806eddc285bcc` | unknown Android | n/a |
 
-The iPhone was running the `dev.meshx.mobile.harness` MeshxMobileHarness
+The iPhone was running the `dev.mob.node.harness` Mob.NodeHarness
 build at commit `fb5afa8` (latest `origin/master` at capture time)
 with the new `MessageAdvertisementObserver` MB branch and harness
 auto-dispatch flag. The Android SM-T577U was running the shipping
-`dev.meshx.mob` app with `BleSelfTest` periodic dispatch active.
+`dev.mob.mob` app with `BleSelfTest` periodic dispatch active.
 
 ## Hardware Evidence
 
 | Directory | Purpose | Outcome |
 | --- | --- | --- |
-| `hardware/i26-iphone-dispatch/` | iPhone 13 puts MB legacy beacons on air via `MeshxBLEPeripheral.advertiseLegacyBeacon` (new harness `--meshx-auto-beacon` flag). | Passed: 57 contiguous dispatches captured in transcript, 59 total dispatched on-device, ~1.5 s cadence, no errors. |
-| `hardware/i26b-android-to-iphone-receive/` | Android-emitted MB legacy beacons decoded byte-for-byte by iPhone 13 harness via the new `MessageAdvertisementObserver` MB branch (`meshxMessageObserverDidObserveLegacyBeacon`). | Passed: 73 beacons captured, 8 distinct `message_id_hash` values, two independent Android peers (`sender_peer_id_hash` `da6e7833…49` and `f70806ed…cc`) decoded with matching `envelope_version=1`, `beacon_version=1`, `payload_kind=TX`. |
+| `hardware/i26-iphone-dispatch/` | iPhone 13 puts MB legacy beacons on air via `MobBLEPeripheral.advertiseLegacyBeacon` (new harness `--mob-auto-beacon` flag). | Passed: 57 contiguous dispatches captured in transcript, 59 total dispatched on-device, ~1.5 s cadence, no errors. |
+| `hardware/i26b-android-to-iphone-receive/` | Android-emitted MB legacy beacons decoded byte-for-byte by iPhone 13 harness via the new `MessageAdvertisementObserver` MB branch (`mobMessageObserverDidObserveLegacyBeacon`). | Passed: 73 beacons captured, 8 distinct `message_id_hash` values, two independent Android peers (`sender_peer_id_hash` `da6e7833…49` and `f70806ed…cc`) decoded with matching `envelope_version=1`, `beacon_version=1`, `payload_kind=TX`. |
 
 The base64 sender hash `2m54M5Qylkk=` reported in Android logcat
-(`MeshxBleDispatch.legacy_beacon_advertising_started.sender_peer_id_hash`)
+(`MobBleDispatch.legacy_beacon_advertising_started.sender_peer_id_hash`)
 decodes to hex `da6e783394329649` — exactly the
 `sender_peer_id_hash` the iPhone harness logged. Cross-platform identity
 round-trips.
@@ -39,15 +39,15 @@ round-trips.
 Bundled landing commit: **`fb5afa8`** (`ble(ios): close cross-platform
 receive on advert-only path`).
 
-* `meshx_mobile/Sources/MeshxMobile/MessageAdvertisementObserver.swift`
+* `mob_node/Sources/Mob.Node/MessageAdvertisementObserver.swift`
   — adds the MB legacy beacon parse branch after MX decode declines, and
-  the `meshxMessageObserverDidObserveLegacyBeacon` delegate method (with
+  the `mobMessageObserverDidObserveLegacyBeacon` delegate method (with
   default no-op so existing observers compile unchanged).
-* `meshx_mobile/Examples/MeshxMobileHarness/MeshxMobileHarness/BLEHarnessModel.swift`
-  — adds `import Security`, `--meshx-auto-beacon` flag handling
+* `mob_node/Examples/Mob.NodeHarness/Mob.NodeHarness/BLEHarnessModel.swift`
+  — adds `import Security`, `--mob-auto-beacon` flag handling
   (`startAutoBeaconDispatch()` periodic `peripheral.advertiseLegacyBeacon`),
-  the new client-side `meshxDidObserveLegacyBeacon` handler, and the new
-  observer-side `meshxMessageObserverDidObserveLegacyBeacon` handler.
+  the new client-side `mobDidObserveLegacyBeacon` handler, and the new
+  observer-side `mobMessageObserverDidObserveLegacyBeacon` handler.
   Both handlers emit a `legacy_beacon_received` JSON-ish line via
   `print`, captured by `xcrun devicectl device process launch --console`.
 
@@ -60,9 +60,9 @@ receive on advert-only path`).
   flow rather than only during selftest, or (b) a directed observer
   harness on Android equivalent to the new iOS harness flags.
 * **Full MX envelope receive on iOS production bridge.** The shipping
-  iOS app (`MeshxNativeBLEBridge` + `MeshxBLEClient`) already routes MB
-  legacy beacons through `meshxDidObserveLegacyBeacon` →
-  `meshx_ble_emit_received_message_beacon`, but it does not yet decode
+  iOS app (`MobNativeBLEBridge` + `MobBLEClient`) already routes MB
+  legacy beacons through `mobDidObserveLegacyBeacon` →
+  `mob_ble_emit_received_message_beacon`, but it does not yet decode
   full `MX` extended-advertising envelopes on the central side. See the
   third iOS gap in `docs/BLE_BRIDGE.md`.
 
@@ -82,8 +82,8 @@ not full message delivery.
 ## Capture methodology
 
 Both legs were exercised at the same time on the same iPhone (the
-harness's `--meshx-auto-scan` runs the observer concurrently with
-`--meshx-auto-beacon` dispatch). CoreBluetooth suppresses self-discovery,
+harness's `--mob-auto-scan` runs the observer concurrently with
+`--mob-auto-beacon` dispatch). CoreBluetooth suppresses self-discovery,
 so the iPhone never sees its own beacons; observer hits in
 `i26b-android-to-iphone-receive/observer.log` are entirely from external
 Android peers in radio range.

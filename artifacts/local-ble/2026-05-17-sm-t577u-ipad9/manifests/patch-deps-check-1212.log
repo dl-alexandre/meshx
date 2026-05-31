@@ -1,3 +1,3 @@
-Generated meshx_mobile_app app
-  ✓  patches/01-mob_dev-meshx-build-additions.patch: already patched
+Generated mob_node app
+  ✓  patches/01-mob_dev-mob-build-additions.patch: already patched
   ✓  patches/02-mob-static-nif-table.patch: already patched

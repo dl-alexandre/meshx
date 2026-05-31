@@ -11,7 +11,7 @@ As part of the 2026-05 carrier decision work, MeshX introduced two durable instr
 - `IOSAuxFullMxAdvertSmokeTest` (Android side emitter of hybrid MB cue + direct-MX service-data full envelope)
 - `IOSHybridDirectMxReceiveTest` (Android side observer + correlation logic)
 
-These tests, together with the iOS harness `--meshx-auto-direct-mx-hybrid-advertise` flag and the `BleScanner` / `BleDispatcher` hybrid correlation paths (`recentMBBeacons`, `onDirectMxServiceDataWithMagicReceived`, `HYBRID_SUCCESS` etc. markers), form a self-contained evidence bundle that can re-validate the direct carrier shape cheaply.
+These tests, together with the iOS harness `--mob-auto-direct-mx-hybrid-advertise` flag and the `BleScanner` / `BleDispatcher` hybrid correlation paths (`recentMBBeacons`, `onDirectMxServiceDataWithMagicReceived`, `HYBRID_SUCCESS` etc. markers), form a self-contained evidence bundle that can re-validate the direct carrier shape cheaply.
 
 ## Current status
 

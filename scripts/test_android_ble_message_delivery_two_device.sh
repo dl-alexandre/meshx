@@ -11,7 +11,7 @@ cleanup() {
   if [[ "${#EXTRA_CLEANUP_DIRS[@]}" -gt 0 ]]; then
     for dir in "${EXTRA_CLEANUP_DIRS[@]}"; do
       case "$dir" in
-        /tmp/meshx-android-m26-*) rm -rf "$dir" ;;
+        /tmp/mob-android-m26-*) rm -rf "$dir" ;;
       esac
     done
   fi
@@ -34,7 +34,7 @@ assert_m26_completion_schema() {
       observer_scan_started
       received_message_logged
       observer_m14_consistent
-      observer_meshx_transport_metadata
+      observer_mob_routing_metadata
       payload_match
       sender_and_observer_distinct
       sender_and_observer_logs_distinct
@@ -441,7 +441,7 @@ ruby -rjson -e '
       match = line.match(/\{.*\}/)
       next unless match
 
-      "MeshxMessageObserverCLI: #{JSON.generate(JSON.parse(match[0]))}\n"
+      "MobMessageObserverCLI: #{JSON.generate(JSON.parse(match[0]))}\n"
     end
     File.write(path, lines.join)
   end
@@ -493,13 +493,13 @@ ruby -rjson -e '
       tag =
         case event["event"]
         when "attempt_outcome", "advertising_set_started"
-          "MeshxBleDispatch"
+          "MobBleDispatch"
         when "scan_start_result"
-          "MeshxBleControl"
+          "MobBleControl"
         when "received_message"
-          "MeshxBle"
+          "MobBle"
         else
-          "MeshxBle"
+          "MobBle"
         end
       "I #{tag}: #{JSON.generate(event)}\n"
     end
@@ -832,11 +832,11 @@ ruby -rjson -e '
   abort("expected sender_attempt_matches_advertising_set") unless summary.fetch("sender_attempt_matches_advertising_set") == true
   abort("expected sender_payload_size_matches") unless summary.fetch("sender_payload_size_matches") == true
   abort("expected observer_m14_consistent") unless summary.fetch("observer_m14_consistent") == true
-  abort("expected observer_meshx_transport_metadata") unless summary.fetch("observer_meshx_transport_metadata") == true
+  abort("expected observer_mob_routing_metadata") unless summary.fetch("observer_mob_routing_metadata") == true
   abort("expected matched payload") unless summary.fetch("matched_payload") == "TVgBAAABAgMEBQYHCAkKCwwNDg8AAAGLz+VoAAELbWVzaHgtYWxwaGEKbWVzaHgtYmV0YQJUWAAAAmhp"
   m14 = summary.fetch("m14_envelope")
-  abort("expected m14 sender") unless m14.fetch("sender_peer_id") == "meshx-alpha"
-  abort("expected m14 recipient") unless m14.fetch("recipient_peer_id") == "meshx-beta"
+  abort("expected m14 sender") unless m14.fetch("sender_peer_id") == "mob-alpha"
+  abort("expected m14 recipient") unless m14.fetch("recipient_peer_id") == "mob-beta"
   abort("expected m14 ttl") unless m14.fetch("ttl") == 1
   abort("expected m14 payload type") unless m14.fetch("payload_type") == "TX"
   abort("expected m14 payload base64") unless m14.fetch("payload_base64") == "aGk="
@@ -887,7 +887,7 @@ ruby -rjson -e '
   abort("expected validation sender_attempt_matches_advertising_set") unless validation.fetch("sender_attempt_matches_advertising_set") == true
   abort("expected validation sender_payload_size_matches") unless validation.fetch("sender_payload_size_matches") == true
   abort("expected validation received_message_logged") unless validation.fetch("received_message_logged") == true
-  abort("expected validation observer_meshx_transport_metadata") unless validation.fetch("observer_meshx_transport_metadata") == true
+  abort("expected validation observer_mob_routing_metadata") unless validation.fetch("observer_mob_routing_metadata") == true
 ' "$TMP_DIR/summary.json"
 
 grep -q "MeshX Android BLE Message Delivery Verification" "$TMP_DIR/summary.md"
@@ -1038,7 +1038,7 @@ ruby -rjson -e '
   abort("expected sender BLE support false without requested sender") unless summary.fetch("validation").fetch("sender_ble_le_supported") == false
   abort("expected observer BLE support false without requested observer") unless summary.fetch("validation").fetch("observer_ble_le_supported") == false
   abort("expected sender_attempt_matches_advertising_set false") unless summary.fetch("validation").fetch("sender_attempt_matches_advertising_set") == false
-  abort("expected observer_meshx_transport_metadata false") unless summary.fetch("validation").fetch("observer_meshx_transport_metadata") == false
+  abort("expected observer_mob_routing_metadata false") unless summary.fetch("validation").fetch("observer_mob_routing_metadata") == false
   abort("expected payload_match false") unless summary.fetch("validation").fetch("payload_match") == false
   abort("expected M26 incomplete") unless summary.fetch("m26_android_to_android_complete") == false
   abort("expected M26 blocker") unless summary.fetch("m26_completion_blockers").include?("expected exactly two attached adb devices, found 1")
@@ -1258,14 +1258,14 @@ grep -q "preflight_host_usb_android_candidate_count=1" "$TMP_DIR/preflight-defau
 default_preflight_summary="$(sed -n 's/^preflight_summary=//p' "$TMP_DIR/preflight-default.err")"
 default_preflight_markdown="$(sed -n 's/^preflight_summary_markdown=//p' "$TMP_DIR/preflight-default.err")"
 case "$default_preflight_summary" in
-  /tmp/meshx-android-m26-*/summary.json) ;;
+  /tmp/mob-android-m26-*/summary.json) ;;
   *)
     echo "unexpected default preflight summary path: $default_preflight_summary" >&2
     exit 1
     ;;
 esac
 case "$default_preflight_markdown" in
-  /tmp/meshx-android-m26-*/summary.md) ;;
+  /tmp/mob-android-m26-*/summary.md) ;;
   *)
     echo "unexpected default preflight markdown path: $default_preflight_markdown" >&2
     exit 1
@@ -1283,7 +1283,7 @@ ruby -rjson -e '
   abort("expected command capture") unless command.include?("--skip-install")
   abort("expected no explicit out-dir in command capture") if command.include?("--out-dir")
   abort("expected sender_attempt_matches_advertising_set false") unless summary.fetch("validation").fetch("sender_attempt_matches_advertising_set") == false
-  abort("expected observer_meshx_transport_metadata false") unless summary.fetch("validation").fetch("observer_meshx_transport_metadata") == false
+  abort("expected observer_mob_routing_metadata false") unless summary.fetch("validation").fetch("observer_mob_routing_metadata") == false
   abort("expected default M26 incomplete") unless summary.fetch("m26_android_to_android_complete") == false
   abort("expected default M26 blocker") unless summary.fetch("m26_completion_blockers").include?("expected exactly two attached adb devices, found 1")
   abort("expected default host usb log") unless summary.fetch("host_usb_log").end_with?("/host-usb.txt")
@@ -1399,7 +1399,7 @@ mkdir -p "$TMP_DIR/fake-bin-two"
   printf '%s\n' '    ;;'
   printf '%s\n' '  "mdns services")'
   printf '%s\n' '    printf "%s\n" "List of discovered mdns services"'
-  printf '%s\n' '    printf "%s\n" "meshx-observer _adb-tls-connect._tcp. 192.0.2.10:37099"'
+  printf '%s\n' '    printf "%s\n" "mob-observer _adb-tls-connect._tcp. 192.0.2.10:37099"'
   printf '%s\n' '    ;;'
   printf '%s\n' '  "-s android-a shell getprop ro.product.model") printf "%s\n" "Sender" ;;'
   printf '%s\n' '  "-s android-a shell getprop ro.build.version.release") printf "%s\n" "13" ;;'
@@ -1448,7 +1448,7 @@ mkdir -p "$TMP_DIR/fake-bin-ready"
   printf '%s\n' '    ;;'
   printf '%s\n' '  "mdns services")'
   printf '%s\n' '    printf "%s\n" "List of discovered mdns services"'
-  printf '%s\n' '    printf "%s\n" "meshx-observer _adb-tls-connect._tcp. 192.0.2.10:37099"'
+  printf '%s\n' '    printf "%s\n" "mob-observer _adb-tls-connect._tcp. 192.0.2.10:37099"'
   printf '%s\n' '    ;;'
   printf '%s\n' '  "-s android-a shell getprop ro.product.model") printf "%s\n" "Sender" ;;'
   printf '%s\n' '  "-s android-a shell getprop ro.build.version.release") printf "%s\n" "14" ;;'
@@ -1529,7 +1529,7 @@ ruby -rjson -e '
     "observer_scan_started",
     "received_message_logged",
     "observer_m14_consistent",
-    "observer_meshx_transport_metadata",
+    "observer_mob_routing_metadata",
     "payload_match",
     "sender_and_observer_logs_distinct",
     "android_logcat_provenance"
@@ -1546,7 +1546,7 @@ assert_m26_completion_schema "$TMP_DIR/preflight-ready/summary.json"
 grep -q "MeshX Android BLE Message Delivery Preflight" "$TMP_DIR/preflight-ready/summary.md"
 grep -q "preflight_only" "$TMP_DIR/preflight-ready/summary.md"
 grep -q "ADB mDNS Services" "$TMP_DIR/preflight-ready/summary.md"
-grep -q "meshx-observer _adb-tls-connect._tcp. 192.0.2.10:37099" "$TMP_DIR/preflight-ready/summary.md"
+grep -q "mob-observer _adb-tls-connect._tcp. 192.0.2.10:37099" "$TMP_DIR/preflight-ready/summary.md"
 grep -q "Host USB Android Candidates" "$TMP_DIR/preflight-ready/summary.md"
 grep -q "sender_device_metadata_complete.*true" "$TMP_DIR/preflight-ready/summary.md"
 grep -q "observer_device_metadata_complete.*true" "$TMP_DIR/preflight-ready/summary.md"
@@ -1586,7 +1586,7 @@ mkdir -p "$TMP_DIR/fake-bin-live"
   printf '%s\n' '    ;;'
   printf '%s\n' '  "mdns services")'
   printf '%s\n' '    printf "%s\n" "List of discovered mdns services"'
-  printf '%s\n' '    printf "%s\n" "meshx-observer _adb-tls-connect._tcp. 192.0.2.10:37099"'
+  printf '%s\n' '    printf "%s\n" "mob-observer _adb-tls-connect._tcp. 192.0.2.10:37099"'
   printf '%s\n' '    ;;'
   printf '%s\n' '  "-s R52W90AW7EN shell getprop ro.product.model") printf "%s\n" "Sender" ;;'
   printf '%s\n' '  "-s R52W90AW7EN shell getprop ro.build.version.release") printf "%s\n" "14" ;;'
@@ -1759,7 +1759,7 @@ grep -q "observer_ready_timeout_sec.*3" "$TMP_DIR/live-summary/summary.md"
 grep -q "adb_inventory_device_count.*2" "$TMP_DIR/live-summary/summary.md"
 grep -q "adb_mdns_service_count.*1" "$TMP_DIR/live-summary/summary.md"
 grep -q "host_usb_android_candidate_count.*2" "$TMP_DIR/live-summary/summary.md"
-grep -q "meshx-observer _adb-tls-connect._tcp. 192.0.2.10:37099" "$TMP_DIR/live-summary/summary.md"
+grep -q "mob-observer _adb-tls-connect._tcp. 192.0.2.10:37099" "$TMP_DIR/live-summary/summary.md"
 
 mkdir -p "$TMP_DIR/fake-bin-logcat-fail"
 {
@@ -1861,7 +1861,7 @@ mkdir -p "$TMP_DIR/fake-bin-wait"
   printf '%s\n' '    ;;'
   printf '%s\n' '  "mdns services")'
   printf '%s\n' '    printf "%s\n" "List of discovered mdns services"'
-  printf '%s\n' '    printf "%s\n" "meshx-observer _adb-tls-connect._tcp. 192.0.2.10:37099"'
+  printf '%s\n' '    printf "%s\n" "mob-observer _adb-tls-connect._tcp. 192.0.2.10:37099"'
   printf '%s\n' '    ;;'
   printf '%s\n' '  "-s android-a shell getprop ro.product.model") printf "%s\n" "Sender" ;;'
   printf '%s\n' '  "-s android-a shell getprop ro.build.version.release") printf "%s\n" "14" ;;'
@@ -2006,7 +2006,7 @@ ruby -rjson -e '
     next line unless match
 
     event = JSON.parse(match[0])
-    event["target_peer_id"] = "meshx-wrong" if event["event"] == "attempt_outcome"
+    event["target_peer_id"] = "mob-wrong" if event["event"] == "attempt_outcome"
     line.sub(/\{.*\}/, JSON.generate(event))
   end
   File.write(ARGV.fetch(1), lines.join)

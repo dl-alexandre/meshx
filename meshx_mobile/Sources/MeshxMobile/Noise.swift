@@ -69,7 +69,7 @@ public func unwrapHandshakePayload(_ payload: Data) throws -> Data {
 }
 
 /// Concrete MeshX Noise session for `Noise_XX_25519_ChaChaPoly_BLAKE2s`.
-public final class MeshxNoiseSession: NoiseSession {
+public final class Mob.NoiseSession: NoiseSession {
     public let role: NoiseRole
     public let localStaticKey: Data
     public private(set) var isEstablished = false

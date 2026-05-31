@@ -1,7 +1,7 @@
-defmodule Meshx.MixProject do
+defmodule Mob.MixProject do
   use Mix.Project
 
-  @github_url "https://github.com/dl-alexandre/meshx"
+  @github_url "https://github.com/dl-alexandre/mob"
 
   def project do
     [
@@ -29,7 +29,7 @@ defmodule Meshx.MixProject do
 
   defp docs do
     [
-      main: "Meshx",
+      main: "Mob",
       source_url: @github_url,
       extras: [
         "README.md",
@@ -61,8 +61,8 @@ defmodule Meshx.MixProject do
   end
 
   defp umbrella_ebin_paths do
-    apps = ~w(meshx_protocol meshx_noise meshx_store meshx_transport
-              meshx_transport_ble meshx_mob meshx_runtime meshx_mobile_app)
+    apps = ~w(mob_protocol mob_noise mob_store mob_routing
+              mob_routing_ble mob_node mob_runtime mob_node)
 
     Enum.map(apps, fn app -> "_build/#{Mix.env()}/lib/#{app}/ebin" end)
   end

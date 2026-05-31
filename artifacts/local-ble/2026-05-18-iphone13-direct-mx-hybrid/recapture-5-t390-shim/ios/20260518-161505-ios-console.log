@@ -1,14 +1,14 @@
 16:15:09  Acquired tunnel connection to device.
 16:15:09  Enabling developer disk image services.
 16:15:09  Acquired usage assertion.
-Launched application with dev.meshx.mobile.harness bundle identifier.
+Launched application with dev.mob.node.harness bundle identifier.
 Waiting for the application to terminate…
-MeshxMessageObserver: direct_mx_hybrid_advertise_requested
-MeshxMessageObserver: direct_mx_hybrid_envelope_built messageId=5f0db543aebb567fff592d0ed8fc736f
-MeshxMessageObserver: direct_mx_hybrid_sending_mb_cue
-MeshxMessageObserver: peripheral_error stateNotPoweredOn(__C.CBManagerState)
-MeshxMessageObserver: iOS_HYBRID_STARTED messageId=5f0db543aebb567fff592d0ed8fc736f MB_cue_sent=true direct_mx_service_data_started=true uuid=8F4F1201-6F3D-4F9C-9E3B-7F4A4F0F1001
-MeshxMessageObserver: iOS hybrid experiment will run for 8.0s then stop automatically
-MeshxMessageObserver: iOS_HYBRID_WINDOW_COMPLETE messageId=5f0db543aebb567fff592d0ed8fc736f — hybrid transmit window finished. Check Android logs for HYBRID_SUCCESS with the same messageId.
-MeshxMessageObserver: state CBManagerState(rawValue: 5)
+MobMessageObserver: direct_mx_hybrid_advertise_requested
+MobMessageObserver: direct_mx_hybrid_envelope_built messageId=5f0db543aebb567fff592d0ed8fc736f
+MobMessageObserver: direct_mx_hybrid_sending_mb_cue
+MobMessageObserver: peripheral_error stateNotPoweredOn(__C.CBManagerState)
+MobMessageObserver: iOS_HYBRID_STARTED messageId=5f0db543aebb567fff592d0ed8fc736f MB_cue_sent=true direct_mx_service_data_started=true uuid=8F4F1201-6F3D-4F9C-9E3B-7F4A4F0F1001
+MobMessageObserver: iOS hybrid experiment will run for 8.0s then stop automatically
+MobMessageObserver: iOS_HYBRID_WINDOW_COMPLETE messageId=5f0db543aebb567fff592d0ed8fc736f — hybrid transmit window finished. Check Android logs for HYBRID_SUCCESS with the same messageId.
+MobMessageObserver: state CBManagerState(rawValue: 5)
 App terminated due to signal 15.

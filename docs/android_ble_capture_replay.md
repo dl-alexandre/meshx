@@ -1,9 +1,9 @@
 # BLE v1 Capture and Replay
 
 Capture/replay tooling for the unified BLE bridge contract
-(`MeshxMobileApp.BLE.BridgeProtocol`). Decouples Session-level work
+(`Mob.Node.BLE.BridgeProtocol`). Decouples Session-level work
 from physical hardware: any recorded session can be replayed
-deterministically into a fresh `MeshxMobileApp.Session` without an
+deterministically into a fresh `Mob.Node.Session` without an
 Android or iOS device attached.
 
 The tooling is intentionally narrow — it captures and replays v1 wire
@@ -13,7 +13,7 @@ no persistence beyond the capture file.
 ## File format
 
 Newline-delimited JSON. One v1 wire-format event per line, exactly as
-emitted by `dev.meshx.mob.ble.BleEvent.toJsonObject()`. Blank lines
+emitted by `dev.mob.mob.ble.BleEvent.toJsonObject()`. Blank lines
 and lines beginning with `#` are skipped by the replay loader, so
 curated fixtures can carry inline annotations.
 
@@ -24,7 +24,7 @@ curated fixtures can carry inline annotations.
 ```
 
 Binary fields (`advertisement`, `payload`) are base64 strings —
-`MeshxMobileApp.BLE.Replay` performs the base64→binary step uniformly
+`Mob.Node.BLE.Replay` performs the base64→binary step uniformly
 before handing each line to `BridgeProtocol.decode/1`, so the wire
 shape replay sees is identical to what the production NIF transport
 will deliver.
@@ -32,23 +32,23 @@ will deliver.
 ## Capture
 
 The capture mix task reads `adb logcat` output (or any text stream)
-from STDIN, strips the logcat prefix (`timestamp pid pid I MeshxBle: `),
+from STDIN, strips the logcat prefix (`timestamp pid pid I MobBle: `),
 validates that each payload parses as JSON, and appends to a
 timestamped JSONL file.
 
 ```bash
 # Live capture from a device
-adb -s R52W90AW7EN logcat -s MeshxBle:I | mix meshx.mobile.capture
+adb -s R52W90AW7EN logcat -s MobBle:I | mix mob.node.capture
 
 # Capture an existing logcat dump
-mix meshx.mobile.capture < /tmp/meshxble.log
+mix mob.node.capture < /tmp/mobble.log
 
 # Explicit output path
-mix meshx.mobile.capture --output captures/run-42.jsonl
+mix mob.node.capture --output captures/run-42.jsonl
 ```
 
 Default output is `priv/captures/<UTC-timestamp>.jsonl` inside the
-`meshx_mobile_app` app. The directory is gitignored — only curated
+`mob_node` app. The directory is gitignored — only curated
 slices under `test/fixtures/captures/` are checked in.
 
 Per-line `.` and `x` markers stream to stderr so a long-running
@@ -59,10 +59,10 @@ capture shows liveness (`--quiet` to suppress).
 ### From a mix task (manual debugging)
 
 ```bash
-mix meshx.mobile.replay test/fixtures/captures/cross_platform_discovery.jsonl
+mix mob.node.replay test/fixtures/captures/cross_platform_discovery.jsonl
 ```
 
-Starts a fresh `MeshxMobileApp.Session`, pumps every line through
+Starts a fresh `Mob.Node.Session`, pumps every line through
 `Adapter.event_message/1` (which routes through `BridgeProtocol.decode/1`),
 and prints the final snapshot:
 
@@ -79,10 +79,10 @@ event log (most recent first):
 ### From ExUnit (deterministic tests)
 
 ```elixir
-alias MeshxMobileApp.BLE.Replay
-alias MeshxMobileApp.Session
+alias Mob.Node.BLE.Replay
+alias Mob.Node.Session
 
-{:ok, session} = Session.start_link(bridge: MeshxMobileApp.NativeBridge.Noop)
+{:ok, session} = Session.start_link(bridge: Mob.Node.NativeBridge.Noop)
 
 count = Replay.into(session, "test/fixtures/captures/cross_platform_discovery.jsonl")
 assert count == 8
@@ -101,7 +101,7 @@ JSONL line
   → base64 → binary           (transport adapter: JSON → NIF shape)
   → Adapter.event_message/1
   → BridgeProtocol.decode/1   (single normalization point)
-  → %MeshxMobileApp.BLE.Events.X{}
+  → %Mob.Node.BLE.Events.X{}
   → Session.handle_info/2
 ```
 
@@ -111,11 +111,11 @@ invoked during replay. They remain dumb.
 ## Fixture corpus
 
 Real-hardware captures live under
-`apps/meshx_mobile_app/test/fixtures/captures/`:
+`apps/mob_node/test/fixtures/captures/`:
 
 | File | Lines | Notes |
 | --- | --- | --- |
-| `cross_platform_discovery.jsonl` | 8 | iPad MeshX peer (`4F:9C:5A:DC:6E:6D`); advertisement contains ASCII `meshx-ipad`. Proves Android scanner ingests iOS broadcasts on the unified contract. |
+| `cross_platform_discovery.jsonl` | 8 | iPad MeshX peer (`4F:9C:5A:DC:6E:6D`); advertisement contains ASCII `mob-ipad`. Proves Android scanner ingests iOS broadcasts on the unified contract. |
 | `bluetooth_off.jsonl` | 2 | Two `bluetooth_off` errors emitted before BT was enabled on the tablet during the hardware validation pass. |
 | `mixed_devices_burst.jsonl` | 50 | First 50 lines of the live capture: a `bluetooth_off` error followed by a burst of `device_discovered` + `advertisement_received` from 60+ unique nearby BLE devices. |
 
@@ -124,9 +124,9 @@ documented in `docs/android_ble_validation.md`. To regenerate or extend
 the corpus:
 
 ```bash
-adb logcat -s MeshxBle:I > /tmp/meshxble.log    # while the app scans
-mix meshx.mobile.capture --output apps/meshx_mobile_app/test/fixtures/captures/<name>.jsonl \
-    < /tmp/meshxble.log
+adb logcat -s MobBle:I > /tmp/mobble.log    # while the app scans
+mix mob.node.capture --output apps/mob_node/test/fixtures/captures/<name>.jsonl \
+    < /tmp/mobble.log
 ```
 
 ## What replay deliberately does **not** do

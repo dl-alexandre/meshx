@@ -9,8 +9,8 @@ Devices:
 
 Harness:
 
-- iOS: `dev.meshx.mobile.harness --meshx-auto-beacon`.
-- Android: `dev.meshx.mob.ble.IOSResponderFetchSmokeTest`.
+- iOS: `dev.mob.node.harness --mob-auto-beacon`.
+- Android: `dev.mob.mob.ble.IOSResponderFetchSmokeTest`.
 
 First rerun:
 

@@ -1,0 +1,5 @@
+0000000000000000000000000000000000000000 736fbedea2df8ce0dd15d527cf6731c80cce4373 dl-alexandre <166029845+dl-alexandre@users.noreply.github.com> 1779575232 -0700	clone: from https://github.com/dl-alexandre/mob_transport.git
+736fbedea2df8ce0dd15d527cf6731c80cce4373 736fbedea2df8ce0dd15d527cf6731c80cce4373 dl-alexandre <166029845+dl-alexandre@users.noreply.github.com> 1779575232 -0700	branch: Reset to origin/main
+736fbedea2df8ce0dd15d527cf6731c80cce4373 736fbedea2df8ce0dd15d527cf6731c80cce4373 dl-alexandre <166029845+dl-alexandre@users.noreply.github.com> 1779575232 -0700	checkout: moving from main to main
+736fbedea2df8ce0dd15d527cf6731c80cce4373 48cf6d400973c09d8d62f5bae6153d65c2f3daee dl-alexandre <166029845+dl-alexandre@users.noreply.github.com> 1779895537 -0700	commit: chore: print-only coverage summary in umbrella runs
+48cf6d400973c09d8d62f5bae6153d65c2f3daee b573957841aff1674ad8feb60cc70b3c3860b0b5 dl-alexandre <166029845+dl-alexandre@users.noreply.github.com> 1779896036 -0700	commit: chore: do not gate umbrella coverage on this plugin

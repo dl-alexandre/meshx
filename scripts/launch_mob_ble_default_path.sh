@@ -6,7 +6,7 @@
 # (post Phase 2/3) on Android (and iOS parity via AppDelegate forwarding).
 # For fresh evidence captures under the canonical Mob.Ble path.
 #
-# This is the natural successor to the legacy meshx_ble_* launch recipes
+# This is the natural successor to the legacy mob_ble_* launch recipes
 # in CONTRIBUTING.md and docs/ble-t390-validation-notes.md.
 # iOS: equivalent MOB_BLE_* may be passed via launch options / devicectl env.
 #
@@ -56,7 +56,7 @@ fi
 adb -s "$SERIAL" shell input keyevent WAKEUP || true
 adb -s "$SERIAL" shell svc power stayon true || true
 
-PKG="dev.meshx.mob"
+PKG="dev.mob.mob"
 ACT=".MainActivity"
 INTENT="-n ${PKG}/${ACT}"
 
@@ -68,8 +68,8 @@ fi
 CMDS+=( --es mob_ble_local_name "$LOCAL_NAME" )
 
 if (( FETCH_ON_BEACON )); then
-  CMDS+=( --ez mob_ble_fetch_on_beacon true )  # preferred (MOB_BLE_* parity); Android also accepts legacy meshx_ alias
-  # CMDS+=( --ez meshx_ble_fetch_on_beacon true )  # legacy alias still supported for transition
+  CMDS+=( --ez mob_ble_fetch_on_beacon true )  # preferred (MOB_BLE_* parity); Android also accepts legacy mob_ alias
+  # CMDS+=( --ez mob_ble_fetch_on_beacon true )  # legacy alias still supported for transition
 fi
 
 if (( LEGACY )); then
@@ -94,7 +94,7 @@ fi
 
 echo
 echo "Post-launch tips for evidence:"
-echo "  adb -s $SERIAL logcat -d | grep -E 'MOB_BLE|MobBle|ble_peer|meshx_transport' > ${SERIAL}-launch.log"
+echo "  adb -s $SERIAL logcat -d | grep -E 'MOB_BLE|MobBle|ble_peer|mob_routing' > ${SERIAL}-launch.log"
 echo "  adb -s $SERIAL shell 'pid=\$(pidof ${PKG}); cat /proc/\$pid/environ | tr \"\\0\" \"\\n\" | grep -E \"MOB_BLE|MESHX_BLE\"' "
 echo
 echo "Store this run under artifacts/local-ble/2026-05-19-mob-ble-cutover-XXX/"
@@ -107,7 +107,7 @@ mob_ble_selftest: 1
 bridge: Mob.Ble.MobileBridge (via Mob.Ble.bridge_module())
 event_source: Mob.Ble.Internal.BridgeProtocol + native emitters (Kotlin/Swift)
 mob_ble_version: 0.1.0 (or published tar checksum)
-meshx_transport_ble_version: (from mix.lock)
+mob_routing_ble_version: (from mix.lock)
 legacy_opt_out_used: false
 capture_date: $(date -Iseconds)
 device_pair: <model1> <serial1> <-> <model2> <serial2>

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-APP_ID="dev.meshx.mob"
-MAIN_ACTIVITY="dev.meshx.mob/.MainActivity"
+APP_ID="dev.mob.mob"
+MAIN_ACTIVITY="dev.mob.mob/.MainActivity"
 SCAN_WINDOW_SEC=8
 OBSERVER_READY_TIMEOUT_SEC=10
 OBSERVER_SETTLE_SEC=2
@@ -172,8 +172,8 @@ if [[ ! "$OBSERVER_SETTLE_SEC" =~ ^[0-9]+$ ]]; then
 fi
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-ANDROID_DIR="$ROOT/apps/meshx_mobile_app/android"
-APK="$ANDROID_DIR/build/outputs/apk/debug/MeshxMobileApp-debug.apk"
+ANDROID_DIR="$ROOT/apps/mob_node/android"
+APK="$ANDROID_DIR/build/outputs/apk/debug/Mob.Node-debug.apk"
 SCRIPT_INVOCATION="$(
   ruby -rshellwords -e 'puts (["scripts/android_ble_message_delivery_two_device.sh"] + ARGV).shelljoin' \
     -- \
@@ -182,7 +182,7 @@ SCRIPT_INVOCATION="$(
 
 ensure_out_dir() {
   if [[ -z "$OUT_DIR" ]]; then
-    OUT_DIR="/tmp/meshx-android-m26-$(date +%Y%m%d-%H%M%S)"
+    OUT_DIR="/tmp/mob-android-m26-$(date +%Y%m%d-%H%M%S)"
   fi
 }
 
@@ -328,7 +328,7 @@ write_preflight_failure_summary() {
       observer_scan_started: false,
       received_message_logged: false,
       observer_m14_consistent: false,
-      observer_meshx_transport_metadata: false,
+      observer_mob_routing_metadata: false,
       payload_match: false
     }
     m26_completion_validation =
@@ -627,7 +627,7 @@ write_preflight_only_summary() {
       observer_scan_started: false,
       received_message_logged: false,
       observer_m14_consistent: false,
-      observer_meshx_transport_metadata: false,
+      observer_mob_routing_metadata: false,
       payload_match: false
     }
     m26_completion_validation =
@@ -1011,7 +1011,7 @@ def m14_consistency_error(event)
   nil
 end
 
-def meshx_transport_metadata_error(event)
+def mob_routing_metadata_error(event)
   envelope_b64 = event["envelope"]
   envelope = decode64(envelope_b64)
   return "received_message envelope is not valid base64" unless envelope
@@ -1207,7 +1207,7 @@ sender_attempt_matches_advertising_set =
   sender_event && sender_attempt_event ? sender_attempt_match_error(sender_event, sender_attempt_event).nil? : false
 sender_payload_size_matches = sender_event ? sender_payload_size_error(sender_event).nil? : false
 observer_m14_consistent = observer_event ? m14_consistency_error(observer_event).nil? : false
-observer_meshx_transport_metadata = observer_event ? meshx_transport_metadata_error(observer_event).nil? : false
+observer_mob_routing_metadata = observer_event ? mob_routing_metadata_error(observer_event).nil? : false
 sender_logcat_capture_failed = logcat_capture_failed?(sender_log)
 observer_logcat_capture_failed = logcat_capture_failed?(observer_log)
 payload_match = sender_event && observer_event && sender_event["payload"] == observer_event["envelope"]
@@ -1243,15 +1243,15 @@ observer_beacon_transport_metadata =
     false
   end
 android_logcat_provenance =
-  android_logcat_tagged?(sender_attempt_event_line, "MeshxBleDispatch") &&
-  android_logcat_tagged?(sender_event_line, "MeshxBleDispatch") &&
-  (!require_scan_start || android_logcat_tagged?(observer_scan_start_event_line, "MeshxBleControl")) &&
-  android_logcat_tagged?(observer_event_line, "MeshxBle")
+  android_logcat_tagged?(sender_attempt_event_line, "MobBleDispatch") &&
+  android_logcat_tagged?(sender_event_line, "MobBleDispatch") &&
+  (!require_scan_start || android_logcat_tagged?(observer_scan_start_event_line, "MobBleControl")) &&
+  android_logcat_tagged?(observer_event_line, "MobBle")
 legacy_android_logcat_provenance =
-  android_logcat_tagged?(sender_attempt_event_line, "MeshxBleDispatch") &&
-  android_logcat_tagged?(sender_legacy_beacon_event_line, "MeshxBleDispatch") &&
-  (!require_scan_start || android_logcat_tagged?(observer_scan_start_event_line, "MeshxBleControl")) &&
-  android_logcat_tagged?(observer_beacon_event_line, "MeshxBle")
+  android_logcat_tagged?(sender_attempt_event_line, "MobBleDispatch") &&
+  android_logcat_tagged?(sender_legacy_beacon_event_line, "MobBleDispatch") &&
+  (!require_scan_start || android_logcat_tagged?(observer_scan_start_event_line, "MobBleControl")) &&
+  android_logcat_tagged?(observer_beacon_event_line, "MobBle")
 matched_payload = payload_match ? sender_event["payload"] : nil
 metadata = observer_event ? observer_event["raw_transport_metadata"] || {} : {}
 beacon_metadata = observer_beacon_event ? observer_beacon_event["raw_transport_metadata"] || {} : {}
@@ -1301,7 +1301,7 @@ validation = {
   observer_scan_started: observer_scan_started,
   received_message_logged: !observer_event.nil?,
   observer_m14_consistent: observer_m14_consistent,
-  observer_meshx_transport_metadata: observer_meshx_transport_metadata,
+  observer_mob_routing_metadata: observer_mob_routing_metadata,
   payload_match: payload_match,
   legacy_beacon_requested: legacy_beacon_requested,
   legacy_beacon_advertising_started: !sender_legacy_beacon_event.nil?,
@@ -1330,7 +1330,7 @@ full_core_validation = {
   observer_scan_started: observer_scan_started,
   received_message_logged: !observer_event.nil?,
   observer_m14_consistent: observer_m14_consistent,
-  observer_meshx_transport_metadata: observer_meshx_transport_metadata,
+  observer_mob_routing_metadata: observer_mob_routing_metadata,
   payload_match: payload_match
 }
 
@@ -1429,7 +1429,7 @@ summary = {
   observer_event: observer_event,
   observer_beacon_event: observer_beacon_event,
   observer_m14_consistent: observer_m14_consistent,
-  observer_meshx_transport_metadata: observer_meshx_transport_metadata,
+  observer_mob_routing_metadata: observer_mob_routing_metadata,
   android_logcat_provenance: android_logcat_provenance,
   legacy_android_logcat_provenance: legacy_android_logcat_provenance,
   payload_match: payload_match,
@@ -1656,7 +1656,7 @@ if (m14_error = m14_consistency_error(observer_event))
   exit 1
 end
 
-if (metadata_error = meshx_transport_metadata_error(observer_event))
+if (metadata_error = mob_routing_metadata_error(observer_event))
   warn metadata_error
   exit 1
 end
@@ -1684,7 +1684,7 @@ if [[ "$VERIFY_ONLY" -eq 1 ]]; then
   SENDER_SERIAL="${SENDER_SERIAL:-unknown-sender}"
   OBSERVER_SERIAL="${OBSERVER_SERIAL:-unknown-observer}"
   if [[ -z "$SUMMARY_JSON" ]]; then
-    SUMMARY_JSON="/tmp/meshx-android-m26-summary-$(date +%Y%m%d-%H%M%S).json"
+    SUMMARY_JSON="/tmp/mob-android-m26-summary-$(date +%Y%m%d-%H%M%S).json"
   fi
   if [[ -z "$SENDER_DEVICE_JSON" ]]; then
     SENDER_DEVICE_JSON="$(ruby -rjson -e 'puts JSON.generate({serial: ARGV.fetch(0)})' "$SENDER_SERIAL")"
@@ -1891,7 +1891,7 @@ wake_device_for_ble_validation() {
 
 observer_scan_ready_logged() {
   local serial="$1"
-  adb -s "$serial" logcat -d -s MeshxBleControl:I AndroidRuntime:E 2>/dev/null | ruby -rjson -e '
+  adb -s "$serial" logcat -d -s MobBleControl:I AndroidRuntime:E 2>/dev/null | ruby -rjson -e '
     STDIN.each_line do |line|
       json = line[/\{.*\}/]
       next unless json
@@ -1938,7 +1938,7 @@ capture_filtered_logcat() {
   local serial="$1"
   local output="$2"
 
-  if adb -s "$serial" logcat -d -s MeshxBle:I MeshxBleControl:I MeshxBleDispatch:I MeshxBleGossip:I AndroidRuntime:E > "$output" 2>&1; then
+  if adb -s "$serial" logcat -d -s MobBle:I MobBleControl:I MobBleDispatch:I MobBleGossip:I AndroidRuntime:E > "$output" 2>&1; then
     return 0
   fi
 
@@ -2032,7 +2032,7 @@ adb -s "$OBSERVER_SERIAL" logcat -c
 adb -s "$SENDER_SERIAL" shell am force-stop "$APP_ID" >/dev/null
 adb -s "$OBSERVER_SERIAL" shell am force-stop "$APP_ID" >/dev/null
 
-start_activity "$OBSERVER_SERIAL" --ez meshx_start_scan true
+start_activity "$OBSERVER_SERIAL" --ez mob_start_scan true
 if wait_for_observer_scan_ready "$OBSERVER_SERIAL" "$OBSERVER_READY_TIMEOUT_SEC"; then
   echo "observer_scan_ready=true"
 else
@@ -2040,9 +2040,9 @@ else
 fi
 sleep "$OBSERVER_SETTLE_SEC"
 if [[ "$LEGACY_BEACON" -eq 1 ]]; then
-  start_activity "$SENDER_SERIAL" --ez meshx_dispatch_test true --ez meshx_dispatch_legacy_beacon true
+  start_activity "$SENDER_SERIAL" --ez mob_dispatch_test true --ez mob_dispatch_legacy_beacon true
 else
-  start_activity "$SENDER_SERIAL" --ez meshx_dispatch_test true
+  start_activity "$SENDER_SERIAL" --ez mob_dispatch_test true
 fi
 sleep "$SCAN_WINDOW_SEC"
 
@@ -2090,16 +2090,16 @@ command_items+=(
   "adb -s $OBSERVER_SERIAL logcat -c"
   "adb -s $SENDER_SERIAL shell am force-stop $APP_ID"
   "adb -s $OBSERVER_SERIAL shell am force-stop $APP_ID"
-  "adb -s $OBSERVER_SERIAL shell am start -n $MAIN_ACTIVITY --ez meshx_start_scan true"
+  "adb -s $OBSERVER_SERIAL shell am start -n $MAIN_ACTIVITY --ez mob_start_scan true"
   "wait up to ${OBSERVER_READY_TIMEOUT_SEC}s for Device B scan_start_result accepted=true"
   "sleep $OBSERVER_SETTLE_SEC"
-  "$([[ "$LEGACY_BEACON" -eq 1 ]] && printf 'adb -s %s shell am start -n %s --ez meshx_dispatch_test true --ez meshx_dispatch_legacy_beacon true' "$SENDER_SERIAL" "$MAIN_ACTIVITY" || printf 'adb -s %s shell am start -n %s --ez meshx_dispatch_test true' "$SENDER_SERIAL" "$MAIN_ACTIVITY")"
+  "$([[ "$LEGACY_BEACON" -eq 1 ]] && printf 'adb -s %s shell am start -n %s --ez mob_dispatch_test true --ez mob_dispatch_legacy_beacon true' "$SENDER_SERIAL" "$MAIN_ACTIVITY" || printf 'adb -s %s shell am start -n %s --ez mob_dispatch_test true' "$SENDER_SERIAL" "$MAIN_ACTIVITY")"
   "sleep $SCAN_WINDOW_SEC"
   "adb devices -l > $ADB_DEVICES_LOG"
   "adb mdns services > $ADB_MDNS_LOG"
   "ioreg -p IOUSB -l -w0 > $HOST_USB_LOG"
-  "adb -s $SENDER_SERIAL logcat -d -s MeshxBle:I MeshxBleControl:I MeshxBleDispatch:I MeshxBleGossip:I AndroidRuntime:E > $SENDER_LOG 2>&1 || true"
-  "adb -s $OBSERVER_SERIAL logcat -d -s MeshxBle:I MeshxBleControl:I MeshxBleDispatch:I MeshxBleGossip:I AndroidRuntime:E > $OBSERVER_LOG 2>&1 || true"
+  "adb -s $SENDER_SERIAL logcat -d -s MobBle:I MobBleControl:I MobBleDispatch:I MobBleGossip:I AndroidRuntime:E > $SENDER_LOG 2>&1 || true"
+  "adb -s $OBSERVER_SERIAL logcat -d -s MobBle:I MobBleControl:I MobBleDispatch:I MobBleGossip:I AndroidRuntime:E > $OBSERVER_LOG 2>&1 || true"
 )
 COMMANDS_JSON="$(ruby -rjson -e 'puts JSON.generate(ARGV)' "${command_items[@]}")"
 

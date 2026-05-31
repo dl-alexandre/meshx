@@ -1,0 +1,40 @@
+fix(rt-01): close the receive-pipeline gap so analyzer events fire
+
+Root finding from the lever-2a hardware investigation: every prior RT-01
+verdict ("inconclusive") was conflating two separate failures. Even when the
+GATT fetch chain completes (5x in the lever-2a logcat) and `Mob.Ble.MobileBridge`
+decodes `received_message` into `{:ble_frame, peer_id, frame}`, the
+MeshxTransportBLE-side `event_target` (the transport's caller) was a no-op pid
+with no `{:meshx_transport, :ble, {:frame, ...}}` handler, so the frame
+dropped silently and Observability never recorded a `%ReceivedMessage{}`.
+Consequence: the analyzer's `mesh_message_received`, `authenticated_payload_received`
+and `local_inbox_snapshot_saved` events never fire, locked_persistence_evidence
+is structurally empty, and the strict gate cannot distinguish "scan died"
+from "pipeline broken."
+
+This commit:
+
+- app.ex (`maybe_start_mob_ble_transport`): when MESHX_BLE_SELFTEST is set,
+  wire `MeshxMobileApp.BleSelfTest` as the transport's outer `event_target`.
+  Default (no env var) keeps existing behaviour.
+- ble_self_test.ex: handle `{:meshx_transport, :ble, {:frame, peer_id, frame}}`
+  -> parse MessageEnvelope, build `%MeshxMobileApp.BLE.Events.ReceivedMessage{}`,
+  call `MeshxMobileApp.BLE.Observability.record/1` (which is what emits the
+  analyzer's narrow rt-event names). Also add quiet `{:peer_up, _}`/
+  `{:peer_down, _}` clauses so they don't fall to the catchall.
+- BeamForegroundService.kt: lever-2a hook (FGS triggers
+  MobBleNative.restartScanFromForeground 1.5s after startForeground).
+  Empirically not the locked-receive fix on T577U/API 33, but kept as the
+  shape needed if a future lever wants foreground-context scan rebinding.
+- scripts/android/rt01-sustained.sh: include `fetch_response_received` in
+  `receiver_delivery_count` so the awake-confirm gate sees the real
+  GATT-fetch deliveries even before the higher-level pipeline catches up.
+  The earlier narrow-only counter aborted the harness on a measurement
+  artifact, not a real regression.
+- apps/mob_ble: pin bump to pick up `MobBleNative.restartScanFromForeground`.
+
+This change is Elixir + Kotlin (no schema/wire change). Reaching the device
+needs `mix mob.deploy --native` (the long native build), since the embedded
+BEAM is packaged into `libmeshx_mobile_app.so` by MobDev, not by gradle.
+
+Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>

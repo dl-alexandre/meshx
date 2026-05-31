@@ -103,14 +103,14 @@ need "BleSelfTest: HEARTBEAT" 1 || ok=1
 need_any "GATT envelope surfaced to selftest" \
   "BleSelfTest: GATT_FETCH_RECEIVED" \
   "BleSelfTest: DISTINCT MESH MESSAGE kind=envelope" || ok=1
-need "MeshxBeaconFetch: fetch_start" 1 || ok=1
+need "MobBeaconFetch: fetch_start" 1 || ok=1
 need "\"event\":\"fetch_connect_result\"" 1 || ok=1
 need "\"event\":\"fetch_service_discovery_result\"" 1 || ok=1
 need "\"event\":\"fetch_response_received\"" 1 || ok=1
 
 if [[ -f "$IOS_LOG" ]]; then
-  need "MeshxMessageObserver: beacon_dispatched" 1 || ok=1
-  need "MeshxMessageObserver: fetch_responder_served" 1 || ok=1
+  need "MobMessageObserver: beacon_dispatched" 1 || ok=1
+  need "MobMessageObserver: fetch_responder_served" 1 || ok=1
 else
   echo "WARN: iOS log not found: $IOS_LOG"
 fi

@@ -1,0 +1,34 @@
+[core]
+	repositoryformatversion = 0
+	filemode = true
+	bare = false
+	logallrefupdates = true
+	ignorecase = true
+	precomposeunicode = true
+[remote "origin"]
+	url = https://github.com/dl-alexandre/meshx.git
+	fetch = +refs/heads/*:refs/remotes/origin/*
+[branch "master"]
+	remote = origin
+	merge = refs/heads/master
+[branch "codex/mob-ble-cutover-publish-prep"]
+	remote = origin
+	merge = refs/heads/codex/mob-ble-cutover-publish-prep
+[submodule "apps/mob_cellular"]
+	url = https://github.com/dl-alexandre/mob_cellular.git
+	active = true
+[submodule "apps/mob_mesh"]
+	url = https://github.com/dl-alexandre/mob_mesh.git
+	active = true
+[submodule "apps/mob_wifi"]
+	url = https://github.com/dl-alexandre/mob_wifi.git
+	active = true
+[submodule "apps/mob_transport"]
+	url = https://github.com/dl-alexandre/mob_transport.git
+	active = true
+[submodule "apps/mob_ble"]
+	url = https://github.com/dl-alexandre/mob_ble.git
+	active = true
+[branch "codex/rt01-pipeline-gap-fix"]
+	remote = origin
+	merge = refs/heads/codex/rt01-pipeline-gap-fix

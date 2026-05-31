@@ -31,7 +31,7 @@ A **process failure** is the unexpected termination of any single
 
 - The supervisor MUST restart the crashed process with the
   strategy declared in its child spec (`:one_for_one` for most
-  children, `:one_for_all` for `MeshxNoise.Supervisor`).
+  children, `:one_for_all` for `Mob.Noise.Supervisor`).
 - State rebuilt from durable storage (CubDB) MUST be identical
   to the state at the last successful write. MeshX does not
   buffer in-memory state without writing it.
@@ -39,7 +39,7 @@ A **process failure** is the unexpected termination of any single
   MAY be reset to empty. This is acceptable because all three are
   TTL-bounded soft state.
 - In-flight packets held only in process mailboxes MAY be lost.
-  The transport MUST surface the loss to `MeshxRuntime.Router` as
+  The transport MUST surface the loss to `Mob.Runtime.Router` as
   a `:peer_down` event if the peer process also died.
 
 ### Non-Guarantees
@@ -72,14 +72,14 @@ operating system process hosting it.
 
 ### Guarantees
 
-- On restart, `MeshxStore.Identity` MUST recover the same static
+- On restart, `Mob.Store.Identity` MUST recover the same static
   Noise key pair that was persisted before the crash.
-- `MeshxStore.Trust` records MUST survive; the node MUST resume
+- `Mob.Store.Trust` records MUST survive; the node MUST resume
   with the same trust posture (pinned keys, blocked peers).
-- `MeshxStore.Outbox` entries that were successfully enqueued MUST
+- `Mob.Store.Outbox` entries that were successfully enqueued MUST
   survive and be eligible for retry or replay by
-  `MeshxRuntime.Outbox`.
-- `MeshxStore.Message` records MUST survive for local query.
+  `Mob.Runtime.Outbox`.
+- `Mob.Store.Message` records MUST survive for local query.
 
 ### Non-Guarantees
 
@@ -116,14 +116,14 @@ other transports and the runtime remain operational.
 ### Guarantees
 
 - The transport MUST surface the failure to
-  `MeshxRuntime.Router` as a `:peer_down` event for every affected
+  `Mob.Runtime.Router` as a `:peer_down` event for every affected
   peer.
-- `MeshxRuntime.SessionManager` MUST tear down Noise sessions
+- `Mob.Runtime.SessionManager` MUST tear down Noise sessions
   associated with that transport/peer tuple.
 - Other transports for the same peer, if any, MUST NOT be
   affected.
 - Pending outbox entries targeting the affected peer MUST remain
-  in `MeshxStore.Outbox` with `:pending` status and be retried
+  in `Mob.Store.Outbox` with `:pending` status and be retried
   when the peer reappears on any transport.
 
 ### Non-Guarantees
@@ -138,7 +138,7 @@ other transports and the runtime remain operational.
 ### Application Recovery
 
 The application MAY restart the transport (e.g., call
-`MeshxTransport.TCP.start_link/1` again) or wait for a
+`Mob.Routing.TCP.start_link/1` again) or wait for a
 higher-level orchestrator to do so. MeshX does not require
 action.
 
@@ -161,11 +161,11 @@ nodes can reach each other but not the rest.
 
 - MeshX MUST continue accepting and enqueuing packets from local
   subscribers for partitioned peers. Those packets MUST be
-  stored in `MeshxStore.Outbox`.
+  stored in `Mob.Store.Outbox`.
 - When the partition heals and the peer reappears on any
-  transport, `MeshxRuntime.Outbox` MUST attempt delivery of
+  transport, `Mob.Runtime.Outbox` MUST attempt delivery of
   pending entries in insertion order.
-- Duplicate suppression (`MeshxStore.Dedupe`) MUST prevent the
+- Duplicate suppression (`Mob.Store.Dedupe`) MUST prevent the
   same message from being processed twice if the partition
   caused it to be relayed through an alternate path.
 
@@ -193,7 +193,7 @@ selective deletion.
 ## 5. Identity Loss
 
 An **identity loss** is the situation where the node's local
-`MeshxStore.Identity` record is deleted, corrupted, or rendered
+`Mob.Store.Identity` record is deleted, corrupted, or rendered
 unreadable.
 
 ### Triggers
@@ -216,8 +216,8 @@ unreadable.
   is treated as a new node birth.
 - MeshX MUST NOT automatically notify peers of the identity
   change. Peers that had the old public key pinned in
-  `MeshxStore.Trust` will see the new key as untrusted.
-- All existing `MeshxStore.Trust` records for this node's own
+  `Mob.Store.Trust` will see the new key as untrusted.
+- All existing `Mob.Store.Trust` records for this node's own
   `peer_id` on *remote* nodes are outside MeshX's control and
   MUST NOT be assumed to update automatically.
 
@@ -229,7 +229,7 @@ security event. Recommended recovery:
 1. Alert the operator.
 2. Re-establish trust out-of-band (re-pin keys, re-scan QR
    codes, re-exchange fingerprints).
-3. Optionally wipe `MeshxStore.Trust` locally and start fresh
+3. Optionally wipe `Mob.Store.Trust` locally and start fresh
    if the node has no prior relationships it needs to preserve.
 
 ---
@@ -281,7 +281,7 @@ There is no in-place repair tool provided by MeshX.
 
 A **replay window expiry** is the situation where a peer
 reconnects after a long enough absence that the local dedupe
-window (`MeshxStore.Dedupe`) has already evicted the message
+window (`Mob.Store.Dedupe`) has already evicted the message
 IDs it is now re-sending.
 
 ### Triggers
@@ -339,11 +339,11 @@ per-app and persists across:
 - Device reboot (in some cases — observed on API 33 hardware)
 
 Detection signal: `start_scan` returns `:ok` to the BEAM, MeshX
-runtime logs `meshx_runtime started`, but the scanner produces no
+runtime logs `mob_runtime started`, but the scanner produces no
 `DeviceDiscovered` / `AdvertisementReceived` events over a long
 window. The only reliable diagnostic is comparing logcat
 `BtGatt.GattService onScanResult` lines for the app's scanner-id
-against `MeshxBle` event lines.
+against `MobBle` event lines.
 
 Mitigation: don't restart scans rapidly during development. The
 `BleSelfTest` probe keeps a single scan open for the entire session
@@ -423,7 +423,7 @@ Per-API runtime permission set the adapter must hold:
 `BluetoothLeScanner.startScan` and `BluetoothLeAdvertiser.startAdvertising`
 throw `SecurityException` when a permission is missing. `BleScanner`
 catches and emits a canonical `BleEvent.Error(kind = :unauthorized)`;
-the Elixir side sees it as `%MeshxMobileApp.BLE.Events.Error{kind: :unauthorized}`.
+the Elixir side sees it as `%Mob.Node.BLE.Events.Error{kind: :unauthorized}`.
 
 App reinstall (`mix mob.deploy --native`) revokes runtime grants on
 API 31+. Re-grant via `adb shell pm grant <pkg> android.permission.<perm>`
@@ -431,7 +431,7 @@ or in-app permission flow.
 
 ### `decodeScanRecord` decode errors
 
-`MeshxMessageAdvertisement.decodeScanRecord` returns:
+`MobMessageAdvertisement.decodeScanRecord` returns:
 
 - `NotMessageAdvertisement` — the advert has no MeshX manufacturer
   entry (most ambient devices). Surfaced as `DeviceDiscovered` /
@@ -442,7 +442,7 @@ or in-app permission flow.
 - `Error(BleEvent.Error)` — manufacturer entry has MeshX company id
   and magic but the payload doesn't parse. Truncated advert
   structures and unsupported envelope versions land here. The error
-  surfaces as `%MeshxMobileApp.BLE.Events.Error{}` with
+  surfaces as `%Mob.Node.BLE.Events.Error{}` with
   `detail` carrying the parse reason.
 
 The Elixir `BridgeProtocol.decode` JSON-wire path was previously
@@ -466,7 +466,7 @@ advertising or the legacy-beacon fallback (`MB` magic, 22 bytes:
 
 The beacon carries a message *reference*, not the payload bytes.
 Subscribers that need the full payload retrieve it via the GATT-fetch
-protocol (`MeshxFetchGatt`) keyed on the message-id hash. A subscriber
+protocol (`MobFetchGatt`) keyed on the message-id hash. A subscriber
 that only sees `ReceivedMessageBeacon` events and never the
 corresponding `ReceivedMessage` is observing the advert-only
 transport profile working as designed.

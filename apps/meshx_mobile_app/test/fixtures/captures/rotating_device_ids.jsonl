@@ -1,9 +1,0 @@
-# Synthetic fixture: same MeshX peer (`meshx-alpha`) observed twice
-# with two different device_ids — simulates iOS peripheral UUID
-# rotation or Android MAC randomization. Used to assert that passive
-# identity derivation collapses rotated transport sightings into a
-# single logical peer.
-{"v":1,"event":"device_discovered","device_id":"AA:00:00:00:00:01","rssi":-50,"advertisement":"DAltZXNoeC1hbHBoYQ==","observed_at_ms":1000}
-{"v":1,"event":"advertisement_received","device_id":"AA:00:00:00:00:01","rssi":-52,"advertisement":"DAltZXNoeC1hbHBoYQ==","observed_at_ms":1500}
-{"v":1,"event":"device_discovered","device_id":"BB:00:00:00:00:02","rssi":-49,"advertisement":"DAltZXNoeC1hbHBoYQ==","observed_at_ms":9000}
-{"v":1,"event":"advertisement_received","device_id":"BB:00:00:00:00:02","rssi":-47,"advertisement":"DAltZXNoeC1hbHBoYQ==","observed_at_ms":9500}

@@ -1,37 +1,37 @@
-name: MeshxMobileHarness
+name: Mob.NodeHarness
 
 options:
-  bundleIdPrefix: dev.meshx
+  bundleIdPrefix: dev.mob
   deploymentTarget:
     iOS: "16.0"
 
 packages:
-  MeshxMobile:
+  Mob.Node:
     path: ../..
 
 targets:
-  MeshxMobileHarness:
+  Mob.NodeHarness:
     type: application
     platform: iOS
     deploymentTarget: "16.0"
     sources:
-      - path: MeshxMobileHarness
+      - path: Mob.NodeHarness
     dependencies:
-      - package: MeshxMobile
-        product: MeshxMobile
+      - package: Mob.Node
+        product: Mob.Node
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: dev.meshx.mobile.harness
-        PRODUCT_NAME: Meshx Mobile Harness
+        PRODUCT_BUNDLE_IDENTIFIER: dev.mob.node.harness
+        PRODUCT_NAME: Mob Mobile Harness
         SWIFT_VERSION: "5.9"
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription: "MeshX Mobile Harness scans for nearby MeshX BLE peers."
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
 
 schemes:
-  MeshxMobileHarness:
+  Mob.NodeHarness:
     build:
       targets:
-        MeshxMobileHarness: all
+        Mob.NodeHarness: all
     run:
       config: Debug

@@ -20,7 +20,7 @@
   "missing_criteria": [
     "upstream_prs_merged",
     "upstream_changes_released",
-    "meshx_dependency_migration",
+    "mob_dependency_migration",
     "downstream_patch_removal",
     "post_migration_verification"
   ],
@@ -77,7 +77,7 @@
       "notes": "No upstream release or dependency ref containing both PR changes has been selected for MeshX."
     },
     {
-      "id": "meshx_dependency_migration",
+      "id": "mob_dependency_migration",
       "status": "missing",
       "evidence": [],
       "notes": "MeshX is still pinned to the downstream-patched dependency versions."
@@ -86,7 +86,7 @@
       "id": "downstream_patch_removal",
       "status": "missing",
       "evidence": [],
-      "notes": "The downstream patch files and mix meshx.patch_deps requirement must remain until the upstream changes are merged, released, and adopted."
+      "notes": "The downstream patch files and mix mob.patch_deps requirement must remain until the upstream changes are merged, released, and adopted."
     },
     {
       "id": "post_migration_verification",
@@ -98,6 +98,6 @@
   "notes": [
     "This artifact records upstream migration progress only; it does not close the upstreaming row.",
     "The row remains blocked on maintainer merge/release, MeshX dependency migration, downstream patch removal, and post-migration verification.",
-    "Do not remove mix meshx.patch_deps or the downstream patch files based on the open PR state."
+    "Do not remove mix mob.patch_deps or the downstream patch files based on the open PR state."
   ]
 }

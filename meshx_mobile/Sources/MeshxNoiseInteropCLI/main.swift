@@ -1,5 +1,5 @@
 import Foundation
-import MeshxMobile
+import Mob.Node
 
 private let initiatorStaticPrivate = Data(hex: "1111111111111111111111111111111111111111111111111111111111111111")!
 private let initiatorEphemeralPrivate = Data(hex: "2222222222222222222222222222222222222222222222222222222222222222")!
@@ -75,16 +75,16 @@ private func optionalDataArgument(_ name: String, in args: [String]) throws -> D
     return data
 }
 
-private func initiator() throws -> MeshxNoiseSession {
-    try MeshxNoiseSession(
+private func initiator() throws -> Mob.NoiseSession {
+    try Mob.NoiseSession(
         role: .initiator,
         staticPrivateKey: initiatorStaticPrivate,
         ephemeralPrivateKey: initiatorEphemeralPrivate
     )
 }
 
-private func responder() throws -> MeshxNoiseSession {
-    try MeshxNoiseSession(
+private func responder() throws -> Mob.NoiseSession {
+    try Mob.NoiseSession(
         role: .responder,
         staticPrivateKey: responderStaticPrivate,
         ephemeralPrivateKey: responderEphemeralPrivate
@@ -100,7 +100,7 @@ private func utf8(_ data: Data, field: String) throws -> String {
 
 private func run(args: [String]) throws -> Output {
     guard let mode = args.first else {
-        throw CLIError.usage("usage: MeshxNoiseInteropCLI <initiator-message1|initiator|responder-message2|responder> [args]")
+        throw CLIError.usage("usage: Mob.NoiseInteropCLI <initiator-message1|initiator|responder-message2|responder> [args]")
     }
 
     switch mode {

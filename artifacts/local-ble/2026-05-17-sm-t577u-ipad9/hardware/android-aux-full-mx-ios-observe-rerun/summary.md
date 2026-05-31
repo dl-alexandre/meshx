@@ -19,16 +19,16 @@ Launch the iOS observer:
 xcrun devicectl device process launch \
   --device 39FD8D3A-9CA5-5DEF-AFC0-AA5205511117 \
   --terminate-existing \
-  --console dev.meshx.mobile.harness \
-  -- --meshx-auto-scan --meshx-log-candidate-discoveries
+  --console dev.mob.node.harness \
+  -- --mob-auto-scan --mob-log-candidate-discoveries
 ```
 
 Run the Android emitter:
 
 ```sh
 adb -s R52W90AW7EN shell am instrument -w \
-  -e class dev.meshx.mob.ble.IOSAuxFullMxAdvertSmokeTest \
-  dev.meshx.mob.test/androidx.test.runner.AndroidJUnitRunner
+  -e class dev.mob.mob.ble.IOSAuxFullMxAdvertSmokeTest \
+  dev.mob.mob.test/androidx.test.runner.AndroidJUnitRunner
 ```
 
 ## Result

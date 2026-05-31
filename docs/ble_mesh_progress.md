@@ -1,7 +1,7 @@
 # MeshX Mobile BLE — Milestone Ledger (M1–M1865)
 
 Running summary of the BLE transport, contract, and passive-inventory
-work in `apps/meshx_mobile_app/`. The landed milestones are tracked by
+work in `apps/mob_node/`. The landed milestones are tracked by
 commit. Together they build a
 hardware-validated, replay-deterministic foundation that future routing
 and crypto work can sit on top of without changing the contract.
@@ -479,7 +479,7 @@ behavior.
 
 ## M1786-M1790 UX evidence task copy anchors
 
-M1786-M1790 updates the `meshx.mobile.local_inbox.ux_evidence` task coverage
+M1786-M1790 updates the `mob.node.local_inbox.ux_evidence` task coverage
 so its concise text output must include the concrete selected-detail evidence
 field names now required by the review contract: `limitation_copy`,
 `next_action_copy`, and `blocked_claim_copy`.
@@ -492,7 +492,7 @@ persistence, background, or completion evidence.
 
 ## M1791-M1795 completion audit open item output
 
-M1791-M1795 updates `mix meshx.mobile.local_completion.audit --allow-open` so
+M1791-M1795 updates `mix mob.node.local_completion.audit --allow-open` so
 the plain-text output lists every remaining whole-project objective directly.
 The task now prints `OPEN_ITEMS 10` followed by one `OPEN_ITEM` line per
 objective with the objective id, readiness status, and missing-evidence count.
@@ -550,10 +550,10 @@ behavior.
 M1806-M1810 promotes the non-JSON completion audit review from a docs-only
 instruction into the generated release command surface. `LocalReleaseArtifactBundle`
 introduced a `completion_audit_plain_text_review` artifact for
-`mix meshx.mobile.local_completion.audit --allow-open`; later release-hardening
+`mix mob.node.local_completion.audit --allow-open`; later release-hardening
 milestones aligned that artifact, the release manifest, and the whole-project
 completion audit on the archived command
-`mix meshx.mobile.local_completion.audit --allow-open | tee
+`mix mob.node.local_completion.audit --allow-open | tee
 tmp/local-completion-audit.txt`.
 
 The artifact requires `OPEN_ITEMS 10` and one
@@ -571,7 +571,7 @@ behavior.
 
 M1811-M1815 wires the plain-text completion audit review into GitHub Actions.
 The local release-manifest generation step now runs
-`mix meshx.mobile.local_completion.audit --allow-open`, captures its stdout
+`mix mob.node.local_completion.audit --allow-open`, captures its stdout
 to `tmp/ci-local-completion-audit.txt`, and asserts that the output includes
 `OPEN_ITEMS 10`, the blocked `full_message_resolution` objective, and the
 partial `release_hardening` objective.
@@ -589,7 +589,7 @@ behavior.
 
 M1816-M1820 mirrors the CI plain-text completion audit gate in the local
 release checklist. `docs/RELEASE.md` now requires release operators to archive
-`mix meshx.mobile.local_completion.audit --allow-open | tee
+`mix mob.node.local_completion.audit --allow-open | tee
 tmp/local-completion-audit.txt` beside the JSON completion audit and blocker
 matrix artifacts.
 
@@ -608,7 +608,7 @@ behavior.
 M1821-M1825 aligns the generated release artifact bundle with the manual
 release checklist. The bundle's `completion_audit_plain_text_review` artifact
 now writes to `tmp/local-completion-audit.txt` through
-`mix meshx.mobile.local_completion.audit --allow-open | tee
+`mix mob.node.local_completion.audit --allow-open | tee
 tmp/local-completion-audit.txt`, and its acceptance criteria require the
 plain-text audit to be archived beside the JSON completion audit.
 
@@ -645,7 +645,7 @@ behavior.
 
 M1831-M1835 aligns the generated local release manifest with the release
 checklist, CI guard, and release artifact bundle. `LocalReleaseManifest` now
-lists `mix meshx.mobile.local_completion.audit --allow-open | tee
+lists `mix mob.node.local_completion.audit --allow-open | tee
 tmp/local-completion-audit.txt` in its required commands and adds a
 `completion_audit_plain_text_review` required artifact for the archived
 plain-text completion audit output.
@@ -664,7 +664,7 @@ behavior.
 
 M1836-M1840 aligns the top-level whole-project completion audit with the
 release manifest and release artifact bundle. `LocalProjectCompletionAudit`
-now lists `mix meshx.mobile.local_completion.audit --allow-open | tee
+now lists `mix mob.node.local_completion.audit --allow-open | tee
 tmp/local-completion-audit.txt` in its required commands so the audit itself
 points operators to the archived plain-text `OPEN_ITEMS`/`OPEN_ITEM` review.
 
@@ -684,7 +684,7 @@ M1841-M1845 updates earlier release-hardening ledger wording so it no longer
 describes the plain-text completion audit artifact as stdout-only or
 bare-command-only. The ledger now records the transition from the original
 non-JSON command surface to the archived
-`mix meshx.mobile.local_completion.audit --allow-open | tee
+`mix mob.node.local_completion.audit --allow-open | tee
 tmp/local-completion-audit.txt` release evidence path.
 
 This milestone adds no BLE behavior, no hardware success claim, no completion
@@ -811,7 +811,7 @@ revisiting the contract:
 ## Module map
 
 ```
-MeshxMobileApp.BLE
+Mob.Node.BLE
 ├── Adapter                 # @behaviour, event_message/1
 ├── BridgeProtocol          # v1 wire decode/encode (single normalization point)
 ├── Capabilities            # versioned %{version, roles, features}
@@ -839,13 +839,13 @@ MeshxMobileApp.BLE
 A consumer (UI, IEx, log emitter, future JSON read endpoint) reads:
 
 ```elixir
-table = MeshxMobileApp.Session.snapshot(session).peers
+table = Mob.Node.Session.snapshot(session).peers
 now   = System.monotonic_time(:millisecond)
 
-inventory = MeshxMobileApp.BLE.PeerInventory.list(table, now: now)
+inventory = Mob.Node.BLE.PeerInventory.list(table, now: now)
 # → [%PeerSummary{}] sorted by last_seen desc, display_name asc
 
-churn = MeshxMobileApp.BLE.PeerChurn.diff(previous_inventory, inventory, detected_at: now)
+churn = Mob.Node.BLE.PeerChurn.diff(previous_inventory, inventory, detected_at: now)
 # → [%ChurnEvent{kind: :appeared | :became_stale | :expired | :reappeared
 #                     | :identity_promoted | :identity_conflict | :collision_detected, …}]
 ```
@@ -879,7 +879,7 @@ layers and can co-occur:
 
 The committed fixtures under `test/fixtures/captures/` include slices
 of a real capture from a **Samsung SM-T577U** (Galaxy Tab Active 3) on
-**Android 13 / API 33**, including the iOS MeshX iPad's `meshx-ipad`
+**Android 13 / API 33**, including the iOS MeshX iPad's `mob-ipad`
 advertisement. Full validation ledger in
 `docs/android_ble_validation.md`.
 
@@ -947,7 +947,7 @@ Current proof state:
 - The exact M26 Android-to-Android proof remains open because only one
   Android adb device is currently attached. The two-device verifier is
   ready and writes preflight artifacts, including a default
-  `/tmp/meshx-android-m26-*` directory when `--out-dir` is omitted.
+  `/tmp/mob-android-m26-*` directory when `--out-dir` is omitted.
   `--preflight-only` can record two-device adb/BLE/USB readiness before
   install or radio work, and `--wait-for-devices <seconds>` can wait for
   a just-attached observer before recording the artifact, but both modes
@@ -961,12 +961,12 @@ Current proof state:
   `repo_fixture_log_pair=false`, Android logcat timestamp/pid/tid/tag
   provenance, and explicit model/numeric API/BLE metadata for both
   Android roles. The latest live attempt artifact is
-  `/tmp/meshx-android-m26-live-attempt-latest/summary.json`; its audit
+  `/tmp/mob-android-m26-live-attempt-latest/summary.json`; its audit
   result is `m26_android_to_android_complete=false` with blocker
   `expected exactly two attached adb devices, found 1`, and it records
   `R52W90AW7EN` as the only ready Android adb device. The latest
   readiness recheck artifact,
-  `/tmp/meshx-android-m26-readiness-current/summary.json`, records
+  `/tmp/mob-android-m26-readiness-current/summary.json`, records
   the same one-device blocker after `--wait-for-devices 30` with
   `adb_ready_device_count=1`,
   `adb_nonready_device_count=0`, `adb_mdns_service_count=0`, and
@@ -987,7 +987,7 @@ Current proof state:
   hiding a second Android USB candidate. A live `adb track-devices`
   watch likewise showed only `R52W90AW7EN device` and no device-change
   events during the 10-second watch window. Device A sender readiness was
-  rechecked: package `dev.meshx.mob` is installed on `R52W90AW7EN`, the
+  rechecked: package `dev.mob.mob` is installed on `R52W90AW7EN`, the
   device reports `android.hardware.bluetooth_le`, and
   `BLUETOOTH_SCAN`, `BLUETOOTH_ADVERTISE`, and `BLUETOOTH_CONNECT` are
   granted. The latest single-device sender regression emitted the
@@ -1004,7 +1004,7 @@ Current proof state:
   peer hash. It decodes to canonical `received_message_beacon`, never
   `received_message`, so the full M14 envelope contract remains intact.
   The SM-T577U to SM-T390 run at
-  `/tmp/meshx-android-m26b-legacy/summary.json` recorded
+  `/tmp/mob-android-m26b-legacy/summary.json` recorded
   `full_envelope_delivery_complete=false`,
   `legacy_beacon_delivery_complete=true`, a matching 22-byte beacon on
   both Android logcat streams, and no legacy-beacon blockers.
@@ -1029,7 +1029,7 @@ not used by the message advertisement observer/dispatcher path.
 ## M28 beacon resolution contract
 
 `received_message_beacon` is a reference, not message delivery. M28 adds
-`MeshxMobileApp.BLE.BeaconRef` and `MeshxMobileApp.BLE.BeaconResolver`
+`Mob.Node.BLE.BeaconRef` and `Mob.Node.BLE.BeaconResolver`
 so callers can make a pure decision from a beacon plus an in-memory
 envelope cache:
 
@@ -1136,7 +1136,7 @@ M40 adds an Android-only `PlainGattInteropHarness` isolated from the
 MeshX envelope, fetch protocol, planner, ledger, replay system, and
 legacy beacon path. It uses one hardcoded service UUID, one hardcoded
 characteristic UUID, a two-byte server payload, and a two-byte client
-write payload. Its log tag is `MeshxGattInterop`.
+write payload. Its log tag is `MobGattInterop`.
 
 The May 12, 2026 two-direction hardware run reproduced Android
 `gatt_status=133` before service discovery in both directions:
@@ -1182,7 +1182,7 @@ summary must use review version `1`, boundary
 table, route selection, forwarding, routed delivery, guaranteed
 delivery, and multi-hop hardware claim flags false.
 
-The `meshx.mobile.local_release.candidate_review` task now prints a
+The `mob.node.local_release.candidate_review` task now prints a
 `ROUTING_REVIEW` line so operators can see whether the release candidate
 is preserving the no-routing boundary. This is release evidence
 validation only. It does not add routing, forwarding, ACKs, retries,
@@ -1200,7 +1200,7 @@ Android foreground-service, Android background BLE, iOS background,
 background BLE, restart, scheduled retry, background gossip, and
 delivery claim flags false.
 
-The `meshx.mobile.local_release.candidate_review` task now prints a
+The `mob.node.local_release.candidate_review` task now prints a
 `LIFECYCLE_REVIEW` line so operators can see whether the release
 candidate is preserving the foreground/manual boundary. This is release
 evidence validation only. It does not add a foreground service,
@@ -1218,7 +1218,7 @@ summary must use review version `1`, boundary
 participation, iOS hardware, legacy beacon observe/gossip, full-envelope
 advert, background BLE, and parity claim flags false.
 
-The `meshx.mobile.local_release.candidate_review` task now prints an
+The `mob.node.local_release.candidate_review` task now prints an
 `IOS_PARITY_REVIEW` line so operators can see whether the release
 candidate is preserving the Android-only validated evidence boundary.
 This is release evidence validation only. It does not add iOS scanning,
@@ -1237,7 +1237,7 @@ to true while keeping real fetch transport, full-message resolution,
 known-good transport, GATT fetch success, message delivery, and trusted
 message claim flags false.
 
-The `meshx.mobile.local_release.candidate_review` task now prints a
+The `mob.node.local_release.candidate_review` task now prints a
 `FULL_RESOLUTION_REVIEW` line so operators can see whether unresolved
 beacon refs are still being treated as pointers. This is release
 evidence validation only. It does not add fetch transport, GATT success,
@@ -1255,7 +1255,7 @@ summary must use review version `1`, boundary
 known-good transport, GATT fetch success, full-message resolution, and
 message delivery claim flags false.
 
-The `meshx.mobile.local_release.candidate_review` task now prints a
+The `mob.node.local_release.candidate_review` task now prints a
 `KNOWN_GOOD_TRANSPORT_REVIEW` line so operators can see whether the
 release candidate still treats SM-T577U/SM-T390 status 133 as known-bad
 evidence rather than a validated transport. This is release evidence
@@ -1274,7 +1274,7 @@ while keeping multi-hop physical proof, multi-hop hardware gossip, routed
 delivery, guaranteed delivery, trusted delivery, and background operation
 claim flags false.
 
-The `meshx.mobile.local_release.candidate_review` task now prints a
+The `mob.node.local_release.candidate_review` task now prints a
 `MULTI_HOP_REVIEW` line, and operator notes must cite the same
 `multi_hop_review_path` as the top-level candidate metadata. This is release
 evidence validation only. It does not add relay execution, routing, delivery
@@ -1515,10 +1515,10 @@ on two Android devices:
 Artifact directory:
 
 ```
-/tmp/meshx-android-m59-gossip-live
+/tmp/mob-android-m59-gossip-live
 ```
 
-The sender was launched with `meshx_gossip_legacy_beacon_test=true`.
+The sender was launched with `mob_gossip_legacy_beacon_test=true`.
 Its logcat contains canonical execution evidence:
 
 - `advert_gossip_outcome` with `kind: "gossiped"`,
@@ -1527,7 +1527,7 @@ Its logcat contains canonical execution evidence:
 - `legacy_beacon_gossip_started` with 22-byte beacon payload
   `TUIBAQEAvkXLJgW/Nr5+4cV2P8vIaw==`.
 
-The observer was launched with `meshx_start_scan=true`. Its logcat
+The observer was launched with `mob_start_scan=true`. Its logcat
 contains `scan_start_result accepted=true` and 12 canonical
 `received_message_beacon` events whose fields match the sender's
 advertised beacon:
@@ -1537,7 +1537,7 @@ advertised beacon:
 - raw `beacon_payload: "TUIBAQEAvkXLJgW/Nr5+4cV2P8vIaw=="`.
 
 The compact summary at
-`/tmp/meshx-android-m59-gossip-live/summary.json` records
+`/tmp/mob-android-m59-gossip-live/summary.json` records
 `advert_gossip_hardware_complete=true`,
 `observer_received_message_beacon_count=12`, and
 `observer_matching_beacon_count=12`.
@@ -1656,7 +1656,7 @@ background service.
 
 M76-M80 adds an auditable fixture layer over the replay-only gossip
 simulator. Scenario JSON files under
-`apps/meshx_mobile_app/test/fixtures/advert_gossip_scenarios/` define:
+`apps/mob_node/test/fixtures/advert_gossip_scenarios/` define:
 
 - named nodes;
 - optional capture files used to seed a node inbox;
@@ -1673,7 +1673,7 @@ The committed scenarios cover:
 - `partitioned_four_nodes`.
 
 The Mix task
-`mix meshx.mobile.advert_gossip.audit <file-or-directory>` runs the same
+`mix mob.node.advert_gossip.audit <file-or-directory>` runs the same
 audit from the command line and exits nonzero on drift. This keeps future
 gossip policy changes machine-checkable without touching BLE hardware.
 
@@ -1758,7 +1758,7 @@ M96-M100 makes the replay-only advert gossip scenario audit an explicit
 release and CI gate. The existing Mix task:
 
 ```bash
-mix meshx.mobile.advert_gossip.audit apps/meshx_mobile_app/test/fixtures/advert_gossip_scenarios
+mix mob.node.advert_gossip.audit apps/mob_node/test/fixtures/advert_gossip_scenarios
 ```
 
 now runs in `.github/workflows/ci.yml` after the umbrella test suite and
@@ -1972,7 +1972,7 @@ with a closed status, existing evidence, required evidence, and notes:
 - known-good GATT fetch is `:blocked`;
 - multi-hop advert gossip hardware proof is `:blocked`;
 - iOS advert-only participation is now `:partial`, with iOS legacy
-  beacon observation and Android fetch from iOS `MeshxFetchGattResponder`
+  beacon observation and Android fetch from iOS `MobFetchGattResponder`
   hardware evidence, while iOS-origin beacon gossip receipt, direct
   full-MX AUX delivery, background BLE, and replay-ledger gates remain
   open.
@@ -2049,8 +2049,8 @@ M156-M160 adds a Mix audit task for the local BLE mesh project readiness
 read model:
 
 ```bash
-mix meshx.mobile.local_readiness.audit
-mix meshx.mobile.local_readiness.audit --allow-open
+mix mob.node.local_readiness.audit
+mix mob.node.local_readiness.audit --allow-open
 ```
 
 The default task is release-gate shaped: it prints every open readiness
@@ -2073,7 +2073,7 @@ proof claim.
 ## M161-M165 opt-in local inbox session persistence
 
 M161-M165 wires the existing durable local inbox store into
-`MeshxMobileApp.Session` behind explicit options:
+`Mob.Node.Session` behind explicit options:
 
 - `persist_local_inbox?: true` saves the policy-approved
   `LocalInbox.snapshot/1` after received full-message or beacon events
@@ -2191,7 +2191,7 @@ M186-M190 extends the local readiness audit task with machine-readable
 JSON output:
 
 ```bash
-mix meshx.mobile.local_readiness.audit --allow-open --json
+mix mob.node.local_readiness.audit --allow-open --json
 ```
 
 The JSON includes open, blocked, partial, and not-started counts plus
@@ -2211,7 +2211,7 @@ M191-M195 extends the same readiness audit task with explicit JSON
 artifact output:
 
 ```bash
-mix meshx.mobile.local_readiness.audit --allow-open --out tmp/readiness.json
+mix mob.node.local_readiness.audit --allow-open --out tmp/readiness.json
 ```
 
 The task writes the same machine-readable readiness manifest used by
@@ -2414,7 +2414,7 @@ crypto, no persistence behavior, and no new hardware proof claim.
 M231-M235 adds `LocalReleaseManifest` and the Mix task:
 
 ```bash
-mix meshx.mobile.local_release.manifest --json --out tmp/local-release.json
+mix mob.node.local_release.manifest --json --out tmp/local-release.json
 ```
 
 The manifest combines:
@@ -2443,8 +2443,8 @@ M236-M240 wires the mobile advert-only release artifacts into GitHub
 Actions. The CI workflow now runs:
 
 ```bash
-mix meshx.mobile.local_readiness.audit --allow-open --out tmp/ci-local-readiness.json
-mix meshx.mobile.local_release.manifest --json --out tmp/ci-local-release.json
+mix mob.node.local_readiness.audit --allow-open --out tmp/ci-local-readiness.json
+mix mob.node.local_release.manifest --json --out tmp/ci-local-release.json
 ```
 
 The step parses both JSON files and asserts the release manifest still
@@ -2686,7 +2686,7 @@ the whole project.
 
 ## M281-M285 Mob Nearby Messages controls
 
-M281-M285 wires `LocalInboxNativeSurface` into `MeshxMobileApp.HomeScreen`
+M281-M285 wires `LocalInboxNativeSurface` into `Mob.Node.HomeScreen`
 instead of rendering only the compact text presenter. The Mob screen now
 has local UI state for:
 
@@ -2925,8 +2925,8 @@ the scan call but paused the unfiltered scan while the screen was off.
 Current artifacts:
 
 ```text
-/tmp/meshx-android-m26-live-current/summary.json
-/tmp/meshx-android-m26b-legacy-current/summary.json
+/tmp/mob-android-m26-live-current/summary.json
+/tmp/mob-android-m26b-legacy-current/summary.json
 ```
 
 The full-envelope Android-to-Android proof remains incomplete:
@@ -2934,7 +2934,7 @@ The full-envelope Android-to-Android proof remains incomplete:
 log canonical `received_message` for the SM-T577U full-envelope advert.
 The audit reports two ready adb devices and no preflight blocker, but
 keeps `received_message_logged`, `observer_m14_consistent`,
-`observer_meshx_transport_metadata`, `payload_match`, and
+`observer_mob_routing_metadata`, `payload_match`, and
 `android_logcat_provenance` blockers.
 
 The legacy beacon fallback proof passes again:
@@ -2960,11 +2960,11 @@ routing, no crypto, and no persistence.
 Current artifacts:
 
 ```text
-/tmp/meshx-android-m40-current/adb-devices.txt
-/tmp/meshx-android-m40-current/sm-t577u-responder.log
-/tmp/meshx-android-m40-current/sm-t390-requester.log
-/tmp/meshx-android-m40-current/sm-t390-responder.log
-/tmp/meshx-android-m40-current/sm-t577u-requester.log
+/tmp/mob-android-m40-current/adb-devices.txt
+/tmp/mob-android-m40-current/sm-t577u-responder.log
+/tmp/mob-android-m40-current/sm-t390-requester.log
+/tmp/mob-android-m40-current/sm-t390-responder.log
+/tmp/mob-android-m40-current/sm-t577u-requester.log
 ```
 
 The SM-T577U -> SM-T390 direction starts connectable interop advertising
@@ -3005,13 +3005,13 @@ artifacts/local-ble/2026-05-12-sm-t577u-sm-t390/
 The bundle includes:
 
 - M26 full-envelope Android-to-Android evidence from
-  `/tmp/meshx-android-m26-live-current`, preserving the incomplete
+  `/tmp/mob-android-m26-live-current`, preserving the incomplete
   full-envelope outcome;
 - M26B legacy-beacon evidence from
-  `/tmp/meshx-android-m26b-legacy-current`, preserving the passed
+  `/tmp/mob-android-m26b-legacy-current`, preserving the passed
   `legacy_beacon_delivery_complete=true` proof;
 - M40 standalone GATT interop evidence from
-  `/tmp/meshx-android-m40-current`, preserving the status 133 failures
+  `/tmp/mob-android-m40-current`, preserving the status 133 failures
   before service discovery in both directions;
 - generated readiness and release manifests;
 - deterministic advert gossip audit output;
@@ -3114,7 +3114,7 @@ candidate for a destination peer when the observed peer is:
 
 Rejected candidates keep explicit blocker reasons such as
 `:anonymous_peer`, `:not_active`, `:identity_contested`,
-`:identity_not_usable`, and `:missing_meshx_capability`. Missing
+`:identity_not_usable`, and `:missing_mob_capability`. Missing
 destinations produce an explicit `:no_observed_candidate` outcome. The
 selector sorts deterministically by forwardability, identity confidence,
 recency, RSSI, destination peer id, and target device ids.
@@ -3825,7 +3825,7 @@ multi-hop hardware proof claim.
 M481-M485 improves the existing Mob Nearby Messages surface without
 changing transport behavior. `LocalInboxNativeSurface` now exposes a
 stable `summary_line` with full/ref/gossip/stale counts and an
-`empty_label` that follows the selected state filter. `MeshxMobileApp.HomeScreen`
+`empty_label` that follows the selected state filter. `Mob.Node.HomeScreen`
 renders the summary above the filter controls and uses the state-specific
 empty copy instead of a generic empty message.
 
@@ -3970,7 +3970,7 @@ trusted-delivery claim.
 M511-M515 adds `LocalSecurityEvidenceManifest` and the Mix task:
 
 ```bash
-mix meshx.mobile.local_security.evidence --json --out tmp/local-security-evidence.json
+mix mob.node.local_security.evidence --json --out tmp/local-security-evidence.json
 ```
 
 The manifest packages the current local security evidence into an
@@ -4001,7 +4001,7 @@ behavior.
 M516-M520 adds `LocalInboxUxEvidenceManifest` and the Mix task:
 
 ```bash
-mix meshx.mobile.local_inbox.ux_evidence --json --out tmp/local-inbox-ux-evidence.json
+mix mob.node.local_inbox.ux_evidence --json --out tmp/local-inbox-ux-evidence.json
 ```
 
 The manifest packages a deterministic Nearby Messages fixture surface that
@@ -4030,7 +4030,7 @@ behavior.
 M521-M525 adds `LocalPersistenceEvidenceManifest` and the Mix task:
 
 ```bash
-mix meshx.mobile.local_persistence.evidence --json --out tmp/local-persistence-evidence.json
+mix mob.node.local_persistence.evidence --json --out tmp/local-persistence-evidence.json
 ```
 
 The manifest packages the current local inbox persistence boundary into an
@@ -4062,7 +4062,7 @@ background behavior.
 M526-M530 adds `LocalRoutingEvidenceManifest` and the Mix task:
 
 ```bash
-mix meshx.mobile.local_routing.evidence --json --out tmp/local-routing-evidence.json
+mix mob.node.local_routing.evidence --json --out tmp/local-routing-evidence.json
 ```
 
 The manifest packages current routing-adjacent evidence into an archiveable
@@ -4093,7 +4093,7 @@ encryption, and no background behavior.
 M531-M535 adds `LocalLifecycleEvidenceManifest` and the Mix task:
 
 ```bash
-mix meshx.mobile.local_lifecycle.evidence --json --out tmp/local-lifecycle-evidence.json
+mix mob.node.local_lifecycle.evidence --json --out tmp/local-lifecycle-evidence.json
 ```
 
 The manifest packages current lifecycle evidence into an archiveable release
@@ -4127,7 +4127,7 @@ no encryption, and no native Android/iOS behavior.
 M536-M540 adds `LocalIOSParityEvidenceManifest` and the Mix task:
 
 ```bash
-mix meshx.mobile.local_ios_parity.evidence --json --out tmp/local-ios-parity-evidence.json
+mix mob.node.local_ios_parity.evidence --json --out tmp/local-ios-parity-evidence.json
 ```
 
 The manifest packages current iOS parity evidence into an archiveable release
@@ -4158,7 +4158,7 @@ persistence behavior, no encryption, and no native iOS behavior.
 M541-M545 adds `LocalFullMessageResolutionEvidenceManifest` and the Mix task:
 
 ```bash
-mix meshx.mobile.local_full_resolution.evidence --json --out tmp/local-full-resolution-evidence.json
+mix mob.node.local_full_resolution.evidence --json --out tmp/local-full-resolution-evidence.json
 ```
 
 The manifest packages current full-message-resolution evidence into an
@@ -4192,7 +4192,7 @@ behavior.
 M546-M550 adds `LocalMultiHopHardwareEvidenceManifest` and the Mix task:
 
 ```bash
-mix meshx.mobile.local_multi_hop_hardware.evidence --json --out tmp/local-multi-hop-hardware-evidence.json
+mix mob.node.local_multi_hop_hardware.evidence --json --out tmp/local-multi-hop-hardware-evidence.json
 ```
 
 The manifest packages current multi-hop evidence into an archiveable release
@@ -4226,7 +4226,7 @@ no new hardware proof.
 M551-M555 adds a dedicated Mix task for the release-candidate artifact bundle:
 
 ```bash
-mix meshx.mobile.local_release.artifact_bundle --json --out tmp/local-release-artifact-bundle.json
+mix mob.node.local_release.artifact_bundle --json --out tmp/local-release-artifact-bundle.json
 ```
 
 The bundle already existed as `LocalReleaseArtifactBundle` and was embedded in
@@ -4252,7 +4252,7 @@ no iOS parity, and no whole-project completion claim.
 M556-M560 adds a dedicated Mix task for `LocalReleaseCandidateEvidenceReview`:
 
 ```bash
-mix meshx.mobile.local_release.candidate_review --input artifacts/local-ble/<run-id>/evidence.json --json --out tmp/local-release-candidate-review.json
+mix mob.node.local_release.candidate_review --input artifacts/local-ble/<run-id>/evidence.json --json --out tmp/local-release-candidate-review.json
 ```
 
 Without `--input`, the task reviews an empty evidence package and reports the
@@ -4279,7 +4279,7 @@ no iOS parity, and no whole-project completion claim.
 M561-M565 adds `LocalInboxUxEvidenceReview` and a dedicated Mix task:
 
 ```bash
-mix meshx.mobile.local_inbox.ux_review --input artifacts/local-ble/<run-id>/ux/evidence.json --json --out tmp/local-inbox-ux-review.json
+mix mob.node.local_inbox.ux_review --input artifacts/local-ble/<run-id>/ux/evidence.json --json --out tmp/local-inbox-ux-review.json
 ```
 
 Without `--input`, the task reviews an empty UX evidence package and reports
@@ -4315,7 +4315,7 @@ M566-M570 adds `LocalPersistenceProductionEvidenceReview` and a dedicated Mix
 task:
 
 ```bash
-mix meshx.mobile.local_persistence.production_review --input artifacts/local-ble/<run-id>/persistence/evidence.json --json --out tmp/local-persistence-production-review.json
+mix mob.node.local_persistence.production_review --input artifacts/local-ble/<run-id>/persistence/evidence.json --json --out tmp/local-persistence-production-review.json
 ```
 
 Without `--input`, the task reviews an empty evidence package and reports the
@@ -4349,7 +4349,7 @@ whole-project completion claim.
 M571-M575 adds `LocalRoutingProductionEvidenceReview` and a dedicated Mix task:
 
 ```bash
-mix meshx.mobile.local_routing.production_review --input artifacts/local-ble/<run-id>/routing/evidence.json --json --out tmp/local-routing-production-review.json
+mix mob.node.local_routing.production_review --input artifacts/local-ble/<run-id>/routing/evidence.json --json --out tmp/local-routing-production-review.json
 ```
 
 Without `--input`, the task reviews an empty evidence package and reports the
@@ -4384,7 +4384,7 @@ completion claim.
 M576-M580 adds `LocalLifecycleHardwareEvidenceReview` and a dedicated Mix task:
 
 ```bash
-mix meshx.mobile.local_lifecycle.hardware_review --input artifacts/local-ble/<run-id>/lifecycle/evidence.json --json --out tmp/local-lifecycle-hardware-review.json
+mix mob.node.local_lifecycle.hardware_review --input artifacts/local-ble/<run-id>/lifecycle/evidence.json --json --out tmp/local-lifecycle-hardware-review.json
 ```
 
 Without `--input`, the task reviews an empty evidence package and reports the
@@ -4420,7 +4420,7 @@ whole-project completion claim.
 M581-M585 adds `LocalIOSParityHardwareEvidenceReview` and a dedicated Mix task:
 
 ```bash
-mix meshx.mobile.local_ios_parity.hardware_review --input artifacts/local-ble/<run-id>/ios/evidence.json --json --out tmp/local-ios-parity-hardware-review.json
+mix mob.node.local_ios_parity.hardware_review --input artifacts/local-ble/<run-id>/ios/evidence.json --json --out tmp/local-ios-parity-hardware-review.json
 ```
 
 Without `--input`, the task reviews an empty evidence package and reports the
@@ -4457,7 +4457,7 @@ behavior.
 M586-M590 adds a dedicated Mix task for `LocalSecurityReleaseEvidenceReview`:
 
 ```bash
-mix meshx.mobile.local_security.release_review --input artifacts/local-ble/<run-id>/security/evidence.json --json --out tmp/local-security-release-review.json
+mix mob.node.local_security.release_review --input artifacts/local-ble/<run-id>/security/evidence.json --json --out tmp/local-security-release-review.json
 ```
 
 Without `--input`, the task reviews an empty evidence package and reports the
@@ -4487,7 +4487,7 @@ M591-M595 adds `LocalFullMessageResolutionEvidenceReview` and a dedicated Mix
 task:
 
 ```bash
-mix meshx.mobile.local_full_resolution.transport_review --input artifacts/local-ble/<run-id>/full-resolution/evidence.json --json --out tmp/local-full-resolution-transport-review.json
+mix mob.node.local_full_resolution.transport_review --input artifacts/local-ble/<run-id>/full-resolution/evidence.json --json --out tmp/local-full-resolution-transport-review.json
 ```
 
 Without `--input`, the task reviews an empty evidence package and reports the
@@ -4519,7 +4519,7 @@ no retries, no fragmentation, and no crypto behavior.
 M596-M600 adds `LocalMultiHopHardwareEvidenceReview` and a dedicated Mix task:
 
 ```bash
-mix meshx.mobile.local_multi_hop_hardware.review --input artifacts/local-ble/<run-id>/multi-hop/evidence.json --json --out tmp/local-multi-hop-hardware-review.json
+mix mob.node.local_multi_hop_hardware.review --input artifacts/local-ble/<run-id>/multi-hop/evidence.json --json --out tmp/local-multi-hop-hardware-review.json
 ```
 
 Without `--input`, the task reviews an empty evidence package and reports the
@@ -4551,7 +4551,7 @@ M601-M605 adds `LocalKnownGoodTransportEvidenceReview` and a dedicated Mix
 task:
 
 ```bash
-mix meshx.mobile.local_known_good_transport.review --input artifacts/local-ble/<run-id>/transport/evidence.json --json --out tmp/local-known-good-transport-review.json
+mix mob.node.local_known_good_transport.review --input artifacts/local-ble/<run-id>/transport/evidence.json --json --out tmp/local-known-good-transport-review.json
 ```
 
 Without `--input`, the task reviews an empty evidence package and reports the
@@ -4595,8 +4595,8 @@ MB | beacon_version | envelope_version | payload_kind | flags |
 8-byte message_id_hash | 8-byte sender_peer_id_hash
 ```
 
-When that payload is observed, `MeshxBLEBridge.swift` emits a v1
-`received_message_beacon` wire map through `meshx_ble_nif.m`, preserving the
+When that payload is observed, `MobBLEBridge.swift` emits a v1
+`received_message_beacon` wire map through `mob_ble_nif.m`, preserving the
 same canonical ingress path used by Android and replay. The emitted event is a
 beacon/ref event only; it is not a full `ReceivedMessage` and it does not
 resolve the beacon into an envelope.
@@ -4630,8 +4630,8 @@ Swift parser:
 Validation:
 
 ```bash
-cd meshx_mobile && xcrun swift test --filter MessageAdvertisementTests
-cd meshx_mobile && xcrun swift test
+cd mob_node && xcrun swift test --filter MessageAdvertisementTests
+cd mob_node && xcrun swift test
 ```
 
 The full Swift package test suite now runs 25 tests. This milestone is parser
@@ -4746,7 +4746,7 @@ and no crypto behavior.
 M636-M640 adds a standalone Mix task for the blocker matrix:
 
 ```bash
-mix meshx.mobile.local_completion.blocker_matrix --json --out tmp/local-completion-blocker-matrix.json
+mix mob.node.local_completion.blocker_matrix --json --out tmp/local-completion-blocker-matrix.json
 ```
 
 The task emits `LocalProjectCompletionBlockerMatrix` directly so release
@@ -4768,7 +4768,7 @@ M641-M645 adds the standalone blocker matrix task to
 `LocalReleaseManifest.required_commands`:
 
 ```bash
-mix meshx.mobile.local_completion.blocker_matrix --json --out tmp/local-completion-blocker-matrix.json
+mix mob.node.local_completion.blocker_matrix --json --out tmp/local-completion-blocker-matrix.json
 ```
 
 This keeps the release manifest command list aligned with the artifact bundle
@@ -4787,7 +4787,7 @@ step and human release checklist. The `Generate mobile local release manifests`
 workflow step now emits:
 
 ```bash
-mix meshx.mobile.local_completion.blocker_matrix --json --out tmp/ci-local-completion-blocker-matrix.json
+mix mob.node.local_completion.blocker_matrix --json --out tmp/ci-local-completion-blocker-matrix.json
 ```
 
 and asserts that `completion_claim_allowed?` remains false. `docs/RELEASE.md`
@@ -4869,7 +4869,7 @@ M666-M670 adds the standalone release artifact bundle command to the CI
 release-manifest generation step and human release checklist:
 
 ```bash
-mix meshx.mobile.local_release.artifact_bundle --json --out tmp/ci-local-release-artifact-bundle.json
+mix mob.node.local_release.artifact_bundle --json --out tmp/ci-local-release-artifact-bundle.json
 ```
 
 CI now decodes the generated bundle and asserts
@@ -4889,9 +4889,9 @@ M671-M675 adds explicit security test commands to
 `LocalSecurityEvidenceManifest.required_commands` for:
 
 ```bash
-mix test apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_security_authorship_proof_test.exs
-mix test apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_security_canonical_replay_decision_test.exs
-mix test apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_security_fixture_audit_test.exs
+mix test apps/mob_node/test/mob_node/ble/local_security_authorship_proof_test.exs
+mix test apps/mob_node/test/mob_node/ble/local_security_canonical_replay_decision_test.exs
+mix test apps/mob_node/test/mob_node/ble/local_security_fixture_audit_test.exs
 ```
 
 This makes the release security manifest point directly at the full-envelope
@@ -4952,8 +4952,8 @@ M686-M690 adds direct opt-in persistence test commands to
 `LocalPersistenceEvidenceManifest.required_commands` for:
 
 ```bash
-mix test apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_inbox_store_test.exs
-mix test apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_inbox_durable_snapshot_test.exs
+mix test apps/mob_node/test/mob_node/ble/local_inbox_store_test.exs
+mix test apps/mob_node/test/mob_node/ble/local_inbox_durable_snapshot_test.exs
 ```
 
 This makes the persistence evidence manifest point directly at durable snapshot
@@ -5149,7 +5149,7 @@ retries, no fragmentation, and no crypto behavior.
 
 ## M741-M745 standalone completion audit task
 
-M741-M745 adds `mix meshx.mobile.local_completion.audit` as a standalone
+M741-M745 adds `mix mob.node.local_completion.audit` as a standalone
 whole-project completion audit artifact. The task supports `--allow-open`,
 `--json`, and `--out`, exits nonzero by default while completion remains
 blocked, and emits the same prompt-to-artifact checklist used by the embedded
@@ -5516,7 +5516,7 @@ M881-M885 adds a `next_action_summary` to
 `LocalProjectCompletionBlockerMatrix`. The summary keeps the existing
 hardware-blocked and no-new-hardware groups, but also exposes the current
 recommended operator unblock action. The plain-text
-`mix meshx.mobile.local_completion.blocker_matrix` output now prints that
+`mix mob.node.local_completion.blocker_matrix` output now prints that
 recommended next action, so a status check can answer what remains and what to
 do next without reading the full JSON artifact.
 
@@ -5532,10 +5532,10 @@ retries, no fragmentation, and no crypto behavior.
 ## M886-M890 Nearby Messages UX evidence template
 
 M886-M890 adds a `--template` mode to
-`mix meshx.mobile.local_inbox.ux_review`:
+`mix mob.node.local_inbox.ux_review`:
 
 ```bash
-mix meshx.mobile.local_inbox.ux_review --template --out artifacts/local-ble/<run-id>/ux/evidence.json
+mix mob.node.local_inbox.ux_review --template --out artifacts/local-ble/<run-id>/ux/evidence.json
 ```
 
 The template lists every required target-device UX metadata section for the
@@ -5556,7 +5556,7 @@ ACKs, no retries, no fragmentation, and no crypto behavior.
 M891-M895 threads the Nearby Messages UX evidence template command through the
 release evidence surfaces. `LocalInboxUxEvidenceManifest` and
 `LocalReleaseManifest` now list
-`mix meshx.mobile.local_inbox.ux_review --template --out <path>` alongside the
+`mix mob.node.local_inbox.ux_review --template --out <path>` alongside the
 operator review command, and `LocalReleaseArtifactBundle` points the
 `ux_evidence_review` artifact at the template-then-review flow.
 
@@ -5576,7 +5576,7 @@ ACKs, no retries, no fragmentation, and no crypto behavior.
 M896-M900 updates `docs/local_ble_release_artifact_bundle.md` so the human
 release checklist includes the Nearby Messages UX evidence template workflow:
 generate the incomplete operator scaffold with
-`mix meshx.mobile.local_inbox.ux_review --template --out ...`, fill it with
+`mix mob.node.local_inbox.ux_review --template --out ...`, fill it with
 real target-device screenshots or notes, then run the JSON review command.
 
 The docs explicitly state that the generated template is not product-UX
@@ -5591,7 +5591,7 @@ ACKs, no retries, no fragmentation, and no crypto behavior.
 ## M901-M905 UX review task template hint
 
 M901-M905 updates the plain-text
-`mix meshx.mobile.local_inbox.ux_review` output so an open review prints the
+`mix mob.node.local_inbox.ux_review` output so an open review prints the
 template command for generating the operator metadata scaffold. Ready reviews
 do not print the hint, and JSON output remains machine-readable review data.
 
@@ -5624,7 +5624,7 @@ ACKs, no retries, no fragmentation, and no crypto behavior.
 
 M911-M915 adds `LocalPersistenceProductionEvidenceReview.template_input/0` and
 a `--template` mode to
-`mix meshx.mobile.local_persistence.production_review`. The generated JSON
+`mix mob.node.local_persistence.production_review`. The generated JSON
 lists every production-default persistence gate with the expected evidence
 type and the `default_lifecycle_decision` `decision_outcome` slot, but leaves
 artifact paths, summaries, commands, the decision outcome, and blocked-claim
@@ -5682,7 +5682,7 @@ behavior.
 ## M926-M930 persistence review task template hint
 
 M926-M930 updates the plain-text
-`mix meshx.mobile.local_persistence.production_review` output so an open review
+`mix mob.node.local_persistence.production_review` output so an open review
 prints the template command for generating the production persistence metadata
 scaffold. Ready reviews do not print the hint, and JSON output remains
 machine-readable review data.
@@ -5701,7 +5701,7 @@ behavior.
 ## M931-M935 security release evidence template
 
 M931-M935 adds `LocalSecurityReleaseEvidenceReview.template_input/0` and a
-`--template` mode to `mix meshx.mobile.local_security.release_review`. The
+`--template` mode to `mix mob.node.local_security.release_review`. The
 generated JSON lists every security validation gate with the expected evidence
 type, but leaves manifest paths, attachment paths, blocked-claim callouts, and
 operator review incomplete.
@@ -5754,7 +5754,7 @@ fragmentation, and no crypto behavior.
 ## M946-M950 security review task template hint
 
 M946-M950 updates the plain-text
-`mix meshx.mobile.local_security.release_review` output so an open review
+`mix mob.node.local_security.release_review` output so an open review
 prints the template command for generating the security release evidence
 metadata scaffold. Ready reviews do not print the hint, and JSON output remains
 machine-readable review data.
@@ -5772,7 +5772,7 @@ fragmentation, and no crypto behavior.
 ## M951-M955 routing production evidence template
 
 M951-M955 adds `LocalRoutingProductionEvidenceReview.template_input/0` and
-`mix meshx.mobile.local_routing.production_review --template --out <path>`.
+`mix mob.node.local_routing.production_review --template --out <path>`.
 The generated JSON includes every production routing validation gate with its
 expected evidence type, but leaves artifact paths, summaries, commands, and
 blocked-claim callouts blank.
@@ -5792,7 +5792,7 @@ behavior.
 ## M956-M960 routing production review task template hint
 
 M956-M960 updates the plain-text
-`mix meshx.mobile.local_routing.production_review` output so an open routing
+`mix mob.node.local_routing.production_review` output so an open routing
 review prints the template command for generating the production routing
 evidence scaffold. Ready reviews do not print the hint, and JSON output remains
 machine-readable review data.
@@ -5809,7 +5809,7 @@ behavior.
 ## M961-M965 lifecycle hardware evidence template
 
 M961-M965 adds `LocalLifecycleHardwareEvidenceReview.template_input/0` and
-`mix meshx.mobile.local_lifecycle.hardware_review --template --out <path>`.
+`mix mob.node.local_lifecycle.hardware_review --template --out <path>`.
 The generated JSON covers every mobile lifecycle hardware validation gate with
 the expected evidence type, but intentionally leaves artifact paths, summaries,
 commands, and blocked-claim callouts blank.
@@ -5831,7 +5831,7 @@ fragmentation, and no crypto behavior.
 ## M966-M970 lifecycle hardware review task template hint
 
 M966-M970 updates the plain-text
-`mix meshx.mobile.local_lifecycle.hardware_review` output so an open lifecycle
+`mix mob.node.local_lifecycle.hardware_review` output so an open lifecycle
 review prints the template command for generating the mobile lifecycle hardware
 evidence scaffold. Ready reviews do not print the hint, and JSON output remains
 machine-readable review data.
@@ -5849,7 +5849,7 @@ fragmentation, and no crypto behavior.
 ## M971-M975 iOS parity hardware evidence template
 
 M971-M975 adds `LocalIOSParityHardwareEvidenceReview.template_input/0` and
-`mix meshx.mobile.local_ios_parity.hardware_review --template --out <path>`.
+`mix mob.node.local_ios_parity.hardware_review --template --out <path>`.
 The generated JSON includes every iOS advert-only hardware validation gate with
 the expected evidence type, but leaves artifact paths, summaries, commands, and
 blocked-claim callouts blank.
@@ -5870,7 +5870,7 @@ behavior.
 ## M976-M980 iOS parity hardware review task template hint
 
 M976-M980 updates the plain-text
-`mix meshx.mobile.local_ios_parity.hardware_review` output so an open iOS
+`mix mob.node.local_ios_parity.hardware_review` output so an open iOS
 parity review prints the template command for generating the iOS advert-only
 hardware evidence scaffold. Ready reviews do not print the hint, and JSON output
 remains machine-readable review data.
@@ -5888,7 +5888,7 @@ behavior.
 ## M981-M985 multi-hop hardware evidence template
 
 M981-M985 adds `LocalMultiHopHardwareEvidenceReview.template_input/0` and
-`mix meshx.mobile.local_multi_hop_hardware.review --template --out <path>`.
+`mix mob.node.local_multi_hop_hardware.review --template --out <path>`.
 The generated JSON includes every physical multi-hop hardware validation gate,
 but leaves artifact paths, summaries, commands, and blocked-claim callouts
 blank.
@@ -5909,7 +5909,7 @@ no completion claim, no fragmentation, and no crypto behavior.
 ## M986-M990 multi-hop hardware review task template hint
 
 M986-M990 updates the plain-text
-`mix meshx.mobile.local_multi_hop_hardware.review` output so an open multi-hop
+`mix mob.node.local_multi_hop_hardware.review` output so an open multi-hop
 hardware review prints the template command for generating the physical
 multi-hop evidence scaffold. Ready reviews do not print the hint, and JSON
 output remains machine-readable review data.
@@ -5927,7 +5927,7 @@ no completion claim, no fragmentation, and no crypto behavior.
 ## M991-M995 known-good transport evidence template
 
 M991-M995 adds `LocalKnownGoodTransportEvidenceReview.template_input/0` and
-`mix meshx.mobile.local_known_good_transport.review --template --out <path>`.
+`mix mob.node.local_known_good_transport.review --template --out <path>`.
 The generated JSON includes every known-good constrained fetch transport gate,
 but leaves artifact paths, summaries, commands, and blocked-claim callouts
 blank.
@@ -5949,7 +5949,7 @@ crypto behavior.
 ## M996-M1000 known-good transport review task template hint
 
 M996-M1000 updates the plain-text
-`mix meshx.mobile.local_known_good_transport.review` output so an open
+`mix mob.node.local_known_good_transport.review` output so an open
 known-good transport review prints the template command for generating the
 transport evidence scaffold. Ready reviews do not print the hint, and JSON
 output remains machine-readable review data.
@@ -5969,7 +5969,7 @@ crypto behavior.
 
 M1001-M1005 adds `LocalFullMessageResolutionEvidenceReview.template_input/0`
 and
-`mix meshx.mobile.local_full_resolution.transport_review --template --out <path>`.
+`mix mob.node.local_full_resolution.transport_review --template --out <path>`.
 The generated JSON includes every full-message-resolution transport validation
 gate, but leaves artifact paths, summaries, commands, and blocked-claim
 callouts blank.
@@ -5992,7 +5992,7 @@ crypto behavior.
 ## M1006-M1010 full-resolution transport review task template hint
 
 M1006-M1010 updates the plain-text
-`mix meshx.mobile.local_full_resolution.transport_review` output so an open
+`mix mob.node.local_full_resolution.transport_review` output so an open
 full-resolution transport review prints the template command for generating the
 full-message-resolution transport evidence scaffold. Ready reviews do not print
 the hint, and JSON output remains machine-readable review data.
@@ -6011,7 +6011,7 @@ crypto behavior.
 ## M1011-M1015 release candidate evidence template
 
 M1011-M1015 adds `LocalReleaseCandidateEvidenceReview.template_input/0` and
-`mix meshx.mobile.local_release.candidate_review --template --out <path>`.
+`mix mob.node.local_release.candidate_review --template --out <path>`.
 The generated JSON exposes required manifest paths, hardware attachment
 metadata, gate evidence types, approved release wording, blocked-claim callouts,
 and open-gate callouts, but intentionally leaves paths and operator-supplied
@@ -6033,7 +6033,7 @@ parity claim, no persistence behavior, and no crypto behavior.
 ## M1016-M1020 release candidate review task template hint
 
 M1016-M1020 updates the plain-text
-`mix meshx.mobile.local_release.candidate_review` output so an open release
+`mix mob.node.local_release.candidate_review` output so an open release
 candidate review prints the template command for generating the release
 candidate evidence scaffold. Ready reviews do not print the hint, and JSON
 output remains machine-readable review data.
@@ -6068,7 +6068,7 @@ parity claim, no persistence behavior, and no crypto behavior.
 ## M1026-M1030 completion audit template coverage summary
 
 M1026-M1030 updates the plain-text
-`mix meshx.mobile.local_completion.audit --allow-open` output so it prints the
+`mix mob.node.local_completion.audit --allow-open` output so it prints the
 operator review template coverage count:
 `REVIEW_TEMPLATES covered=10/10 all_listed=true`. JSON output already carries
 the full `review_template_coverage` structure.
@@ -6085,7 +6085,7 @@ parity claim, no persistence behavior, and no crypto behavior.
 ## M1031-M1035 release manifest template coverage summary
 
 M1031-M1035 updates the plain-text
-`mix meshx.mobile.local_release.manifest` output so it prints the embedded
+`mix mob.node.local_release.manifest` output so it prints the embedded
 completion audit's operator review template coverage:
 `REVIEW_TEMPLATES covered=10/10 all_listed=true`.
 
@@ -6102,7 +6102,7 @@ parity claim, no persistence behavior, and no crypto behavior.
 ## M1036-M1040 completion audit remaining-work summary
 
 M1036-M1040 updates the plain-text
-`mix meshx.mobile.local_completion.audit --allow-open` output so the whole
+`mix mob.node.local_completion.audit --allow-open` output so the whole
 project status command prints:
 
 - `HARDWARE_BLOCKED 4 objectives=...`
@@ -6124,7 +6124,7 @@ parity claim, no persistence behavior, and no crypto behavior.
 
 ## M1041-M1045 Nearby Messages HomeScreen test coverage
 
-M1041-M1045 adds the `apps/meshx_mobile_app/test/meshx_mobile_app/home_screen_test.exs`
+M1041-M1045 adds the `apps/mob_node/test/mob_node/home_screen_test.exs`
 test file already listed by the Nearby Messages UX evidence manifest. The test
 covers Mob HomeScreen initialization of the local inbox state filter, sort, and
 detail selection, plus filter/sort/detail tap handling that changes only the
@@ -6181,7 +6181,7 @@ M1056-M1060 adds a release manifest assertion that every `required_artifacts`
 entry with a `mix ...` command is also covered by the manifest's
 `required_commands` gate list. The guard caught and fixed a readiness artifact
 drift: the required artifact now uses
-`mix meshx.mobile.local_readiness.audit --allow-open --json --out <path>`, and
+`mix mob.node.local_readiness.audit --allow-open --json --out <path>`, and
 the generic JSON readiness artifact command is listed in `required_commands`.
 
 This keeps the release manifest's artifact checklist and command checklist in
@@ -6629,7 +6629,7 @@ parity claim, no persistence behavior, and no crypto behavior.
 ## M1191-M1195 UX review task malformed input guard
 
 M1191-M1195 adds task-level regression coverage for
-`mix meshx.mobile.local_inbox.ux_review --input <path> --json --out <path>`
+`mix mob.node.local_inbox.ux_review --input <path> --json --out <path>`
 when the decoded JSON evidence shape is malformed. The operator-facing task
 continues to emit and archive machine-readable open evidence output instead of
 promoting malformed metadata or crashing after decode.
@@ -7036,7 +7036,7 @@ parity claim, no persistence behavior, and no crypto behavior.
 ## M1316-M1320 UX review artifact surface guard
 
 M1316-M1320 adds a task-level regression guard for
-`mix meshx.mobile.local_inbox.ux_review --json --out <path>` so written UX
+`mix mob.node.local_inbox.ux_review --json --out <path>` so written UX
 review artifacts do not expose internal validation flags. This keeps the
 operator-facing artifact contract aligned with `LocalInboxUxEvidenceReview`'s
 archiveable JSON surface.
@@ -7199,7 +7199,7 @@ behavior.
 ## M1361-M1365 Nearby Messages UX evidence task summary
 
 M1361-M1365 updates the plain-text
-`mix meshx.mobile.local_inbox.ux_evidence` output so release logs show the
+`mix mob.node.local_inbox.ux_evidence` output so release logs show the
 active filter summary, active sort summary, row blocked-claim coverage count,
 and routing claim state. The JSON artifact already carries those fields; this
 makes the non-JSON task output expose the same review anchors.
@@ -7287,7 +7287,7 @@ behavior.
 
 ## M1386-M1390 UX review task copy anchors
 
-M1386-M1390 updates the `meshx.mobile.local_inbox.ux_review` task tests so the
+M1386-M1390 updates the `mob.node.local_inbox.ux_review` task tests so the
 operator template path and complete input fixture include the control-summary
 and per-state blocked-claim copy review booleans. The task tests also assert
 that public copy-review fields remain visible while internal presence flags are
@@ -7306,7 +7306,7 @@ behavior.
 ## M1391-M1395 UX evidence task copy-review summary
 
 M1391-M1395 updates the plain-text
-`mix meshx.mobile.local_inbox.ux_evidence` output so it prints a
+`mix mob.node.local_inbox.ux_evidence` output so it prints a
 `UX_COPY_REVIEW` line with the blocked-claim copy review evidence requirement
 and archive artifact purpose. This keeps non-JSON operator output aligned with
 the control-summary and per-state blocked-claim copy gates already present in
@@ -7344,7 +7344,7 @@ behavior.
 ## M1401-M1405 UX review task copy summary
 
 M1401-M1405 updates the plain-text
-`mix meshx.mobile.local_inbox.ux_review` output so it prints a
+`mix mob.node.local_inbox.ux_review` output so it prints a
 `LOCAL_INBOX_UX_COPY_REVIEW` line. The line records whether operator metadata
 captured visible warning text, control summaries, and per-state blocked-claim
 copy, plus the blocked-claim callout count.
@@ -7409,7 +7409,7 @@ records the selected detail status, state, message key, detail title,
 identifier lines, observed source, blocked delivery flag, blocked claims,
 limitation presence, and next-action presence.
 
-The `meshx.mobile.local_inbox.ux_evidence` task now prints a
+The `mob.node.local_inbox.ux_evidence` task now prints a
 `UX_DETAIL_EVIDENCE` summary that states how many detail states are covered
 and whether all selected details keep delivery claims blocked. This makes the
 existing detail-panel acceptance easier to archive without changing the
@@ -7435,7 +7435,7 @@ keeps detail limitations, next actions, and blocked-claim copy attached to
 the same operator review gate that already protects warnings, control
 summaries, and per-state blocked claims.
 
-The `meshx.mobile.local_inbox.ux_review` task now prints
+The `mob.node.local_inbox.ux_review` task now prints
 `detail_panel_copy_captured` in the copy-review summary, and the UX validation
 plan plus evidence manifest wording now name selected detail limitations and
 detail next actions as copy-review evidence. The review can become `ready`
@@ -7461,7 +7461,7 @@ count, interaction evidence count, copy-review target coverage, visual-density
 target coverage, and whether every declared target device has complete state,
 interaction, copy-review, and density-review coverage.
 
-The `meshx.mobile.local_inbox.ux_review` task now prints a
+The `mob.node.local_inbox.ux_review` task now prints a
 `LOCAL_INBOX_UX_COVERAGE` line alongside the existing status and copy-review
 summary. This makes operator evidence coverage auditable without scraping the
 full missing-reason list, while keeping the actual on-device evidence gate
@@ -7530,7 +7530,7 @@ behavior.
 
 ## M1441-M1445 product UX validation plan artifact
 
-M1441-M1445 adds `mix meshx.mobile.local_inbox.ux_validation_plan` so the
+M1441-M1445 adds `mix mob.node.local_inbox.ux_validation_plan` so the
 Nearby Messages on-device UX validation checklist can be emitted and archived
 directly before operator-supplied screenshots, notes, and UX review metadata
 are attached. The task reports open gates for the target-device matrix, state
@@ -7555,7 +7555,7 @@ behavior.
 
 ## M1446-M1450 persistence lifecycle plan artifact
 
-M1446-M1450 adds `mix meshx.mobile.local_persistence.lifecycle_plan` so the
+M1446-M1450 adds `mix mob.node.local_persistence.lifecycle_plan` so the
 production-default local inbox persistence checklist can be emitted and
 archived directly before operator-supplied lifecycle evidence is reviewed.
 The task reports the current `memory_only` default, six blocked lifecycle
@@ -7582,7 +7582,7 @@ behavior.
 
 ## M1451-M1455 security validation plan artifact
 
-M1451-M1455 adds `mix meshx.mobile.local_security.validation_plan` so the
+M1451-M1455 adds `mix mob.node.local_security.validation_plan` so the
 authenticated local BLE security checklist can be emitted and archived
 directly before operator-supplied release evidence is reviewed. The task
 reports the current `unsigned_local_ble_observations` mode, eight blocked
@@ -7609,7 +7609,7 @@ behavior.
 
 ## M1456-M1460 routing validation plan artifact
 
-M1456-M1460 adds `mix meshx.mobile.local_routing.validation_plan` so the
+M1456-M1460 adds `mix mob.node.local_routing.validation_plan` so the
 production routing hardware validation checklist can be emitted and archived
 directly before operator-supplied routing evidence is reviewed. The task
 reports the current `advert_only_non_routing` mode, eight blocked routing
@@ -7636,7 +7636,7 @@ behavior, and no crypto behavior.
 
 ## M1461-M1465 lifecycle validation plan artifact
 
-M1461-M1465 adds `mix meshx.mobile.local_lifecycle.validation_plan` so the
+M1461-M1465 adds `mix mob.node.local_lifecycle.validation_plan` so the
 mobile BLE lifecycle hardware validation checklist can be emitted and archived
 directly before operator-supplied lifecycle evidence is reviewed. The task
 reports the current `foreground_manual` mode, eight blocked lifecycle gates,
@@ -7665,7 +7665,7 @@ behavior, and no crypto behavior.
 
 ## M1466-M1470 release UX validation-plan anchor
 
-M1466-M1470 threads `mix meshx.mobile.local_inbox.ux_validation_plan` through
+M1466-M1470 threads `mix mob.node.local_inbox.ux_validation_plan` through
 `LocalReleaseManifest.required_commands` and adds a `ux_validation_plan`
 required artifact beside the existing Nearby Messages UX evidence and review
 artifacts. This aligns the release manifest with the completion audit,
@@ -7692,7 +7692,7 @@ selected-detail screenshot or note for each Nearby Messages state: full
 message, unresolved ref, gossiped ref, and stale ref. The review also exposes
 `selected_detail_evidence_count` and
 `all_target_devices_have_selected_detail_coverage?` in `coverage_summary`, and
-the `meshx.mobile.local_inbox.ux_review` task prints those counts in the
+the `mob.node.local_inbox.ux_review` task prints those counts in the
 plain-text coverage line.
 
 This turns the existing selected-detail copy blocker into a concrete
@@ -7739,7 +7739,7 @@ behavior.
 
 ## M1481-M1485 release persistence lifecycle-plan anchor
 
-M1481-M1485 threads `mix meshx.mobile.local_persistence.lifecycle_plan` through
+M1481-M1485 threads `mix mob.node.local_persistence.lifecycle_plan` through
 `LocalReleaseManifest.required_commands` and adds a
 `production_persistence_lifecycle_plan` required artifact beside the existing
 persistence evidence and production-review artifacts. This aligns the release
@@ -7765,8 +7765,8 @@ behavior.
 
 ## M1486-M1490 release validation-plan anchors
 
-M1486-M1490 threads `mix meshx.mobile.local_routing.validation_plan` and
-`mix meshx.mobile.local_security.validation_plan` through
+M1486-M1490 threads `mix mob.node.local_routing.validation_plan` and
+`mix mob.node.local_security.validation_plan` through
 `LocalReleaseManifest.required_commands`, and adds `routing_validation_plan`
 and `security_validation_plan` required artifacts beside the existing routing
 and security evidence/review artifacts. This aligns the release manifest with
@@ -7798,8 +7798,8 @@ M1491-M1495 splits the Nearby Messages UX operator scaffold into its own
 now separately requires:
 
 ```sh
-mix meshx.mobile.local_inbox.ux_review --template --out artifacts/local-ble/<run-id>/ux/evidence.json
-mix meshx.mobile.local_inbox.ux_review --input artifacts/local-ble/<run-id>/ux/evidence.json --json --out tmp/local-inbox-ux-review.json
+mix mob.node.local_inbox.ux_review --template --out artifacts/local-ble/<run-id>/ux/evidence.json
+mix mob.node.local_inbox.ux_review --input artifacts/local-ble/<run-id>/ux/evidence.json --json --out tmp/local-inbox-ux-review.json
 ```
 
 This aligns the release artifact bundle with `LocalInboxUxEvidenceManifest`
@@ -7829,7 +7829,7 @@ section that must be filled before review: `target_devices`, `state_evidence`,
 gossiped, and stale state coverage for both row and selected-detail evidence.
 
 The guide also names the required `coverage_summary` result from
-`mix meshx.mobile.local_inbox.ux_review --input ... --json --out ...`, including
+`mix mob.node.local_inbox.ux_review --input ... --json --out ...`, including
 state, interaction, selected-detail, copy-review, and density coverage before
 product-facing Nearby Messages wording can be accepted.
 
@@ -7985,7 +7985,7 @@ behavior.
 ## M876-M880 release manifest completion review summary
 
 M876-M880 updates the plain-text
-`mix meshx.mobile.local_release.manifest` output so it reports the embedded
+`mix mob.node.local_release.manifest` output so it reports the embedded
 completion review counts: prompt checklist size, hardware-blocked objective
 count, and no-new-hardware objective count. The JSON release manifest already
 embeds the completion audit and blocker matrix; this makes the non-JSON release
@@ -7999,7 +7999,7 @@ retries, no fragmentation, and no crypto behavior.
 ## M871-M875 release candidate review path summary
 
 M871-M875 updates the plain-text
-`mix meshx.mobile.local_release.candidate_review` output so it reports whether
+`mix mob.node.local_release.candidate_review` output so it reports whether
 operator notes include the required readiness, completion audit, blocker
 matrix, and release manifest paths. The JSON review already carries the
 operator notes struct; this makes the non-JSON status output show the release
@@ -8043,7 +8043,7 @@ retries, no fragmentation, and no crypto behavior.
 ## M856-M860 blocker matrix task objective summary
 
 M856-M860 updates the plain-text
-`mix meshx.mobile.local_completion.blocker_matrix` output so it reports the
+`mix mob.node.local_completion.blocker_matrix` output so it reports the
 objective IDs in each planning lane: hardware-blocked objectives and objectives
 that can still progress without new hardware. The JSON matrix already carries
 these lists; the text summary now makes the same distinction visible during
@@ -8073,7 +8073,7 @@ retries, no fragmentation, and no crypto behavior.
 ## M846-M850 completion audit task prompt checklist summary
 
 M846-M850 updates the plain-text
-`mix meshx.mobile.local_completion.audit --allow-open` output so it reports
+`mix mob.node.local_completion.audit --allow-open` output so it reports
 the `prompt_artifact_checklist` count and ordered objective IDs. The JSON
 artifact already carries the full checklist; this makes the non-JSON operator
 summary show the same canonical remaining-work spine without requiring a full
@@ -8169,7 +8169,7 @@ accidentally claim them as already-landed BLE transport behavior:
   keys, no AEAD-encrypted payloads. The `Identity.Claim` schema
   reserves `:fingerprint` and `:signed_identity` source values for
   this work but no code path produces them today.
-- **Active handshake.** `MeshxMobileApp.BLE.Events.PeerAuthenticated`
+- **Active handshake.** `Mob.Node.BLE.Events.PeerAuthenticated`
   exists in the contract but no bridge emits it. The iOS Swift Noise
   harness is wired into the simulator build but not surfaced through
   the NIF.
@@ -8231,18 +8231,18 @@ accidentally claim them as already-landed BLE transport behavior:
   `MessageAdvertisementTests` passed with 5 tests, and the two-device
   verifier fixture suite, shell syntax checks, and ShellCheck passed.
   Latest focused non-goal recheck: `mix test
-  apps/meshx_mobile_app/test/meshx_mobile_app/ble/peer_table_test.exs`
+  apps/mob_node/test/mob_node/ble/peer_table_test.exs`
   passed with 26 tests and proves `ReceivedMessage` does not create or
   mutate peer graph entries.
   Latest focused receive/replay recheck: `mix test
-  apps/meshx_mobile_app/test/meshx_mobile_app/ble/message_advertisement_test.exs
-  apps/meshx_mobile_app/test/meshx_mobile_app/ble/replay_test.exs
-  apps/meshx_mobile_app/test/meshx_mobile_app/ble/bridge_protocol_test.exs`
+  apps/mob_node/test/mob_node/ble/message_advertisement_test.exs
+  apps/mob_node/test/mob_node/ble/replay_test.exs
+  apps/mob_node/test/mob_node/ble/bridge_protocol_test.exs`
   passed with 54 tests and covers M23/M24 message advertisement decode,
   tagged malformed-advert errors, raw payload preservation, and replay
   of canonical `received_message` fixtures without hardware.
   Latest focused M24 wire-contract recheck: `mix test
-  apps/meshx_mobile_app/test/meshx_mobile_app/ble/android_wire_format_test.exs`
+  apps/mob_node/test/mob_node/ble/android_wire_format_test.exs`
   passed with 4 tests and covers the `received_message` fixture's
   required fields, embedded M14 envelope, and raw BLE transport metadata.
   Latest focused Swift/macOS M23/M24 recheck: `xcrun swift test --filter
@@ -8251,10 +8251,10 @@ accidentally claim them as already-landed BLE transport behavior:
   transport metadata, escaped string fields, and tagged malformed
   message-advertisement errors.
   Latest focused Android M24/M25 recheck: `./gradlew --no-daemon
-  testDebugUnitTest --tests dev.meshx.mob.ble.MeshxMessageAdvertisementTest
-  --tests dev.meshx.mob.ble.MeshxMessageEnvelopeTest --tests
-  dev.meshx.mob.ble.BleDispatcherTest --tests
-  dev.meshx.mob.ble.BleScannerTest --tests dev.meshx.mob.ble.BleEventTest`
+  testDebugUnitTest --tests dev.mob.mob.ble.MobMessageAdvertisementTest
+  --tests dev.mob.mob.ble.MobMessageEnvelopeTest --tests
+  dev.mob.mob.ble.BleDispatcherTest --tests
+  dev.mob.mob.ble.BleScannerTest --tests dev.mob.mob.ble.BleEventTest`
   passed with `BUILD SUCCESSFUL` and covers M14 envelope payload shape,
   dispatcher outcome preservation, no-truncation budget behavior, scanner
   message promotion, every canonical Android `received_message` JSON
@@ -8273,9 +8273,9 @@ accidentally claim them as already-landed BLE transport behavior:
 Run:
 
 ```bash
-cd apps/meshx_mobile_app
+cd apps/mob_node
 mix test                          # Elixir, full suite
 cd android && ./gradlew test      # Kotlin, JVM unit tests
-cd ../../../meshx_mobile
+cd ../../../mob_node
 xcrun swift test                  # Swift package tests
 ```

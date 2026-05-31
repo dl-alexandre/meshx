@@ -13,23 +13,23 @@ claiming full delivery, trust, routing, background operation, or iOS parity.
 Generate and archive:
 
 ```bash
-mix meshx.mobile.local_readiness.audit --allow-open --out tmp/local-readiness.json
-mix meshx.mobile.local_completion.audit --allow-open | tee tmp/local-completion-audit.txt
-mix meshx.mobile.local_completion.audit --allow-open --json --out tmp/local-completion-audit.json
-mix meshx.mobile.local_completion.blocker_matrix --json --out tmp/local-completion-blocker-matrix.json
-mix meshx.mobile.remaining_items.audit --json --out artifacts/local-ble/<run-id>/manifests/focused-remaining-items-audit.json
-mix meshx.mobile.remaining_items.audit | tee artifacts/local-ble/<run-id>/manifests/focused-remaining-items-audit.txt
-mix meshx.mobile.local_release.manifest --json --out tmp/local-release.json
-mix meshx.mobile.local_release.recent_evidence --json --out tmp/local-release-recent-evidence.json
-mix meshx.mobile.advert_gossip.audit apps/meshx_mobile_app/test/fixtures/advert_gossip_scenarios > tmp/advert-gossip-audit.txt
-mix meshx.mobile.local_release.artifact_bundle --json --out tmp/local-release-artifact-bundle.json
+mix mob.node.local_readiness.audit --allow-open --out tmp/local-readiness.json
+mix mob.node.local_completion.audit --allow-open | tee tmp/local-completion-audit.txt
+mix mob.node.local_completion.audit --allow-open --json --out tmp/local-completion-audit.json
+mix mob.node.local_completion.blocker_matrix --json --out tmp/local-completion-blocker-matrix.json
+mix mob.node.remaining_items.audit --json --out artifacts/local-ble/<run-id>/manifests/focused-remaining-items-audit.json
+mix mob.node.remaining_items.audit | tee artifacts/local-ble/<run-id>/manifests/focused-remaining-items-audit.txt
+mix mob.node.local_release.manifest --json --out tmp/local-release.json
+mix mob.node.local_release.recent_evidence --json --out tmp/local-release-recent-evidence.json
+mix mob.node.advert_gossip.audit apps/mob_node/test/fixtures/advert_gossip_scenarios > tmp/advert-gossip-audit.txt
+mix mob.node.local_release.artifact_bundle --json --out tmp/local-release-artifact-bundle.json
 ```
 
 For Nearby Messages product-UX evidence, generate the operator metadata
 scaffold before attaching target-device screenshots or notes:
 
 ```bash
-mix meshx.mobile.local_inbox.ux_review --template --out artifacts/local-ble/<run-id>/ux/evidence.json
+mix mob.node.local_inbox.ux_review --template --out artifacts/local-ble/<run-id>/ux/evidence.json
 ```
 
 Fill the generated JSON with real target-device metadata and operator evidence:
@@ -57,7 +57,7 @@ Fill the generated JSON with real target-device metadata and operator evidence:
 Then run:
 
 ```bash
-mix meshx.mobile.local_inbox.ux_review --input artifacts/local-ble/<run-id>/ux/evidence.json --json --out tmp/local-inbox-ux-review.json
+mix mob.node.local_inbox.ux_review --input artifacts/local-ble/<run-id>/ux/evidence.json --json --out tmp/local-inbox-ux-review.json
 ```
 
 The generated template is intentionally incomplete. It is not product-UX
@@ -141,7 +141,7 @@ Run the operator-supplied paths, hardware attachment metadata, and release-note
 wording through:
 
 ```elixir
-MeshxMobileApp.BLE.LocalReleaseCandidateEvidenceReview.review(input)
+Mob.Node.BLE.LocalReleaseCandidateEvidenceReview.review(input)
 ```
 
 Minimum review input shape:
@@ -382,5 +382,5 @@ Do not claim:
 The machine-readable source of truth is:
 
 ```elixir
-MeshxMobileApp.BLE.LocalReleaseArtifactBundle.snapshot()
+Mob.Node.BLE.LocalReleaseArtifactBundle.snapshot()
 ```

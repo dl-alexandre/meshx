@@ -17,7 +17,7 @@ follow [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119) usage.
 - MeshX MUST NOT issue, allocate, or validate peer ids.
 - MeshX MUST NOT bind a `peer_id` to a cryptographic identity. Binding the
   static Noise public key to a `peer_id` is the application's
-  responsibility, persisted in `MeshxStore.Trust`.
+  responsibility, persisted in `Mob.Store.Trust`.
 - Two peers with the same `peer_id` reachable via different transports MUST
   be treated as the same logical peer for routing and dedup.
 
@@ -51,10 +51,10 @@ quota enforcement.
 - The runtime MUST re-establish a session on the next secure send after
   teardown. It MUST NOT silently fall back to plaintext.
 - A handshake failure (bad key, bad payload, peer unreachable) MUST emit
-  `[:meshx_runtime, :noise, :handshake, :error]` and propagate
+  `[:mob_runtime, :noise, :handshake, :error]` and propagate
   `{:error, reason}` to the caller.
 - Session keys MUST NOT be persisted across BEAM restarts. Static keys MAY
-  be persisted (and SHOULD be, via `MeshxStore.Identity`).
+  be persisted (and SHOULD be, via `Mob.Store.Identity`).
 
 **Out of scope.** Multi-party sessions, session resumption across restarts,
 forward-secret rekeying within a session.
@@ -63,7 +63,7 @@ forward-secret rekeying within a session.
 
 ## 4. Discovery Freshness
 
-- A discovery layer MAY surface peers via `MeshxRuntime.Discovery`.
+- A discovery layer MAY surface peers via `Mob.Runtime.Discovery`.
   Surfaced peers MUST appear as `[:router, :peer, :discovered]` events.
 - Discovery MUST NOT guarantee that a discovered peer is currently
   reachable. Reachability is established only after a transport reports
@@ -80,12 +80,12 @@ authentication, anti-flood policy on announcements.
 
 ## 5. Message Envelope
 
-- The wire format is `MeshxProtocol.Packet` framed by
-  `MeshxProtocol.Framing`. The frame layout is defined in
+- The wire format is `Mob.Protocol.Packet` framed by
+  `Mob.Protocol.Framing`. The frame layout is defined in
   `framing.ex` and MUST NOT change within v1.
 - A packet MUST carry: `version`, `type`, `flags`, `ttl`, `msg_id`,
   `payload`. The runtime MUST reject packets whose `version` does not
-  match `MeshxProtocol.Packet.version/0`.
+  match `Mob.Protocol.Packet.version/0`.
 - `msg_id` MUST be a 32-bit unsigned integer chosen by the sender. It is
   the dedup key.
 - `payload` MUST be a binary. MeshX MUST NOT interpret its contents.
@@ -104,7 +104,7 @@ MeshX provides two delivery modes, selected per call:
 | Mode | API | Guarantee |
 | --- | --- | --- |
 | Best-effort | `send_packet(peer, p)` | At-most-once. Dropped on transport error or peer-not-found. |
-| Stored + ACKed | `send_packet(peer, p, store: true)` | At-least-once **until ACK received or `max_attempts` exhausted**. Survives BEAM restarts via `MeshxStore.Outbox`. Dedup at the receiver suppresses duplicates within the dedup window (see §8). |
+| Stored + ACKed | `send_packet(peer, p, store: true)` | At-least-once **until ACK received or `max_attempts` exhausted**. Survives BEAM restarts via `Mob.Store.Outbox`. Dedup at the receiver suppresses duplicates within the dedup window (see §8). |
 
 - A successful return from `send_packet/3` MUST mean "accepted by the
   runtime." It MUST NOT imply delivery to the peer.
@@ -144,11 +144,11 @@ across infinite time.
 ## 8. Deduplication Window
 
 - Every received packet's `msg_id` MUST be checked against the dedup table
-  (`MeshxStore.Dedupe`).
+  (`Mob.Store.Dedupe`).
 - If the `msg_id` is already present, the packet MUST NOT be delivered to
   subscribers and MUST NOT be relayed. A `[:router, :packet, :duplicate]`
   event MUST be emitted.
-- The dedup window is **bounded by `MeshxStore.Dedupe`'s eviction policy**
+- The dedup window is **bounded by `Mob.Store.Dedupe`'s eviction policy**
   (size-based, configurable). MeshX MUST NOT promise dedup beyond the
   window.
 - The window size is a tuning parameter, not a contract. Applications
@@ -196,23 +196,23 @@ provides, cryptographic replay protection.
 
 ## 11. Transport Adapter Responsibilities
 
-A transport that implements `MeshxTransport` MUST:
+A transport that implements `Mob.Routing` MUST:
 
-1. Emit `{:meshx_transport, name, {:peer_up, peer}}` exactly once when a
+1. Emit `{:mob_routing, name, {:peer_up, peer}}` exactly once when a
    peer becomes reachable.
-2. Emit `{:meshx_transport, name, {:peer_down, peer_id}}` exactly once
+2. Emit `{:mob_routing, name, {:peer_down, peer_id}}` exactly once
    when a previously-up peer becomes unreachable.
-3. Emit `{:meshx_transport, name, {:frame, peer_id, frame}}` for every
+3. Emit `{:mob_routing, name, {:frame, peer_id, frame}}` for every
    complete inbound frame, in arrival order on that transport.
 4. Implement `send_frame/4`, `broadcast_frame/3`, `peers/1`.
 5. Reject malformed handshakes and frames **without crashing the
    transport process**. Bad input MUST close the offending peer only.
 6. Carry transport metadata (MTU, relay willingness, secure-required) in
-   peer announcements via `MeshxTransport.Capabilities`.
+   peer announcements via `Mob.Routing.Capabilities`.
 
 A transport MUST NOT:
 
-- Decode `MeshxProtocol.Packet`. Frames are opaque bytes to the
+- Decode `Mob.Protocol.Packet`. Frames are opaque bytes to the
   transport.
 - Apply dedup, retry, or ACK logic. Those live in the runtime.
 - Persist frames. Outbox is a runtime concern.
@@ -225,7 +225,7 @@ authentication beyond what the wire-level handshake provides.
 
 ## 11.1 BLE Advert-Only Profile
 
-The BLE mobile transport (`meshx_transport_ble` + `MeshxMobileApp.BLE`)
+The BLE mobile transport (`mob_routing_ble` + `Mob.Node.BLE`)
 operates in two distinct profiles, and the contracts above apply to
 them differently. Implementations and applications MUST distinguish
 the two — silently treating an advert-only event as if it were a
@@ -235,7 +235,7 @@ delivered envelope is a contract violation.
 
 The connection-oriented profile follows §1–§11 verbatim. A peer that
 hosts the MeshX GATT service and completes a Noise XX handshake over
-GATT exchanges full `MeshxProtocol.Packet` frames; delivery,
+GATT exchanges full `Mob.Protocol.Packet` frames; delivery,
 ACK/retry, dedup, and ordering work as documented.
 
 ### Advert-only profile (manufacturer-data references)
@@ -249,7 +249,7 @@ The advert-only profile MUST NOT be treated as the §6 delivery
 contract. Specifically:
 
 1. **Beacon delivery is a discovery signal, not an envelope.** A
-   `%MeshxMobileApp.BLE.Events.ReceivedMessageBeacon{}` proves that a
+   `%Mob.Node.BLE.Events.ReceivedMessageBeacon{}` proves that a
    MeshX-shaped message *exists* at the named coordinates
    (`message_id_hash`, `sender_peer_id_hash`, `payload_kind`,
    `envelope_version`) and was advertised at time T. It MUST NOT be
@@ -257,7 +257,7 @@ contract. Specifically:
 2. **No payload is on the air.** The 22-byte legacy beacon and the
    extended-advertising envelope path carry message references only.
    The encrypted payload bytes are retrievable via the GATT-fetch
-   protocol (`MeshxFetchGatt`), which requires a full connection to a
+   protocol (`MobFetchGatt`), which requires a full connection to a
    peer that hosts the responder GATT service.
 3. **No ACK / retry / outbox semantics apply at the beacon layer.**
    The `store: true` contract from §6 is unobservable across the
@@ -304,7 +304,7 @@ The application MUST:
 6. **Bound the outbox**. MeshX retries indefinitely up to `max_attempts`;
    the application chooses `max_attempts` and decides what to do with
    permanently failed rows.
-7. **Trust management**. `MeshxStore.Trust` rows are added/removed by
+7. **Trust management**. `Mob.Store.Trust` rows are added/removed by
    the application during onboarding, key rotation, and offboarding.
 8. **Backpressure at the source**. MeshX surfaces drops via
    `[:router, :backpressure, :dropped]`; the application MUST throttle.
@@ -320,9 +320,9 @@ The application MUST NOT:
 
 ## Versioning
 
-- The wire format (`MeshxProtocol`) MUST NOT change within v1. A breaking
+- The wire format (`Mob.Protocol`) MUST NOT change within v1. A breaking
   change requires bumping `Packet.version/0` and a v2 release.
-- The runtime API surface (`MeshxRuntime.Router`, `Outbox`,
+- The runtime API surface (`Mob.Runtime.Router`, `Outbox`,
   `SessionManager`) is **stable within v1 majors**. Internal modules
   (everything not in this document or the runtime API guide) MAY change
   without notice.
@@ -353,13 +353,13 @@ in the contract.
 
 ### 10.1 Stability Tiers
 
-Every exported symbol in the `Meshx` namespace falls into exactly one of
+Every exported symbol in the `Mob` namespace falls into exactly one of
 these tiers:
 
 | Tier | Contract | Examples |
 |------|----------|----------|
 | **Stable** | Preserved across minor releases; deprecation window ≥ 1 minor before removal. | `Router.send_packet/3`, `Trust.authorize/3`, `Noise.Session` handshake |
-| **Internal** | Exists in public modules but is **not** a supported extension point. May change in any release without notice. | `MeshxStore.DB` tuple keys, CubDB data directory layout, internal GenServer state shapes |
+| **Internal** | Exists in public modules but is **not** a supported extension point. May change in any release without notice. | `Mob.Store.DB` tuple keys, CubDB data directory layout, internal GenServer state shapes |
 | **Private** | Unexported or `@moduledoc false`. No guarantees at all; may change in any commit. | Private helper functions, test-only callbacks, supervision-internal child ordering |
 
 Stable symbols are identified by `@doc` presence and absence of an
@@ -369,7 +369,7 @@ Everything else is private.
 
 ### 10.2 Persistence Compatibility
 
-`meshx_store` uses CubDB as its local-first engine. The following guarantees
+`mob_store` uses CubDB as its local-first engine. The following guarantees
 apply to the data directory written by a MeshX node:
 
 - **Forward compatibility (upgrade)**: A newer minor version of MeshX MUST
@@ -388,11 +388,11 @@ apply to the data directory written by a MeshX node:
 
 ### 10.3 Wire-Format Compatibility
 
-- **Packet framing**: The `MeshxProtocol.Packet` binary layout is frozen for
+- **Packet framing**: The `Mob.Protocol.Packet` binary layout is frozen for
   the lifetime of the major version. A v1 node MUST be able to exchange frames
   with any other v1 node regardless of minor or patch level.
 - **Noise protocol**: Handshake patterns and cipher selection follow the
-  Noise Protocol revision bound in `MeshxNoise`. A v1 node MUST complete a
+  Noise Protocol revision bound in `Mob.Noise`. A v1 node MUST complete a
   Noise XX handshake with any other v1 node.
 - **Transport headers**: Transport-specific headers (UDP port framing, BLE
   MTU negotiation, TCP length-prefixing) are **internal** to each transport

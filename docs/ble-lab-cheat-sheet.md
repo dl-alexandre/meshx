@@ -15,8 +15,8 @@ Uses the structured capture layout + `capture-hybrid-run.sh` (see
 | Android #1    | SM-T577U    | `R52W90AW7EN`                            | Android 13 |
 | Android #2    | SM-T390     | `5200f354f4fb277f`                       | Android 9  |
 
-App IDs: `dev.meshx.mob` (Android main + `.test` runner) /
-`dev.meshx.mobile.harness` (iOS harness, bundle `dev.meshx.mobile.harness`).
+App IDs: `dev.mob.mob` (Android main + `.test` runner) /
+`dev.mob.node.harness` (iOS harness, bundle `dev.mob.node.harness`).
 
 ## Pre-flight
 
@@ -25,7 +25,7 @@ App IDs: `dev.meshx.mob` (Android main + `.test` runner) /
 adb devices && xcrun devicectl list devices | grep -i dairy
 
 # Fresh build + install (Android)
-cd apps/meshx_mobile_app/android
+cd apps/mob_node/android
 ./gradlew :app:assembleDebug :app:assembleDebugAndroidTest
 for s in R52W90AW7EN 5200f354f4fb277f; do
   adb -s $s install -r -t app/build/outputs/apk/debug/app-debug.apk
@@ -46,16 +46,16 @@ UDID=1780F216-CB5C-560B-A86F-85D31F79ADEF
 
 # Hybrid emit (MB cue + direct-MX service data on …1001)
 xcrun devicectl device process launch --device $UDID --terminate-existing --console \
-  dev.meshx.mobile.harness -- --meshx-auto-direct-mx-hybrid-advertise
+  dev.mob.node.harness -- --mob-auto-direct-mx-hybrid-advertise
 
 # MB legacy cue only (canonical production iOS-emit path)
 xcrun devicectl device process launch --device $UDID --terminate-existing --console \
-  dev.meshx.mobile.harness -- --meshx-auto-beacon
+  dev.mob.node.harness -- --mob-auto-beacon
 
 # Observer (raw advert dump + candidate discovery logs)
 xcrun devicectl device process launch --device $UDID --terminate-existing --console \
-  dev.meshx.mobile.harness -- \
-    --meshx-auto-scan --meshx-log-raw-advert-data --meshx-log-candidate-discoveries
+  dev.mob.node.harness -- \
+    --mob-auto-scan --mob-log-raw-advert-data --mob-log-candidate-discoveries
 ```
 
 ## Android launch patterns (preferred = structured helper)
@@ -67,14 +67,14 @@ SM=R52W90AW7EN  # or 5200f354f4fb277f
 ./capture-hybrid-run.sh --serial $SM --run-ts $RUN_TS
 
 # Main app with selftest (quick scanner sanity / production path)
-adb -s $SM shell am start -n dev.meshx.mob/.MainActivity \
-  --ez meshx_ble_selftest true --es mob_node_suffix lab
+adb -s $SM shell am start -n dev.mob.mob/.MainActivity \
+  --ez mob_ble_selftest true --es mob_node_suffix lab
 
 # Receive-side MB+GATT selftest (clean positive-evidence mode)
-adb -s $SM shell am start -n dev.meshx.mob/.MainActivity \
-  --ez meshx_ble_selftest true \
-  --ez meshx_ble_selftest_send false \
-  --ez meshx_ble_fetch_on_beacon true \
+adb -s $SM shell am start -n dev.mob.mob/.MainActivity \
+  --ez mob_ble_selftest true \
+  --ez mob_ble_selftest_send false \
+  --ez mob_ble_fetch_on_beacon true \
   --es mob_node_suffix lab
 
 # T390 bench pre-flight: keep API 28 device awake or scans can register
@@ -84,13 +84,13 @@ adb -s 5200f354f4fb277f shell svc power stayon true
 
 # Instrumented hybrid receive test (direct)
 adb -s $SM shell am instrument -w \
-  -e class dev.meshx.mob.ble.IOSHybridDirectMxReceiveTest \
-  dev.meshx.mob.test/androidx.test.runner.AndroidJUnitRunner
+  -e class dev.mob.mob.ble.IOSHybridDirectMxReceiveTest \
+  dev.mob.mob.test/androidx.test.runner.AndroidJUnitRunner
 
 # Instrumented hybrid emit (Android → iOS)
 adb -s $SM shell am instrument -w \
-  -e class dev.meshx.mob.ble.IOSAuxFullMxAdvertSmokeTest#emitsHybridMbCuePlusServiceDataFullMxEnvelope \
-  dev.meshx.mob.test/androidx.test.runner.AndroidJUnitRunner
+  -e class dev.mob.mob.ble.IOSAuxFullMxAdvertSmokeTest#emitsHybridMbCuePlusServiceDataFullMxEnvelope \
+  dev.mob.mob.test/androidx.test.runner.AndroidJUnitRunner
 ```
 
 ## Capture helper (recommended for reproducible runs)
@@ -119,8 +119,8 @@ Use it for steps 2–4 of the validation day.
 # Manual filtered capture (hybrid/scan/selftest focus)
 adb -s $SM logcat -c
 adb -s $SM logcat -v threadtime \
-  HybridExperiment:* MeshxBleScanRaw:* BleSelfTest:* \
-  MeshxBleNative:* MeshxBleNif:* Elixir:I BEAMout:I '*:S' \
+  HybridExperiment:* MobBleScanRaw:* BleSelfTest:* \
+  MobBleNative:* MobBleNif:* Elixir:I BEAMout:I '*:S' \
   > $ROOT/android/$RUN_TS-logcat.log &
 LOGPID=$!
 # ... run emit / test ...
@@ -130,7 +130,7 @@ kill $LOGPID; wait $LOGPID 2>/dev/null
 ## Validation day order (use the helper for steps 2–4)
 
 1. **Scanner sanity** (verifies the 683950a main-looper fix). Launch
-   main app with `meshx_ble_selftest=true` on both Android devices,
+   main app with `mob_ble_selftest=true` on both Android devices,
    emit MB beacons from iPhone. Watch `BleSelfTest: HEARTBEAT` —
    pass iff `devices > 0` and `beacon_callbacks > 0`.
 
@@ -170,7 +170,7 @@ grep -cE "kCBAdvDataManufacturerData=ffff" $ROOT/ios/*.log
   MXEnvelope) never reached BLE. Fixed by version-aware permission shim in the
   four `*Test.kt` files (conditional legacy BT + FINE_LOCATION for <31). The
   tests now run on the full minSdk=28 fleet. Still prefer the main-app
-  `meshx_ble_selftest` path (see "Main app with selftest" recipe) for T390
+  `mob_ble_selftest` path (see "Main app with selftest" recipe) for T390
   production scanner confidence and positive MB+GATT evidence runs, as it
   exercises the exact shipping `BleScanner` + bridge code.
 - **T390 awake requirement:** For API 28 bench captures, run
@@ -214,7 +214,7 @@ SM-T390 observed and fetched via the main-app production path.
 
 1. Fresh full-MX debug build + install on both Androids:
    ```sh
-   cd apps/meshx_mobile_app/android
+   cd apps/mob_node/android
    MESHX_MX_SEND=true ./gradlew :app:assembleDebug
    adb -s R52W90AW7EN install -r app/build/outputs/apk/debug/app-debug.apk
    adb -s 5200f354f4fb277f install -r app/build/outputs/apk/debug/app-debug.apk
@@ -248,11 +248,11 @@ SM-T390 observed and fetched via the main-app production path.
 6. Success looks like (in `t390-rx/android/*-logcat.log`):
    - `BleSelfTest: HEARTBEAT events=... devices=1 ... beacon_callbacks=NN ...`
    - `BleSelfTest: DISTINCT MESH MESSAGE kind=beacon ...`
-   - `MeshxBeaconFetch: fetch_start device_id=... message_id_hash=...`
-   - `MeshxBleFetch {"v":1,"event":"fetch_connect_result"...}`
-   - `MeshxBleFetch {"v":1,"event":"fetch_service_discovery_result"... "service_found":true}`
-   - `MeshxBleFetch {"v":1,"event":"fetch_response_received"... "status":"ok", "envelope_parse":"ok"}`
-   - `BleSelfTest: DISTINCT MESH MESSAGE kind=envelope ... from=meshx-t577u`
+   - `MobBeaconFetch: fetch_start device_id=... message_id_hash=...`
+   - `MobBleFetch {"v":1,"event":"fetch_connect_result"...}`
+   - `MobBleFetch {"v":1,"event":"fetch_service_discovery_result"... "service_found":true}`
+   - `MobBleFetch {"v":1,"event":"fetch_response_received"... "status":"ok", "envelope_parse":"ok"}`
+   - `BleSelfTest: DISTINCT MESH MESSAGE kind=envelope ... from=mob-t577u`
 
 7. Validate:
    ```sh
@@ -263,7 +263,7 @@ SM-T390 observed and fetched via the main-app production path.
    `artifacts/local-ble/2026-05-18-recapture-18-android-mb-gatt-t390-awake/`.
 
 The Android app seeds `TMPDIR` to an app-writable cache directory before BEAM
-startup, so `MeshxStore.DB` should not fail through `System.tmp_dir!/0` on
+startup, so `Mob.Store.DB` should not fail through `System.tmp_dir!/0` on
 API 28. If that error appears in logcat, rebuild and reinstall before rerunning.
 
 This is the minimal lab block for T390; prefers the exact shipping

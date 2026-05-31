@@ -4,7 +4,7 @@
 # Model (from the proven path): the SENDER drives the deterministic instrumented
 # test (MobBleNative direct advertise + MobFetchGatt responder, bypassing the
 # flaky Elixir selftest), looped every --send-interval across the hold. The
-# RECEIVER runs the REAL app locked (meshx_ble_selftest + fetch_on_beacon), so we
+# RECEIVER runs the REAL app locked (mob_ble_selftest + fetch_on_beacon), so we
 # genuinely test backgrounded receive. The analyzer then buckets locked-window
 # deliveries (after_5m / 10m / 15m) and the strict gate decides pass.
 #
@@ -20,8 +20,8 @@
 set -euo pipefail
 export LC_ALL=C LC_CTYPE=C
 
-PKG=dev.meshx.mob
-RUNNER="dev.meshx.mob.test/androidx.test.runner.AndroidJUnitRunner"
+PKG=dev.mob.mob
+RUNNER="dev.mob.mob.test/androidx.test.runner.AndroidJUnitRunner"
 SEND_CLASS="mob.ble.SustainedAdvertiseDriver"   # public-API advertise driver (package mob.ble)
 SENDER="5200f354f4fb277f"      # T390 default (instrumented sender)
 RECEIVER="R52W90AW7EN"          # T577U default (locked real-app receiver)
@@ -59,7 +59,7 @@ send_burst() {
 }
 
 # Count receive events EXACTLY as the analyzer scores them: the @locked_evidence_events
-# rt-events as they appear in MeshxMobileApp.BLE.Observability "MeshxAppEvent:" JSON
+# rt-events as they appear in Mob.Node.BLE.Observability "MobAppEvent:" JSON
 # ("event":"<name>"). Includes `fetch_response_received` (the MobBleFetch unambiguous
 # "envelope arrived & parsed ok" line) because the higher-level rt-event names above
 # currently aren't firing in this build, even when the GATT fetch chain completes;
@@ -79,7 +79,7 @@ preflight_sender() {
   if grep -qiE "ClassNotFoundException|Failed loading specified test class|initializationError|INSTRUMENTATION_FAILED" <<<"$out"; then
     echo "ABORT: sender $SENDER cannot load $SEND_CLASS — androidTest APK is stale/missing." >&2
     echo "Rebuild + install it (in a stable shell — gradle):" >&2
-    echo "  (cd apps/meshx_mobile_app/android && ./gradlew :app:assembleAndroidTest)" >&2
+    echo "  (cd apps/mob_node/android && ./gradlew :app:assembleAndroidTest)" >&2
     echo "  adb -s $SENDER install -r app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk" >&2
     return 1
   fi
@@ -118,9 +118,9 @@ say "Launch receiver app (locked-receive path: selftest + fetch_on_beacon + rt l
 adbq "$RECEIVER" am force-stop "$PKG" || true
 sleep 1
 adb -s "$RECEIVER" shell am start -n "$PKG/.MainActivity" \
-  --ez meshx_rt_event_log true --es meshx_rt_run_id "$RUN_ID" \
-  --ez meshx_ble_selftest true --ez meshx_ble_selftest_send false \
-  --ez meshx_ble_fetch_on_beacon true --es mob_node_suffix "$RECEIVER_SUFFIX" >/dev/null 2>&1
+  --ez mob_rt_event_log true --es mob_rt_run_id "$RUN_ID" \
+  --ez mob_ble_selftest true --ez mob_ble_selftest_send false \
+  --ez mob_ble_fetch_on_beacon true --es mob_node_suffix "$RECEIVER_SUFFIX" >/dev/null 2>&1
 sleep 20  # let the receiver BEAM + scanner come up
 
 say "Pre-flight: sender can load $SEND_CLASS"
@@ -184,7 +184,7 @@ echo "unlock_at=$UNLOCK_AT  bursts=$burst  log=$LOG"
 
 say "Analyze (strict gate)"
 cd "$ROOT"
-mix meshx.mobile.rt01.analyze \
+mix mob.node.rt01.analyze \
   --input "$LOG" --locked-from "$LOCK_AT" --unlock-at "$UNLOCK_AT" \
   --json --out "$OUT_DIR/rt01-analysis.json" || \
   echo "NOTE: mix analyze failed/hung — analyze $LOG manually."

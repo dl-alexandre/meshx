@@ -1,1 +1,1 @@
-Starting: Intent { cmp=dev.meshx.mob/.MainActivity (has extras) }
+Starting: Intent { cmp=dev.mob.mob/.MainActivity (has extras) }

@@ -6,7 +6,7 @@ spec should produce bit-identical bytes for these inputs (encode) and
 recover the stated inputs from these bytes (decode).
 
 The frame-layer vectors (V1–V4) are pinned by
-`apps/meshx_protocol/test/meshx_protocol/wire_vectors_test.exs`. If the
+`apps/mob_protocol/test/mob_protocol/wire_vectors_test.exs`. If the
 Elixir encoder ever drifts from these bytes, that test fails. Treat any
 deviation as a wire-format break and bump the format version.
 
@@ -173,7 +173,7 @@ all three messages fit in one BLE chunk each.
 
 Reference vector — the BLE chunk layer is implemented in the Python
 bridge, not in the Elixir tree. These bytes match
-`apps/meshx_transport_ble/priv/bin/meshx_bluez_bridge`'s
+`apps/mob_routing_ble/priv/bin/mob_bluez_bridge`'s
 `chunk_frame` function.
 
 **Input:**

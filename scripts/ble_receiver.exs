@@ -1,4 +1,4 @@
-defmodule MeshxScripts.BLEReceiver do
+defmodule MobScripts.BLEReceiver do
   @moduledoc """
   Two-node BLE smoke test — receiver side.
 
@@ -30,8 +30,8 @@ defmodule MeshxScripts.BLEReceiver do
       can take 5–30s); shorten only if you know the peer is already paired.
   """
 
-  alias MeshxRuntime.Router
-  alias MeshxTransportBLE.BluezBridge
+  alias Mob.Runtime.Router
+  alias Mob.Routing.BLE.BluezBridge
 
   def main do
     id = System.get_env("MESHX_NODE_ID", "ble-receiver")
@@ -43,19 +43,19 @@ defmodule MeshxScripts.BLEReceiver do
     Router.subscribe(self())
 
     {:ok, ble} =
-      MeshxTransportBLE.start_link(
+      Mob.Routing.BLE.start_link(
         id: id,
         event_target: Router,
         bridge: BluezBridge,
         bridge_opts: bridge_opts(id)
       )
 
-    :ok = Router.attach_transport(:ble, MeshxTransportBLE, ble)
+    :ok = Router.attach_transport(:ble, Mob.Routing.BLE, ble)
 
     File.write!(ready_file, id)
 
     receive do
-      {:meshx_runtime, :packet, :ble, peer_id, packet} ->
+      {:mob_runtime, :packet, :ble, peer_id, packet} ->
         File.write!(
           payload_file,
           :erlang.term_to_binary({peer_id, packet.msg_id, packet.payload})
@@ -87,14 +87,14 @@ defmodule MeshxScripts.BLEReceiver do
 
   defp start_runtime! do
     if data_dir = System.get_env("MESHX_STORE_DATA_DIR") do
-      Application.put_env(:meshx_store, :data_dir, data_dir)
+      Application.put_env(:mob_store, :data_dir, data_dir)
     end
 
-    {:ok, _apps} = Application.ensure_all_started(:meshx_store)
-    {:ok, _apps} = Application.ensure_all_started(:meshx_runtime)
-    :ok = MeshxRuntime.ensure_dependency_workers_started()
-    {:ok, _} = Application.ensure_all_started(:meshx_transport_ble)
+    {:ok, _apps} = Application.ensure_all_started(:mob_store)
+    {:ok, _apps} = Application.ensure_all_started(:mob_runtime)
+    :ok = Mob.Runtime.ensure_dependency_workers_started()
+    {:ok, _} = Application.ensure_all_started(:mob_routing_ble)
   end
 end
 
-MeshxScripts.BLEReceiver.main()
+MobScripts.BLEReceiver.main()

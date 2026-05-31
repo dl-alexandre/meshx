@@ -13,9 +13,9 @@
 After completion of the `Mob.Ble.Bridge` behaviour migration (Phases 1+2), the package:
 
 - Owns the authoritative `Mob.Ble.Bridge` behaviour definition and the production `MobileBridge` implementation.
-- Has **zero runtime dependencies** on any `meshx_*` package.
+- Has **zero runtime dependencies** on any `mob_*` package.
 - Is ready for independent publication to Hex.pm.
-- Is the **default production BLE path** inside `meshx_mobile_app` (with zero-breakage opt-out for legacy users).
+- Is the **default production BLE path** inside `mob_node` (with zero-breakage opt-out for legacy users).
 
 Pure `mob + mob_ble` applications no longer transitively pull MeshX packages for mobile BLE.
 
@@ -37,7 +37,7 @@ config :mob, :plugins, [:mob_ble]
 config :mob_ble, config: [evidence_mode: :production]
 
 # in your Mob.App on_start (or equivalent)
-{:ok, _} = MeshxTransportBLE.start_link(   # still the adapter name for now
+{:ok, _} = Mob.Routing.BLE.start_link(   # still the adapter name for now
   bridge: Mob.Ble.bridge_module(),
   bridge_opts: [local_name: "my-cool-device"]
 )
@@ -49,12 +49,12 @@ The native Android/iOS BLE sources, MB legacy + GATT fetch carrier, carrier vali
 
 ---
 
-## For Existing MeshX Users / `meshx_mobile_app`
+## For Existing MeshX Users / `mob_node`
 
 - **No action required**. The new path is already the default.
-- Your existing launches, intents (`meshx_ble_selftest` etc.), and CI continue to work via the legacy opt-out (`MOB_BLE_TRANSPORT=0`).
+- Your existing launches, intents (`mob_ble_selftest` etc.), and CI continue to work via the legacy opt-out (`MOB_BLE_TRANSPORT=0`).
 - Recommended: migrate your Android launch scripts / test harnesses to the new `mob_ble_*` extras for future-proofing (see "On-Device Validation" below).
-- The wiring test and `MeshxMobileApp.App` docs were updated.
+- The wiring test and `Mob.Node.App` docs were updated.
 
 Full compatibility story and CONTRACT SYNC details: `docs/mob_ble_bridge_migration.md`.
 
@@ -87,19 +87,19 @@ Launch with recommended `mob_ble` path + self-test (default path is already acti
 
 ```sh
 adb shell am start \
-  -n dev.meshx.mob/.MainActivity \
+  -n dev.mob.mob/.MainActivity \
   --ez mob_ble_selftest true \
-  --es mob_ble_local_name "meshx-t390-val" \
-  --ez mob_ble_fetch_on_beacon true   # preferred (MOB_BLE_*); legacy meshx_ alias still supported for transition
+  --es mob_ble_local_name "mob-t390-val" \
+  --ez mob_ble_fetch_on_beacon true   # preferred (MOB_BLE_*); legacy mob_ alias still supported for transition
 ```
 
 Legacy opt-out (for comparison runs):
 
 ```sh
 adb shell am start \
-  -n dev.meshx.mob/.MainActivity \
+  -n dev.mob.mob/.MainActivity \
   --ez mob_ble_transport_0 true \   # or MOB_BLE_TRANSPORT=0 via other means
-  --ez meshx_ble_selftest true
+  --ez mob_ble_selftest true
 ```
 
 Capture with existing harnesses (the new path emits identical canonical events):
@@ -123,7 +123,7 @@ For physical device provision + deploy:
 ```sh
 mix mob.provision
 mix mob.devices
-mix meshx.mobile.deploy_device --device <UDID>
+mix mob.node.deploy_device --device <UDID>
 # Then use devicectl or the harness to pass launch args if the template supports
 # (current harness uses the DEBUG auto-selftest which now exercises mob_ble path)
 ```
@@ -152,7 +152,7 @@ mob_ble_path: default (MOB_BLE_TRANSPORT unset or !=0)
 mob_ble_selftest: 1
 bridge: Mob.Ble.MobileBridge (via Mob.Ble.bridge_module())
 event_source: Mob.Ble.Internal.BridgeProtocol + native emitters
-meshx_transport_ble_version: (from mix.lock)
+mob_routing_ble_version: (from mix.lock)
 mob_ble_version: 0.1.0 (or the published tar)
 legacy_opt_out_used: false
 capture_date: $(date -Iseconds)
@@ -172,13 +172,13 @@ From a clean checkout:
 cd apps/mob_ble
 mix deps.get
 mix compile
-mix hex.build   # verify exit 0 + inspect tarball (file list, metadata, no meshx_* runtime deps)
+mix hex.build   # verify exit 0 + inspect tarball (file list, metadata, no mob_* runtime deps)
 mix hex.publish # (or with --yes after review)
 ```
 
 Pre-publish checklist (run from `apps/mob_ble/`):
 - `mix test` passes cleanly
-- `mix hex.build` succeeds; `tar tf` the .tar shows expected sources + no stray meshx_* runtime entries in mix.exs
+- `mix hex.build` succeeds; `tar tf` the .tar shows expected sources + no stray mob_* runtime entries in mix.exs
 - Verify `mix.exs` version, description, files list, and links
 
 **Post-publish**:
@@ -192,7 +192,7 @@ Pre-publish checklist (run from `apps/mob_ble/`):
 ## Rollback & Compatibility Notes
 
 - Full backward compat: set `MOB_BLE_TRANSPORT=0` (or equivalent intent) to force the legacy `NativeBridge` path at any time. Zero behaviour or wire changes.
-- The only cross-package note for MeshX consumers: explicit `meshx_transport_ble` dep remains inside `meshx_mobile_app` (required only for direct module references in App + tests; fully documented).
+- The only cross-package note for MeshX consumers: explicit `mob_routing_ble` dep remains inside `mob_node` (required only for direct module references in App + tests; fully documented).
 - Upstream patch migration (mob_dev#6 + mob_new#5) completed in follow-up PR tracked in `docs/upstream_mob_migration_checklist.md` (independent of this `mob_ble` 0.1.0 release).
 
 ---

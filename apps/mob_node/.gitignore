@@ -1,0 +1,17 @@
+/_build/
+/deps/
+/doc/
+/tmp/
+/.fetch
+*.ez
+*.beam
+mob.exs
+ios/build_device_mob.sh
+android/local.properties
+android/.gradle/
+android/build/
+android/app/build/
+android/app/.cxx/
+android/app/src/main/jniLibs/
+android/app/src/main/jni/enif_keepalive.c
+android/app/google-services.json

@@ -11,17 +11,17 @@
 # Defaults to instrumented hybrid receive test (for carrier/negative evidence).
 # With --selftest: launches main-app BleSelfTest + fetch-on-beacon for
 # positive MB-legacy + GATT evidence on T390 (Android 9). iOS side: use
-#   xcrun devicectl ... dev.meshx.mobile.harness -- --meshx-auto-beacon
+#   xcrun devicectl ... dev.mob.node.harness -- --mob-auto-beacon
 # (MB legacy cue only; triggers Android GATT fetch).
 #
 # The log filter now covers both paths + fetch visibility:
-#   BleSelfTest, MeshxBeaconFetch, MeshxBleFetch, BleScanner, etc.
+#   BleSelfTest, MobBeaconFetch, MobBleFetch, BleScanner, etc.
 #
 # Success for T390 GATT:
 #   - BleSelfTest: HEARTBEAT ... devices>0 beacon_callbacks>0 ...
 #   - BleSelfTest: GATT_FETCH_RECEIVED ...
-#   - MeshxBeaconFetch: fetch_start ...
-#   - MeshxBleFetch JSON events for connect/read/complete (visible GATT activity)
+#   - MobBeaconFetch: fetch_start ...
+#   - MobBleFetch JSON events for connect/read/complete (visible GATT activity)
 #   - Matching messageId in iOS MB cue + Android envelope
 #
 # Archive under recapture-N with evidence/*.md using prior summaries as template.
@@ -113,12 +113,12 @@ adb -s "$SERIAL" logcat \
   -s BleSelfTest:I \
   -s Elixir:I \
   -s BEAMout:I \
-  -s MeshxBeaconFetch:I \
-  -s MeshxBleFetch:I \
+  -s MobBeaconFetch:I \
+  -s MobBleFetch:I \
   -s BleScanner:I \
-  -s MeshxBleScanRaw:I \
-  -s MeshxBle:I \
-  -s MeshxBleNative:I \
+  -s MobBleScanRaw:I \
+  -s MobBle:I \
+  -s MobBleNative:I \
   '*:S' \
   > "$ANDROID_DIR/${RUN_TS}-logcat.log" 2>&1 &
 LOGCAT_PID=$!
@@ -139,15 +139,15 @@ if [[ $SELFTEST -eq 1 ]]; then
   echo "On iPhone (separate terminal):"
   echo '  UDID=1780F216-CB5C-560B-A86F-85D31F79ADEF'
   echo '  xcrun devicectl device process launch --device $UDID --terminate-existing --console \'
-  echo '    dev.meshx.mobile.harness -- --meshx-auto-beacon'
+  echo '    dev.mob.node.harness -- --mob-auto-beacon'
   echo "Optional iOS log target for this run: $IOS_DIR/${RUN_TS}-harness.log"
   echo ""
   echo "Starting main app BleSelfTest with fetch-on-beacon (will run for ${DURATION}s)..."
-  adb -s "$SERIAL" shell am force-stop dev.meshx.mob || true
-  adb -s "$SERIAL" shell am start -n dev.meshx.mob/.MainActivity \
-    --ez meshx_ble_selftest true \
-    --ez meshx_ble_selftest_send "$([[ $SELFTEST_SEND -eq 1 ]] && echo true || echo false)" \
-    --ez meshx_ble_fetch_on_beacon true \
+  adb -s "$SERIAL" shell am force-stop dev.mob.mob || true
+  adb -s "$SERIAL" shell am start -n dev.mob.mob/.MainActivity \
+    --ez mob_ble_selftest true \
+    --ez mob_ble_selftest_send "$([[ $SELFTEST_SEND -eq 1 ]] && echo true || echo false)" \
+    --ez mob_ble_fetch_on_beacon true \
     --es mob_node_suffix "$NODE_SUFFIX" \
     -S \
     --activity-clear-top \
@@ -158,8 +158,8 @@ if [[ $SELFTEST -eq 1 ]]; then
 else
   echo "Starting instrumented test (blocks until completion)..."
   adb -s "$SERIAL" shell am instrument -w \
-    -e class dev.meshx.mob.ble.IOSHybridDirectMxReceiveTest \
-    dev.meshx.mob.test/androidx.test.runner.AndroidJUnitRunner \
+    -e class dev.mob.mob.ble.IOSHybridDirectMxReceiveTest \
+    dev.mob.mob.test/androidx.test.runner.AndroidJUnitRunner \
     > "$ANDROID_DIR/${RUN_TS}-instrumentation.log" 2>&1 || true
 fi
 
@@ -175,6 +175,6 @@ fi
 echo ""
 echo "=== Capture finished for run ${RUN_TS} ==="
 echo "Artifacts under android/ and test/."
-echo "For selftest runs: inspect logcat for BleSelfTest: HEARTBEAT + GATT_FETCH_RECEIVED + MeshxBeaconFetch."
+echo "For selftest runs: inspect logcat for BleSelfTest: HEARTBEAT + GATT_FETCH_RECEIVED + MobBeaconFetch."
 echo "Correlate messageId with iOS MB beacon logs."
 echo "Write evidence/${RUN_TS}-summary.md (template from prior recapture-*/evidence/)"

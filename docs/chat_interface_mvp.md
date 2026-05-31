@@ -1,6 +1,6 @@
 # Chat interface MVP
 
-A bitchat-style group-chat UI built on the meshx runtime that landed on master
+A bitchat-style group-chat UI built on the mob runtime that landed on master
 on 2026-05-30. The wire and runtime layers (channels #7, acks/retry #5,
 fragmentation #6, multi-hop/TTL #2) already shipped earlier; this doc covers
 the Elixir + `Mob.Screen` UI sitting on top.
@@ -12,19 +12,19 @@ the Elixir + `Mob.Screen` UI sitting on top.
 - Compose: tap **Chat** on `HomeScreen` → **ChannelsScreen** lists your
   joined channels (persisted across restarts) → tap one → **ChatScreen**
   with a `<TextField>` and Send button. Send broadcasts a `:data` packet
-  via `MeshxRuntime.Router.broadcast_packet/2`; the runtime handles ack /
+  via `Mob.Runtime.Router.broadcast_packet/2`; the runtime handles ack /
   retry / multi-hop unchanged.
 - Outbound entries appear immediately as `:pending`; ack reconciliation
   (`:pending → :delivered`) is the next follow-up (see below).
 - Channel join: type a name (with or without `#`), tap Join — persisted to
-  `MeshxStore.DB` under `{:chat, :joined_channels}`.
+  `Mob.Store.DB` under `{:chat, :joined_channels}`.
 
 ## Module layout
 
 ```
-apps/meshx_mobile_app/lib/meshx_mobile_app/
+apps/mob_node/lib/mob_node/
   chat/
-    identity.ex                  # nickname overlay over MeshxStore.Identity
+    identity.ex                  # nickname overlay over Mob.Store.Identity
     composer.ex                  # text -> %Packet{} (pure)
     channel_view_model.ex        # GenServer per channel
     channel_native_surface.ex    # VM snapshot -> screen surface (pure)
@@ -33,12 +33,12 @@ apps/meshx_mobile_app/lib/meshx_mobile_app/
   home_screen.ex                 # nav entry button (push_screen)
 ```
 
-Tests in the mirror tree under `test/meshx_mobile_app/chat/` cover the four
+Tests in the mirror tree under `test/mob_node/chat/` cover the four
 pure modules; 34 unit tests total.
 
 ## Identity contract
 
-`MeshxMobileApp.Chat.Identity.get/0` returns
+`Mob.Node.Chat.Identity.get/0` returns
 
 ```elixir
 %{
@@ -52,7 +52,7 @@ Two peer-id forms by design: `MessageEnvelope`'s `@max_peer_id_size` is 32
 bytes, so the wire side carries the raw public key. The Base64URL form is
 display-only.
 
-The Noise static keypair is the same one `MeshxStore.Identity.ensure_local/0`
+The Noise static keypair is the same one `Mob.Store.Identity.ensure_local/0`
 manages — chat reuses it rather than creating a parallel identity.
 
 ## Send flow
@@ -65,19 +65,19 @@ manages — chat reuses it rather than creating a parallel identity.
    - reads `Identity.get/0` for `wire_peer_id`,
    - builds `%MessageEnvelope{payload_type: "CHAT", payload: text, sender_peer_id: wire_peer_id, …}`,
    - encodes,
-   - wraps as `%MeshxProtocol.Packet{type: :data, channel_id: channel,
+   - wraps as `%Mob.Protocol.Packet{type: :data, channel_id: channel,
      flags: flag_channel | flag_ack_requested, payload: encoded_envelope,
      msg_id: <<le32 of first 4 bytes of envelope.message_id>>}`,
    - returns `{:ok, packet, message_id}` (the 16-byte envelope id for ack
      correlation).
-4. VM dispatches `MeshxRuntime.Router.broadcast_packet/2`.
+4. VM dispatches `Mob.Runtime.Router.broadcast_packet/2`.
 5. VM appends a `%Message{direction: :out, status: :pending}` entry locally
    so the UI echoes immediately, and pushes the new snapshot to subscribers.
 
 ## Receive flow
 
-1. `MeshxRuntime.Router` notifies subscribers whose channel filter matches:
-   `{:meshx_runtime, :packet, transport, peer_id, %Packet{}}`.
+1. `Mob.Runtime.Router` notifies subscribers whose channel filter matches:
+   `{:mob_runtime, :packet, transport, peer_id, %Packet{}}`.
 2. `ChannelViewModel.handle_info/2` parses the envelope (`MessageEnvelope.parse/1`),
    filters on `payload_type == "CHAT"`, and appends a
    `%Message{direction: :in, status: :delivered, …}`.
@@ -100,7 +100,7 @@ who want to filter at the envelope layer.
 
 - **`:pending → :delivered` reconciliation** — outbound entries stay
   `:pending` after Router accepts the packet. Hooks into the Router's
-  ack notification (`MeshxProtocol.Ack.decode_receipt/1` already handles
+  ack notification (`Mob.Protocol.Ack.decode_receipt/1` already handles
   the receipt; the VM just needs a `handle_info` clause that finds the
   matching `:out` entry by `message_id` and flips status).
 - **Per-channel supervision** — `ChatScreen` starts a `ChannelViewModel`
@@ -110,7 +110,7 @@ who want to filter at the envelope layer.
 - **DM (recipient-scoped messages)** — `Composer` already accepts
   `:recipient_peer_id`; the UI affordance and a per-peer view aren't built.
 - **Receive on-device validation** — the receive-pipeline gap was closed
-  on the same merge (the `MeshxTransportBLE` → `BleSelfTest` wiring), but
+  on the same merge (the `Mob.Routing.BLE` → `BleSelfTest` wiring), but
   `mix mob.deploy --native` must run with valid hex.pm auth before the
   new `.so` reaches a device. Until then the chat UI works locally but
   cross-device receive is untested.

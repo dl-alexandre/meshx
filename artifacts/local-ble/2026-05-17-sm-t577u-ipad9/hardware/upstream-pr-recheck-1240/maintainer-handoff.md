@@ -36,7 +36,7 @@ the following are true:
 
 1. Update the MeshX dependency refs to the released upstream versions.
 2. Remove the downstream patch files and the local patch requirement.
-3. Remove or retire `mix meshx.patch_deps` from the required setup path.
+3. Remove or retire `mix mob.patch_deps` from the required setup path.
 4. Run the dependency migration verification:
 
 ```sh
@@ -48,7 +48,7 @@ mix test
 5. Run the focused remaining-items audit again:
 
 ```sh
-mix meshx.mobile.remaining_items.audit --json \
+mix mob.node.remaining_items.audit --json \
   --out artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/focused-remaining-items-audit.json
 ```
 

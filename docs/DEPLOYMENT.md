@@ -20,23 +20,23 @@ outbox. Pick a topology based on connectivity:
 ## Mix Releases
 
 MeshX is shipped as an umbrella with a single runtime app
-(`meshx_runtime`). Build a release per node role:
+(`mob_runtime`). Build a release per node role:
 
 ```bash
-MIX_ENV=prod mix release meshx_runtime
+MIX_ENV=prod mix release mob_runtime
 ```
 
-The release boots `meshx_runtime`, which transitively starts `meshx_store`,
-`meshx_transport`, `meshx_noise`, and `meshx_mob`. Override any per-app
+The release boots `mob_runtime`, which transitively starts `mob_store`,
+`mob_routing`, `mob_noise`, and `mob_node`. Override any per-app
 env via `RELEASE_*` variables or `runtime.exs`.
 
 ## Mobile Deploys
 
-The deployable mobile app is `apps/meshx_mobile_app`, generated from Mob and
+The deployable mobile app is `apps/mob_node`, generated from Mob and
 configured for iOS. It runs the MeshX runtime inside the app's on-device BEAM:
 
 ```bash
-cd apps/meshx_mobile_app
+cd apps/mob_node
 mix deps.get
 mix mob.deploy --native
 ```
@@ -44,7 +44,7 @@ mix mob.deploy --native
 Mob deploys need a local `mob.exs` with machine-specific paths. Keep that file
 untracked and use `mob.example.exs` as the template. BLE hardware behavior still
 depends on the native bridge implementation selected by
-`config :meshx_mobile_app, :native_bridge`.
+`config :mob_node, :native_bridge`.
 
 For physical iOS devices, run `mix mob.provision` from the mobile app directory
 before `mix mob.deploy --native --device <device-id>` so Xcode creates a
@@ -54,10 +54,10 @@ development provisioning profile for the app bundle.
 
 | Variable | Purpose | Example |
 | --- | --- | --- |
-| `MESHX_STORE_DATA_DIR` | CubDB data directory | `/var/lib/meshx/store` |
+| `MESHX_STORE_DATA_DIR` | CubDB data directory | `/var/lib/mob/store` |
 | `MESHX_NODE_ID` | This node's identifier on the wire | `relay-east-1` |
-| `MESHX_TCP_LISTEN_PORT` | Port for `MeshxTransport.TCP` | `4040` |
-| `MESHX_UDP_LISTEN_PORT` | Port for `MeshxTransport.UDP` (optional) | `4041` |
+| `MESHX_TCP_LISTEN_PORT` | Port for `Mob.Routing.TCP` | `4040` |
+| `MESHX_UDP_LISTEN_PORT` | Port for `Mob.Routing.UDP` (optional) | `4041` |
 
 ### Migrations
 
@@ -65,7 +65,7 @@ No migration step is currently required because the store is CubDB-backed and
 schemaless:
 
 ```bash
-MIX_ENV=prod _build/prod/rel/meshx_runtime/bin/meshx_runtime eval \
+MIX_ENV=prod _build/prod/rel/mob_runtime/bin/mob_runtime eval \
   # No migrations required — CubDB is schemaless
 ```
 
@@ -93,9 +93,9 @@ RUN apt-get update && apt-get install -y openssl libstdc++6 \
  && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-COPY --from=build /app/_build/prod/rel/meshx_runtime ./
+COPY --from=build /app/_build/prod/rel/mob_runtime ./
 ENV REPLACE_OS_VARS=true
-CMD ["/app/bin/meshx_runtime", "start"]
+CMD ["/app/bin/mob_runtime", "start"]
 ```
 
 ### Health checks
@@ -103,14 +103,14 @@ CMD ["/app/bin/meshx_runtime", "start"]
 Expose a small HTTP/TCP endpoint or use the runtime API:
 
 ```elixir
-case MeshxRuntime.PeerRegistry.list() do
+case Mob.Runtime.PeerRegistry.list() do
   [_ | _] -> :ok           # at least one peer connected
   [] -> {:error, :no_peers}
 end
 ```
 
 For Kubernetes liveness, prefer a process check (BEAM is alive) plus a
-metrics gate on `[:meshx_runtime, :router, :peer, :up]` events seen in the
+metrics gate on `[:mob_runtime, :router, :peer, :up]` events seen in the
 last N minutes.
 
 ## Networking
@@ -143,7 +143,7 @@ Recommended stack:
 
 - **Logs**: structured JSON via `Logger.add_handlers(:default)` or your
   preferred logger backend.
-- **Metrics**: subscribe to `[:meshx_runtime, ...]` telemetry events with
+- **Metrics**: subscribe to `[:mob_runtime, ...]` telemetry events with
   `telemetry_metrics` and ship to Prometheus / StatsD.
 - **Traces**: instrument `Router.handle_call/3` boundaries with OpenTelemetry
   if you need per-request tracing.

@@ -5,10 +5,10 @@
     "mode": "live",
     "scope": "iPhone advert-only legacy-beacon dispatch on hardware",
     "harness_build": "fb5afa8 + uncommitted observer + harness patches",
-    "harness_launch_args": ["--meshx-auto-scan", "--meshx-auto-beacon"],
+    "harness_launch_args": ["--mob-auto-scan", "--mob-auto-beacon"],
     "cadence_target_sec": 1.5,
     "notes": [
-      "The build_device_meshx.sh release pipeline was not used. The MeshxMobileHarness Xcode project was built via the xcode MCP BuildProject tool and installed via xcrun devicectl device install app, then launched via xcrun devicectl device process launch --console with extra args.",
+      "The build_device_mob.sh release pipeline was not used. The Mob.NodeHarness Xcode project was built via the xcode MCP BuildProject tool and installed via xcrun devicectl device install app, then launched via xcrun devicectl device process launch --console with extra args.",
       "Apple Development codesign identity 89QS88Q3TA was already on the device; the user signed it in Xcode beforehand."
     ]
   },
@@ -33,7 +33,7 @@
     "cadence_observed_sec": 1.5,
     "message_id_bytes": 16,
     "message_id_format": "SecRandomCopyBytes(kSecRandomDefault, 16, ...)",
-    "beacon_dispatch_started_event": "MeshxMessageObserver: beacon_dispatch_started sender_peer_id=ios-harness-747B7FE2",
+    "beacon_dispatch_started_event": "MobMessageObserver: beacon_dispatch_started sender_peer_id=ios-harness-747B7FE2",
     "sender_peer_id_string": "ios-harness-747B7FE2",
     "ble_state_observed": "CBManagerState(rawValue: 5) (.poweredOn)",
     "errors": 0,

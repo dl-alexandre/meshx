@@ -46,32 +46,32 @@
     "verification_commands": [
       "jq '.' artifacts/local-ble/2026-05-17-sm-t577u-ipad9/summary.json",
       "rg 'OK \\(1 test\\)|fetch_service_discovery_result|fetch_response_received|envelope_parse=\"ok\"|terminal_event=\"complete\"' artifacts/local-ble/2026-05-17-sm-t577u-ipad9/hardware/android-fetch-ios-responder-rerun",
-      "cd apps/meshx_mobile_app && mix meshx.patch_deps --check > ../../artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/patch-deps-check-1212.log 2>&1",
+      "cd apps/mob_node && mix mob.patch_deps --check > ../../artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/patch-deps-check-1212.log 2>&1",
       "gh pr view 6 --repo GenericJam/mob_dev --json state,isDraft,mergeable,mergeStateStatus,statusCheckRollup,comments,reviews,url",
       "gh pr view 5 --repo GenericJam/mob_new --json state,isDraft,mergeable,mergeStateStatus,statusCheckRollup,comments,reviews,url",
       "gh pr view 6 --repo GenericJam/mob_dev --json comments",
       "gh pr view 5 --repo GenericJam/mob_new --json comments",
       "gh repo view GenericJam/mob_dev --json viewerPermission",
       "gh repo view GenericJam/mob_new --json viewerPermission",
-      "adb -s R52W90AW7EN shell am instrument -w -e class dev.meshx.mob.ble.IOSAuxFullMxAdvertSmokeTest dev.meshx.mob.test/androidx.test.runner.AndroidJUnitRunner",
-      "xcrun devicectl device process launch --device 39FD8D3A-9CA5-5DEF-AFC0-AA5205511117 --terminate-existing --console dev.meshx.mobile.harness -- --meshx-auto-scan --meshx-log-candidate-discoveries",
-      "mix test apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_project_readiness_test.exs apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_project_completion_audit_test.exs apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_project_completion_blocker_matrix_test.exs apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_release_artifact_bundle_test.exs apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_hardware_validation_gates_test.exs apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_ios_parity_evidence_manifest_test.exs apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_ios_parity_hardware_validation_plan_test.exs",
-      "mix test apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_hardware_validation_gates_test.exs apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_project_readiness_test.exs apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_ios_advert_carrier_decision_test.exs apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_ios_parity_hardware_validation_plan_test.exs apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_ios_parity_evidence_manifest_test.exs",
-      "mix test apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_release_evidence_manifest_test.exs",
-      "mix test apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_ios_native_source_inventory_test.exs apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_ios_advert_carrier_decision_test.exs apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_ios_parity_evidence_manifest_test.exs apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_project_readiness_test.exs apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_project_completion_audit_test.exs apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_ios_parity_decision_scenario_plan_test.exs",
-      "mix test apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_project_completion_blocker_matrix_test.exs apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_project_completion_audit_test.exs apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_release_artifact_bundle_test.exs apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_ios_parity_contract_test.exs apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_ios_parity_policy_test.exs apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_ios_parity_proof_plan_test.exs",
-      "mix test apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_ios_parity_negative_validation_test.exs apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_ios_parity_evidence_manifest_test.exs apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_release_artifact_bundle_test.exs",
-      "mix test apps/meshx_mobile_app/test/meshx_mobile_app/ble/local_release_recent_evidence_inventory_test.exs apps/meshx_mobile_app/test/mix/tasks/meshx_mobile_local_release_recent_evidence_test.exs",
+      "adb -s R52W90AW7EN shell am instrument -w -e class dev.mob.mob.ble.IOSAuxFullMxAdvertSmokeTest dev.mob.mob.test/androidx.test.runner.AndroidJUnitRunner",
+      "xcrun devicectl device process launch --device 39FD8D3A-9CA5-5DEF-AFC0-AA5205511117 --terminate-existing --console dev.mob.node.harness -- --mob-auto-scan --mob-log-candidate-discoveries",
+      "mix test apps/mob_node/test/mob_node/ble/local_project_readiness_test.exs apps/mob_node/test/mob_node/ble/local_project_completion_audit_test.exs apps/mob_node/test/mob_node/ble/local_project_completion_blocker_matrix_test.exs apps/mob_node/test/mob_node/ble/local_release_artifact_bundle_test.exs apps/mob_node/test/mob_node/ble/local_hardware_validation_gates_test.exs apps/mob_node/test/mob_node/ble/local_ios_parity_evidence_manifest_test.exs apps/mob_node/test/mob_node/ble/local_ios_parity_hardware_validation_plan_test.exs",
+      "mix test apps/mob_node/test/mob_node/ble/local_hardware_validation_gates_test.exs apps/mob_node/test/mob_node/ble/local_project_readiness_test.exs apps/mob_node/test/mob_node/ble/local_ios_advert_carrier_decision_test.exs apps/mob_node/test/mob_node/ble/local_ios_parity_hardware_validation_plan_test.exs apps/mob_node/test/mob_node/ble/local_ios_parity_evidence_manifest_test.exs",
+      "mix test apps/mob_node/test/mob_node/ble/local_release_evidence_manifest_test.exs",
+      "mix test apps/mob_node/test/mob_node/ble/local_ios_native_source_inventory_test.exs apps/mob_node/test/mob_node/ble/local_ios_advert_carrier_decision_test.exs apps/mob_node/test/mob_node/ble/local_ios_parity_evidence_manifest_test.exs apps/mob_node/test/mob_node/ble/local_project_readiness_test.exs apps/mob_node/test/mob_node/ble/local_project_completion_audit_test.exs apps/mob_node/test/mob_node/ble/local_ios_parity_decision_scenario_plan_test.exs",
+      "mix test apps/mob_node/test/mob_node/ble/local_project_completion_blocker_matrix_test.exs apps/mob_node/test/mob_node/ble/local_project_completion_audit_test.exs apps/mob_node/test/mob_node/ble/local_release_artifact_bundle_test.exs apps/mob_node/test/mob_node/ble/local_ios_parity_contract_test.exs apps/mob_node/test/mob_node/ble/local_ios_parity_policy_test.exs apps/mob_node/test/mob_node/ble/local_ios_parity_proof_plan_test.exs",
+      "mix test apps/mob_node/test/mob_node/ble/local_ios_parity_negative_validation_test.exs apps/mob_node/test/mob_node/ble/local_ios_parity_evidence_manifest_test.exs apps/mob_node/test/mob_node/ble/local_release_artifact_bundle_test.exs",
+      "mix test apps/mob_node/test/mob_node/ble/local_release_recent_evidence_inventory_test.exs apps/mob_node/test/mix/tasks/mob_node_local_release_recent_evidence_test.exs",
       "mix test",
-      "mix meshx.mobile.remaining_items.audit --json --out artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/focused-remaining-items-audit.json",
-      "mix meshx.mobile.local_ios_parity.evidence --json --out artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/local-ios-parity-evidence.json",
-      "mix meshx.mobile.local_release.manifest --json --out artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/local-release.json",
-      "mix meshx.mobile.local_release.recent_evidence --json --out artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/local-release-recent-evidence.json",
-      "mix meshx.mobile.local_release.candidate_review --input artifacts/local-ble/2026-05-17-sm-t577u-ipad9/release-candidate/evidence.json --json --out artifacts/local-ble/2026-05-17-sm-t577u-ipad9/release-candidate/review.json",
+      "mix mob.node.remaining_items.audit --json --out artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/focused-remaining-items-audit.json",
+      "mix mob.node.local_ios_parity.evidence --json --out artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/local-ios-parity-evidence.json",
+      "mix mob.node.local_release.manifest --json --out artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/local-release.json",
+      "mix mob.node.local_release.recent_evidence --json --out artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/local-release-recent-evidence.json",
+      "mix mob.node.local_release.candidate_review --input artifacts/local-ble/2026-05-17-sm-t577u-ipad9/release-candidate/evidence.json --json --out artifacts/local-ble/2026-05-17-sm-t577u-ipad9/release-candidate/review.json",
       "rg broad remaining-item status wording over root docs, app docs, and patch docs",
       "rg exact stale iOS emit/gossip wording patterns over artifacts, BLE gate modules, and focused docs",
       "git diff --check",
-      "mix meshx.mobile.remaining_items.audit | tee artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/focused-remaining-items-audit.txt"
+      "mix mob.node.remaining_items.audit | tee artifacts/local-ble/2026-05-17-sm-t577u-ipad9/manifests/focused-remaining-items-audit.txt"
     ],
     "required_next_actions": [
       {
@@ -114,7 +114,7 @@
       "This bundle does not merge or release upstream mob_dev/mob_new PRs.",
       "This bundle distinguishes foreground iOS MB beacon emit source/local dispatch evidence from missing iOS-origin cross-radio gossip proof.",
       "This bundle proves iOS-origin foreground service UUID advertising is visible to the attached Android scanner, but not that it carries MeshX message payloads.",
-      "This bundle proves the Android opt-in scanner coordinator can use an iOS fetch-service local-name hash cue to fetch a full MX envelope from the iPad MeshxFetchGattResponder.",
+      "This bundle proves the Android opt-in scanner coordinator can use an iOS fetch-service local-name hash cue to fetch a full MX envelope from the iPad MobFetchGattResponder.",
       "This bundle proves the Android runtime receive-only fetch opt-in works in a default debug build with self-test send disabled at the native send entry point.",
       "Regenerated release, recent-evidence, and iOS parity manifests plus release-candidate review preserve iOS parity and whole-project completion as blocked.",
       "Alternate iOS receiver availability was refreshed at 2026-05-17T13:58:54-0700 and archived under hardware/external-blocker-recheck-1358: Coding iPad remains connected, but DairyPhoneDeaux iPhone 13 remains unavailable.",
@@ -311,15 +311,15 @@
     "peripheral_error_lines": 0,
     "android_raw_scan_lines": 47,
     "android_service_uuid_raw_lines": 2,
-    "android_meshx_peer_lines": 4,
+    "android_mob_peer_lines": 4,
     "android_local_name_extract_lines": 4,
     "service_uuid": "8f4f1201-6f3d-4f9c-9e3b-7f4a4f0f1000",
     "local_name": "meshx-ipad",
     "ios_service_uuid_visible_to_android": true,
     "message_payload_carrier_proven": false,
     "notes": [
-      "The iPad harness advertised the MeshX service UUID with local name meshx-ipad.",
-      "Android raw scan logs captured the service UUID twice and selftest logs classified meshx-ipad as a MeshX peer.",
+      "The iPad harness advertised the MeshX service UUID with local name mob-ipad.",
+      "Android raw scan logs captured the service UUID twice and selftest logs classified mob-ipad as a MeshX peer.",
       "This proves a usable iOS-origin discovery carrier, not an iOS-origin MB or full-MX message payload carrier."
     ]
   },
@@ -350,9 +350,9 @@
     "directory": "hardware/ipad-full-beacon-android-runtime-fetch-receive-only",
     "android_build_flag": "default debug build, no MESHX_MX_SEND",
     "android_runtime_flags": {
-      "meshx_ble_selftest": true,
-      "meshx_ble_selftest_send": false,
-      "meshx_ble_fetch_on_beacon": true
+      "mob_ble_selftest": true,
+      "mob_ble_selftest_send": false,
+      "mob_ble_fetch_on_beacon": true
     },
     "ipad_beacon_dispatched_lines": 1,
     "ipad_sender_hash_lines": 1,
@@ -372,11 +372,11 @@
     "android_native_self_dispatch_lines": 0,
     "android_runtime_receive_only_fetch_from_ios_hash_cued_service": true,
     "notes": [
-      "The Android app was launched with meshx_ble_fetch_on_beacon=true and meshx_ble_selftest_send=false.",
+      "The Android app was launched with mob_ble_fetch_on_beacon=true and mob_ble_selftest_send=false.",
       "The installed APK was a default debug build without the MESHX_MX_SEND full-MX sender flag.",
       "The iPad advertised a fetch-service hash cue for message hash 11a7fcb0a1861396 and served one status=0 fetch response.",
       "Android requested the matching hash, logged fetch_response_received with status ok, and emitted canonical received_message evidence with transport ble_android_gatt_fetch/source_event gatt_fetch_response.",
-      "Android rejected five stale Elixir self-test send attempts at MeshxBleNative.sendToPeer and logged zero native self dispatches."
+      "Android rejected five stale Elixir self-test send attempts at MobBleNative.sendToPeer and logged zero native self dispatches."
     ]
   },
   "ipad_observe": {

@@ -10,7 +10,7 @@ a legacy beacon is a pointer, not an identity claim.
 
 ## Classification
 
-`MeshxMobileApp.BLE.LocalInboxTrust` classifies nearby inbox entries:
+`Mob.Node.BLE.LocalInboxTrust` classifies nearby inbox entries:
 
 - full-envelope advertisements become `:unsigned_observation`;
 - unresolved, gossiped, and stale beacon refs become
@@ -18,7 +18,7 @@ a legacy beacon is a pointer, not an identity claim.
 - all current entries report `authorship: :unverified`;
 - all current entries report `replay_protection: :none`.
 
-`MeshxMobileApp.BLE.LocalTrustPolicy` turns that evidence into
+`Mob.Node.BLE.LocalTrustPolicy` turns that evidence into
 presentation decisions:
 
 - full-envelope advertisements may be displayed only as
@@ -49,7 +49,7 @@ stable read model that prevents accidental wording like "trusted",
 "verified", or "sent by" for passive BLE observations.
 
 The snapshot also includes `security_identity_contract`, produced by
-`MeshxMobileApp.BLE.LocalSecurityIdentityContract`. That contract lists
+`Mob.Node.BLE.LocalSecurityIdentityContract`. That contract lists
 the proof categories required before any local BLE observation can be
 promoted from unsigned/untrusted evidence:
 

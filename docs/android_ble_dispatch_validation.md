@@ -1,7 +1,7 @@
 # Android BLE Dispatch — On-Device Validation Ledger (M20–M22)
 
 First hardware validation of the M20–M22 dispatch spike. Proves a
-planned `Attempt` can reach `dev.meshx.mob.ble.BleDispatcher` on a
+planned `Attempt` can reach `dev.mob.mob.ble.BleDispatcher` on a
 real Android device and produce an auditable v1 wire-format outcome
 that round-trips into the canonical `AttemptOutcome` shape.
 
@@ -24,7 +24,7 @@ that round-trips into the canonical `AttemptOutcome` shape.
 ```bash
 # Kotlin JVM tests (validates BleDispatcher argument handling without
 # touching real BLE).
-cd apps/meshx_mobile_app/android
+cd apps/mob_node/android
 ./gradlew --no-daemon test
 # → 14 tests, 0 failures
 #     BleDispatcherTest:   7 tests
@@ -33,12 +33,12 @@ cd apps/meshx_mobile_app/android
 
 # Install + launch.
 ANDROID_SERIAL=R52W90AW7EN ./gradlew --no-daemon installDebug
-adb -s R52W90AW7EN shell am force-stop dev.meshx.mob
-adb -s R52W90AW7EN shell am start -n dev.meshx.mob/.MainActivity
+adb -s R52W90AW7EN shell am force-stop dev.mob.mob
+adb -s R52W90AW7EN shell am start -n dev.mob.mob/.MainActivity
 
 # Capture (separate terminal).
 adb -s R52W90AW7EN logcat -c
-adb -s R52W90AW7EN logcat -s MeshxBle:I MeshxBleDispatch:I AndroidRuntime:E
+adb -s R52W90AW7EN logcat -s MobBle:I MobBleDispatch:I AndroidRuntime:E
 
 # Resolve button bounds and tap.
 adb -s R52W90AW7EN shell input keyevent KEYCODE_WAKEUP
@@ -75,14 +75,14 @@ module). The existing offline pipeline kept its 254 tests green.
 ### Test 1: dispatch with Bluetooth ENABLED
 
 Tapped DISPATCH TEST ATTEMPT once. Logcat captured one line on the
-`MeshxBleDispatch` tag:
+`MobBleDispatch` tag:
 
 ```json
 {
   "v": 1,
   "event": "attempt_outcome",
   "attempt_id": "spike-att-0",
-  "target_peer_id": "meshx-spike",
+  "target_peer_id": "mob-spike",
   "kind": "dispatched",
   "reason": null,
   "adapter": "ble_android",
@@ -104,7 +104,7 @@ Disabled BT, tapped DISPATCH TEST ATTEMPT once. Logcat:
   "v": 1,
   "event": "attempt_outcome",
   "attempt_id": "spike-att-0",
-  "target_peer_id": "meshx-spike",
+  "target_peer_id": "mob-spike",
   "kind": "failed",
   "reason": "bluetooth_off",
   "adapter": "ble_android",
@@ -120,13 +120,13 @@ what the M19–M20 outcome taxonomy was designed to preserve.
 ### Cross-language round-trip
 
 Piped the Test 1 JSON line through an Elixir IEx session and
-reconstructed it as a canonical `MeshxMobileApp.BLE.AttemptOutcome`:
+reconstructed it as a canonical `Mob.Node.BLE.AttemptOutcome`:
 
 ```elixir
-%MeshxMobileApp.BLE.AttemptOutcome{
+%Mob.Node.BLE.AttemptOutcome{
   attempt_id: "spike-att-0",
   message_id: <<0, 0, 0, 0, …, 0>>,
-  target_peer_id: "meshx-spike",
+  target_peer_id: "mob-spike",
   target_device_ids: ["AA:BB:CC:DD:EE:FF"],
   kind: :dispatched,
   outcome_at: 7_983_697,

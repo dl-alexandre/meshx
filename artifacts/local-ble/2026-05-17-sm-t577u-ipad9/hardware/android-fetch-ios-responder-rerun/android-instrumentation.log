@@ -1,19 +1,19 @@
 
-dev.meshx.mob.ble.IOSResponderFetchSmokeTest:
-Error in androidFetchesEnvelopeServedByIOSResponder(dev.meshx.mob.ble.IOSResponderFetchSmokeTest):
+dev.mob.mob.ble.IOSResponderFetchSmokeTest:
+Error in androidFetchesEnvelopeServedByIOSResponder(dev.mob.mob.ble.IOSResponderFetchSmokeTest):
 org.junit.ComparisonFailure: expected:<[ok]> but was:<[not_found]>
 	at org.junit.Assert.assertEquals(Assert.java:117)
 	at org.junit.Assert.assertEquals(Assert.java:146)
-	at dev.meshx.mob.ble.IOSResponderFetchSmokeTest.androidFetchesEnvelopeServedByIOSResponder(IOSResponderFetchSmokeTest.kt:149)
+	at dev.mob.mob.ble.IOSResponderFetchSmokeTest.androidFetchesEnvelopeServedByIOSResponder(IOSResponderFetchSmokeTest.kt:149)
 
 
 Time: 2.62
 There was 1 failure:
-1) androidFetchesEnvelopeServedByIOSResponder(dev.meshx.mob.ble.IOSResponderFetchSmokeTest)
+1) androidFetchesEnvelopeServedByIOSResponder(dev.mob.mob.ble.IOSResponderFetchSmokeTest)
 org.junit.ComparisonFailure: expected:<[ok]> but was:<[not_found]>
 	at org.junit.Assert.assertEquals(Assert.java:117)
 	at org.junit.Assert.assertEquals(Assert.java:146)
-	at dev.meshx.mob.ble.IOSResponderFetchSmokeTest.androidFetchesEnvelopeServedByIOSResponder(IOSResponderFetchSmokeTest.kt:149)
+	at dev.mob.mob.ble.IOSResponderFetchSmokeTest.androidFetchesEnvelopeServedByIOSResponder(IOSResponderFetchSmokeTest.kt:149)
 
 FAILURES!!!
 Tests run: 1,  Failures: 1

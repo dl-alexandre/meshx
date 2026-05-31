@@ -1,5 +1,5 @@
 import Foundation
-import MeshxMobile
+import Mob.Node
 
 final class LineOutput {
     private let file: FileHandle?
@@ -89,12 +89,12 @@ final class ObserverCLI: NSObject, MessageAdvertisementObserverDelegate {
 
     func start() {
         observer.startScan()
-        output.write("MeshxMessageObserverCLI: scanning")
+        output.write("MobMessageObserverCLI: scanning")
     }
 
     func didObserveReceivedMessage(_ event: ReceivedMessageEvent) {
         seen += 1
-        output.write("MeshxMessageObserverCLI: \(event.jsonLine())")
+        output.write("MobMessageObserverCLI: \(event.jsonLine())")
 
         if exitAfterFirst {
             observer.stopScan()
@@ -108,18 +108,18 @@ final class ObserverCLI: NSObject, MessageAdvertisementObserverDelegate {
             deviceId: deviceId,
             rssi: rssi
         )
-        output.write("MeshxMessageObserverCLI: \(event.jsonLine())")
+        output.write("MobMessageObserverCLI: \(event.jsonLine())")
     }
 
     func messageObserverDidObserveLegacyBeacon(
-        _ beacon: MeshxLegacyBeaconAdvertisement,
+        _ beacon: MobLegacyBeaconAdvertisement,
         deviceId: String,
         rssi: Int
     ) {
         seen += 1
         let mhash = beacon.messageIdHash.map { String(format: "%02x", $0) }.joined()
         let shash = beacon.senderPeerIdHash.map { String(format: "%02x", $0) }.joined()
-        output.write("MeshxMessageObserverCLI: legacy_beacon_received device_id=\(deviceId) rssi=\(rssi) message_id_hash=\(mhash) sender_peer_id_hash=\(shash) payload_kind=\(beacon.payloadKind) beacon_version=\(beacon.beaconVersion) envelope_version=\(beacon.envelopeVersion)")
+        output.write("MobMessageObserverCLI: legacy_beacon_received device_id=\(deviceId) rssi=\(rssi) message_id_hash=\(mhash) sender_peer_id_hash=\(shash) payload_kind=\(beacon.payloadKind) beacon_version=\(beacon.beaconVersion) envelope_version=\(beacon.envelopeVersion)")
 
         if exitAfterFirst {
             observer.stopScan()
@@ -139,19 +139,19 @@ final class ObserverCLI: NSObject, MessageAdvertisementObserverDelegate {
         }
 
         let localNameValue = localName ?? ""
-        output.write("MeshxMessageObserverCLI: discovery device_id=\(deviceId) rssi=\(rssi) local_name=\(localNameValue) service_uuids=\(serviceUUIDs.joined(separator: ",")) manufacturer_data_len=\(manufacturerDataLength)")
+        output.write("MobMessageObserverCLI: discovery device_id=\(deviceId) rssi=\(rssi) local_name=\(localNameValue) service_uuids=\(serviceUUIDs.joined(separator: ",")) manufacturer_data_len=\(manufacturerDataLength)")
     }
 
-    func meshxMessageObserverDidStartScan() {
-        output.write("MeshxMessageObserverCLI: scan_started")
+    func mobMessageObserverDidStartScan() {
+        output.write("MobMessageObserverCLI: scan_started")
     }
 
-    func meshxMessageObserverDidUpdateState(_ state: String) {
-        output.write("MeshxMessageObserverCLI: state \(state)")
+    func mobMessageObserverDidUpdateState(_ state: String) {
+        output.write("MobMessageObserverCLI: state \(state)")
     }
 
-    func meshxMessageObserverDidError(_ error: Error) {
-        output.write("MeshxMessageObserverCLI: error \(String(describing: error))")
+    func mobMessageObserverDidError(_ error: Error) {
+        output.write("MobMessageObserverCLI: error \(String(describing: error))")
     }
 }
 
@@ -168,7 +168,7 @@ let cli = ObserverCLI(
 
 if options.timeoutSeconds > 0 {
     Timer.scheduledTimer(withTimeInterval: options.timeoutSeconds, repeats: false) { _ in
-        output.write("MeshxMessageObserverCLI: timeout")
+        output.write("MobMessageObserverCLI: timeout")
         Foundation.exit(2)
     }
 }

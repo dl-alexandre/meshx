@@ -1,9 +1,9 @@
 # Android BLE Transport — On-Device Validation Ledger
 
 This ledger records the first hardware validation pass of the Kotlin BLE
-transport (`apps/meshx_mobile_app/android/src/main/java/dev/meshx/mob/ble/`)
+transport (`apps/mob_node/android/src/main/java/dev/mob/mob/ble/`)
 against a real Android device, and the round-trip of its v1 wire-format
-events through `MeshxMobileApp.BLE.BridgeProtocol.decode/1`.
+events through `Mob.Node.BLE.BridgeProtocol.decode/1`.
 
 ## Environment
 
@@ -32,7 +32,7 @@ adb -s R52W90AW7EN shell getprop ro.build.version.sdk   # 33
 
 # Toolchain
 brew install gradle                                     # 9.5.0
-cd apps/meshx_mobile_app/android
+cd apps/mob_node/android
 gradle wrapper --gradle-version 8.7
 
 # JVM unit tests
@@ -40,10 +40,10 @@ gradle wrapper --gradle-version 8.7
 
 # Install + launch
 ANDROID_SERIAL=R52W90AW7EN ./gradlew --no-daemon installDebug
-adb -s R52W90AW7EN shell am start -n dev.meshx.mob/.MainActivity
+adb -s R52W90AW7EN shell am start -n dev.mob.mob/.MainActivity
 
 # Permission state
-adb -s R52W90AW7EN shell dumpsys package dev.meshx.mob \
+adb -s R52W90AW7EN shell dumpsys package dev.mob.mob \
     | grep -E "granted|permission"
 
 # Bluetooth on (was off at first launch — produced a real bluetooth_off event)
@@ -51,7 +51,7 @@ adb -s R52W90AW7EN shell svc bluetooth enable
 
 # Capture
 adb -s R52W90AW7EN logcat -c
-adb -s R52W90AW7EN logcat -s MeshxBle:I  > /tmp/meshxble.log &
+adb -s R52W90AW7EN logcat -s MobBle:I  > /tmp/mobble.log &
 
 # Drive the UI (button bounds resolved from `uiautomator dump`)
 adb -s R52W90AW7EN shell input tap 600 416   # Start advertising
@@ -93,7 +93,7 @@ FakeBleBridgeTest   — 2 tests, 0 failures
 Total               — 7 tests, 0 failures
 ```
 
-JUnit XML at `apps/meshx_mobile_app/android/build/test-results/testDebugUnitTest/`.
+JUnit XML at `apps/mob_node/android/build/test-results/testDebugUnitTest/`.
 
 ### Runtime permission state
 
@@ -114,7 +114,7 @@ what happened on-device.
 ### Event capture (full session, BT on)
 
 ```
-Total MeshxBle lines captured:    6575
+Total MobBle lines captured:    6575
 "event":"device_discovered":        65
 "event":"advertisement_received": 6503
 "event":"error":                     3
@@ -142,7 +142,7 @@ advertising nearby:
 }
 ```
 
-Base64 of the advertisement contains the ASCII string `meshx-ipad` —
+Base64 of the advertisement contains the ASCII string `mob-ipad` —
 the local name the iOS bridge emits. The Android scanner ingested an
 iOS MeshX advertisement on the wire format defined by the unified
 `BLE.Adapter` contract. No iOS or Elixir code paths were involved on
@@ -157,7 +157,7 @@ logcat capture):
 ```elixir
 # device_discovered
 {:ok,
- %MeshxMobileApp.BLE.Events.DeviceDiscovered{
+ %Mob.Node.BLE.Events.DeviceDiscovered{
    device_id: "94:94:4A:05:9C:99",
    transport: :ble,
    rssi: -83,
@@ -167,7 +167,7 @@ logcat capture):
 
 # advertisement_received
 {:ok,
- %MeshxMobileApp.BLE.Events.AdvertisementReceived{
+ %Mob.Node.BLE.Events.AdvertisementReceived{
    device_id: "84:E0:F4:E0:26:52",
    transport: :ble,
    rssi: -80,
@@ -177,7 +177,7 @@ logcat capture):
 
 # error (captured before BT was enabled)
 {:ok,
- %MeshxMobileApp.BLE.Events.Error{
+ %Mob.Node.BLE.Events.Error{
    kind: :bluetooth_off,
    detail: "bluetooth adapter disabled or absent",
    device_id: nil
@@ -196,7 +196,7 @@ mix test
 ```
 
 No Elixir code was changed. The existing
-`MeshxMobileApp.BLE.AndroidWireFormatTest` continues to pass against
+`Mob.Node.BLE.AndroidWireFormatTest` continues to pass against
 the committed fixtures, and the live logcat output matches those
 fixtures' shape exactly.
 
@@ -204,13 +204,13 @@ fixtures' shape exactly.
 
 | Goal | Status | Evidence |
 | --- | --- | --- |
-| Bootstrap or verify Gradle wrapper | ✅ | `apps/meshx_mobile_app/android/gradlew` at 8.7 |
+| Bootstrap or verify Gradle wrapper | ✅ | `apps/mob_node/android/gradlew` at 8.7 |
 | `./gradlew test` green | ✅ | 7/7 tests |
 | Install/debug app on device | ✅ | `Installed on 1 device.` on SM-T577U |
 | Runtime permissions verified | ✅ | `dumpsys package` output above |
 | Start advertise | ✅ | Tapped via `input tap 600 416`; no `advertise_failed` errors |
-| Scan from another MeshX instance | ✅ | iPad's `meshx-ipad` advertisement captured (`4F:9C:5A:DC:6E:6D`) |
-| Capture logcat tag `MeshxBle` | ✅ | 6575 lines at `/tmp/meshxble.full.log` |
+| Scan from another MeshX instance | ✅ | iPad's `mob-ipad` advertisement captured (`4F:9C:5A:DC:6E:6D`) |
+| Capture logcat tag `MobBle` | ✅ | 6575 lines at `/tmp/mobble.full.log` |
 | Confirm v1 JSON shape matches fixtures | ✅ | Field set, types, error taxonomy all match |
 | BridgeProtocol decode validation | ✅ | Three live lines → canonical structs |
 | Validation ledger | ✅ | This document |
@@ -284,8 +284,8 @@ Date: May 12, 2026.
 Local log captures:
 
 ```
-/tmp/meshx-m37-m39-sm-t577u.log
-/tmp/meshx-m37-m39-sm-t390.log
+/tmp/mob-m37-m39-sm-t577u.log
+/tmp/mob-m37-m39-sm-t390.log
 ```
 
 Build and test gates before hardware rerun:
@@ -294,7 +294,7 @@ Build and test gates before hardware rerun:
 mix test
 # all umbrella tests passed
 
-cd apps/meshx_mobile_app/android
+cd apps/mob_node/android
 ./gradlew --no-daemon testDebugUnitTest
 ./gradlew --no-daemon assembleDebug
 # both passed
@@ -357,7 +357,7 @@ fetch logic or by the Android/device BLE stack.
 Harness:
 
 - Android-only `PlainGattInteropHarness`
-- log tag `MeshxGattInterop`
+- log tag `MobGattInterop`
 - service UUID `8f4f1201-6f3d-4f9c-9e3b-7f4a4f0f4000`
 - characteristic UUID `8f4f1201-6f3d-4f9c-9e3b-7f4a4f0f4001`
 - server read payload: base64 `b2s=` (`ok`)
@@ -370,18 +370,18 @@ Harness:
 Local log captures:
 
 ```
-/tmp/meshx-m40-sm-t577u.log
-/tmp/meshx-m40-sm-t390.log
+/tmp/mob-m40-sm-t577u.log
+/tmp/mob-m40-sm-t390.log
 ```
 
 Current May 12, 2026 rerun after waking both devices and dismissing
 keyguard:
 
 ```
-/tmp/meshx-android-m40-current/sm-t577u-responder.log
-/tmp/meshx-android-m40-current/sm-t390-requester.log
-/tmp/meshx-android-m40-current/sm-t390-responder.log
-/tmp/meshx-android-m40-current/sm-t577u-requester.log
+/tmp/mob-android-m40-current/sm-t577u-responder.log
+/tmp/mob-android-m40-current/sm-t390-requester.log
+/tmp/mob-android-m40-current/sm-t390-responder.log
+/tmp/mob-android-m40-current/sm-t577u-requester.log
 ```
 
 The current rerun still fails before service discovery with

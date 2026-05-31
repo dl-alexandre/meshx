@@ -1,8 +1,8 @@
-defmodule MeshxScripts.TCPReceiver do
+defmodule MobScripts.TCPReceiver do
   @moduledoc false
 
-  alias MeshxRuntime.Router
-  alias MeshxTransport.TCP
+  alias Mob.Runtime.Router
+  alias Mob.Routing.TCP
 
   def main do
     id = System.get_env("MESHX_NODE_ID", "receiver")
@@ -22,7 +22,7 @@ defmodule MeshxScripts.TCPReceiver do
     |> then(&File.write!(ready_file, &1))
 
     receive do
-      {:meshx_runtime, :packet, :tcp, peer_id, packet} ->
+      {:mob_runtime, :packet, :tcp, peer_id, packet} ->
         File.write!(
           payload_file,
           :erlang.term_to_binary({peer_id, packet.msg_id, packet.payload})
@@ -38,16 +38,16 @@ defmodule MeshxScripts.TCPReceiver do
 
   defp start_runtime! do
     configure_store!()
-    {:ok, _apps} = Application.ensure_all_started(:meshx_store)
-    {:ok, _apps} = Application.ensure_all_started(:meshx_runtime)
-    :ok = MeshxRuntime.ensure_dependency_workers_started()
+    {:ok, _apps} = Application.ensure_all_started(:mob_store)
+    {:ok, _apps} = Application.ensure_all_started(:mob_runtime)
+    :ok = Mob.Runtime.ensure_dependency_workers_started()
   end
 
   defp configure_store! do
     if data_dir = System.get_env("MESHX_STORE_DATA_DIR") do
-      Application.put_env(:meshx_store, :data_dir, data_dir)
+      Application.put_env(:mob_store, :data_dir, data_dir)
     end
   end
 end
 
-MeshxScripts.TCPReceiver.main()
+MobScripts.TCPReceiver.main()

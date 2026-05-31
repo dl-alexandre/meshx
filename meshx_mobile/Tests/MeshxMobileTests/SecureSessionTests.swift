@@ -1,5 +1,5 @@
 import XCTest
-@testable import MeshxMobile
+@testable import Mob.Node
 
 final class SecureSessionTests: XCTestCase {
     func testSecureSessionRunsHandshakeAndDecryptsApplicationFrame() throws {
@@ -67,7 +67,7 @@ final class SecureSessionTests: XCTestCase {
 
     private static func initiatorSession() throws -> SecureSession {
         SecureSession(
-            noiseSession: try MeshxNoiseSession(
+            noiseSession: try Mob.NoiseSession(
                 role: .initiator,
                 staticPrivateKey: Data(hex: "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f")!,
                 ephemeralPrivateKey: Data(hex: "202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f")!
@@ -77,7 +77,7 @@ final class SecureSessionTests: XCTestCase {
 
     private static func responderSession() throws -> SecureSession {
         SecureSession(
-            noiseSession: try MeshxNoiseSession(
+            noiseSession: try Mob.NoiseSession(
                 role: .responder,
                 staticPrivateKey: Data(hex: "404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f")!,
                 ephemeralPrivateKey: Data(hex: "606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f")!
@@ -86,11 +86,11 @@ final class SecureSessionTests: XCTestCase {
     }
 
     private static func initiatorStaticPublicKey() throws -> Data {
-        try XCTUnwrap((initiatorSession().noiseSession as? MeshxNoiseSession)?.localStaticKey)
+        try XCTUnwrap((initiatorSession().noiseSession as? Mob.NoiseSession)?.localStaticKey)
     }
 
     private static func responderStaticPublicKey() throws -> Data {
-        try XCTUnwrap((responderSession().noiseSession as? MeshxNoiseSession)?.localStaticKey)
+        try XCTUnwrap((responderSession().noiseSession as? Mob.NoiseSession)?.localStaticKey)
     }
 
     private static func outgoingFrame(from event: SecureSessionEvent) throws -> Data {

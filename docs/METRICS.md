@@ -1,13 +1,13 @@
 # Metrics
 
-MeshX emits `:telemetry` events under the `[:meshx_runtime, ...]` prefix.
+MeshX emits `:telemetry` events under the `[:mob_runtime, ...]` prefix.
 This document catalogs every event, what it measures, and what it means
 for operators. Subscribe with `:telemetry.attach/4` or
 `Telemetry.Metrics.Counter`/`Summary` for Prometheus/StatsD export.
 
 ## Event prefix
 
-All events are prefixed `[:meshx_runtime, ...]`. Examples below omit the
+All events are prefixed `[:mob_runtime, ...]`. Examples below omit the
 prefix for brevity.
 
 ## Router events
@@ -74,19 +74,19 @@ For an "always available" relay node:
 ## Example: Prometheus exporter
 
 ```elixir
-defmodule MyApp.MeshxMetrics do
+defmodule MyApp.MobMetrics do
   import Telemetry.Metrics
 
   def metrics do
     [
-      counter("meshx_runtime.router.peer.up.count"),
-      counter("meshx_runtime.router.peer.down.count"),
-      counter("meshx_runtime.router.send.error.count", tags: [:reason]),
-      summary("meshx_runtime.router.send.stop.duration",
+      counter("mob_runtime.router.peer.up.count"),
+      counter("mob_runtime.router.peer.down.count"),
+      counter("mob_runtime.router.send.error.count", tags: [:reason]),
+      summary("mob_runtime.router.send.stop.duration",
         unit: {:native, :millisecond}
       ),
-      counter("meshx_runtime.outbox.replay.error.count", tags: [:reason]),
-      counter("meshx_runtime.router.backpressure.dropped.count")
+      counter("mob_runtime.outbox.replay.error.count", tags: [:reason]),
+      counter("mob_runtime.router.backpressure.dropped.count")
     ]
   end
 end

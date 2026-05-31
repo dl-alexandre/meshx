@@ -33,7 +33,7 @@ Keep the scan **unfiltered** (so awake receive behaves exactly as the proven
 working `sustained-002`), but start/own it from the foreground service so the app
 is "foreground" for Android's background-scan rule.
 
-- `BeamForegroundService` (meshx_mobile_app) is already FGS type
+- `BeamForegroundService` (mob_node) is already FGS type
   `connectedDevice` (`292da30`). Add a start path that, on `ACTION_START`,
   triggers the scan to (re)start within the service's foreground context.
 - Mechanism options: (i) have `MobBleNative.startScan` post the
@@ -95,7 +95,7 @@ if a lever regresses awake receive, so iterations are cheap.
 2. If 2a still dies on screen-off → **2b** with the prefix-matched `0xFFFF`
    filter + a widened cue window.
 
-Both are native (`mob_ble` `BleScanner`/`MobBleNative` + meshx_mobile_app
+Both are native (`mob_ble` `BleScanner`/`MobBleNative` + mob_node
 `BeamForegroundService`) and need an app rebuild + reinstall on the **receiver**
 (T577U) — the BEAM-payload-touching step; `install -r` preserves `/data`.
 
@@ -118,13 +118,13 @@ not because the scan died but because the analyzer's events
 1. NIF emits `received_message` on each successful GATT fetch ✅ (5×
    in the lever-2a awake-phase logcat)
 2. `Mob.Ble.MobileBridge` decodes it to `{:ble_frame, peer_id, frame}` ✅
-3. `MeshxTransportBLE` re-wraps as
-   `{:meshx_transport, :ble, {:frame, peer_id, frame}}` and forwards to
+3. `Mob.Routing.BLE` re-wraps as
+   `{:mob_routing, :ble, {:frame, peer_id, frame}}` and forwards to
    its outer `event_target` ✅
-4. That `event_target` (the pid that called `MeshxTransportBLE.start_link/1`
+4. That `event_target` (the pid that called `Mob.Routing.BLE.start_link/1`
    from `app.ex`) had **no `handle_info` clause** for the transport
    frame shape — every frame dropped silently into the catchall ❌
-5. So `MeshxMobileApp.BLE.Observability.record(%ReceivedMessage{})` was
+5. So `Mob.Node.BLE.Observability.record(%ReceivedMessage{})` was
    never called, and the analyzer's narrow event set never fired
    regardless of whether the scan was alive ❌
 
@@ -134,9 +134,9 @@ Consequence: the harness counter showed 5+ awake deliveries via
 death and pipeline-gap silence are indistinguishable in past artifacts.
 
 **Fix landed on master 2026-05-30 (commit `eb507b1`):** wire
-`MeshxMobileApp.BleSelfTest` as the transport's `event_target` when
+`Mob.Node.BleSelfTest` as the transport's `event_target` when
 `MESHX_BLE_SELFTEST` is set; `BleSelfTest.handle_info/2` parses the
-transport-frame envelope, builds `%MeshxMobileApp.BLE.Events.ReceivedMessage{}`,
+transport-frame envelope, builds `%Mob.Node.BLE.Events.ReceivedMessage{}`,
 and calls `Observability.record/1`. Code is on master; on-device
 re-measurement (which requires a fresh `mix mob.deploy --native`) will
 give the first verdict in this program that isn't ambiguous between

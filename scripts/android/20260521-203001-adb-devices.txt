@@ -1,0 +1,8 @@
+List of devices attached
+5200f354f4fb277f       device usb:2-1.2.1.1.1 product:gtactive2wifixx model:SM_T390 device:gtactive2wifi transport_id:7
+R52W90AW7EN            device usb:2-1.2.1.1.2 product:gtactive3ue model:SM_T577U device:gtactive3 transport_id:8
+
+=== props ===
+SM-T577U
+samsung/gtactive3ue/gtactive3:13/TP1A.220624.014/T577UUESFEYI1:user/release-keys
+13

@@ -48,7 +48,7 @@
       "status": "satisfied_for_negative_runs",
       "evidence": [
         "iPad12,1 / iOS 26.5 observer and foreground scanner command recorded in summaries.",
-        "Rerun used --meshx-auto-scan --meshx-log-candidate-discoveries."
+        "Rerun used --mob-auto-scan --mob-log-candidate-discoveries."
       ]
     },
     {

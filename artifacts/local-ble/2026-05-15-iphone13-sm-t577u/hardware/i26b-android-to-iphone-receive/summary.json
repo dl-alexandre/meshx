@@ -4,12 +4,12 @@
     "verifier": "manual (devicectl --console + adb logcat + chat-side Monitor)",
     "mode": "live",
     "scope": "Android → iPhone advert-only legacy-beacon receive on hardware",
-    "harness_build": "fb5afa8 (MessageAdvertisementObserver MB branch + meshxMessageObserverDidObserveLegacyBeacon delegate)",
-    "harness_launch_args": ["--meshx-auto-scan", "--meshx-auto-beacon"],
-    "android_app": "dev.meshx.mob (existing build with BleSelfTest periodic dispatch, ~7 s cadence)",
+    "harness_build": "fb5afa8 (MessageAdvertisementObserver MB branch + mobMessageObserverDidObserveLegacyBeacon delegate)",
+    "harness_launch_args": ["--mob-auto-scan", "--mob-auto-beacon"],
+    "android_app": "dev.mob.mob (existing build with BleSelfTest periodic dispatch, ~7 s cadence)",
     "notes": [
       "This is the canonical proof that the new MessageAdvertisementObserver MB branch reaches the harness delegate on real iOS hardware with a real Android counterparty.",
-      "Production app bridge (MeshxNativeBLEBridge + MeshxBLEClient) also already routes legacy beacon observation through meshxDidObserveLegacyBeacon → meshx_ble_emit_received_message_beacon NIF; the harness path is the test/dev surface for the same wire shape."
+      "Production app bridge (MobNativeBLEBridge + MobBLEClient) also already routes legacy beacon observation through mobDidObserveLegacyBeacon → mob_ble_emit_received_message_beacon NIF; the harness path is the test/dev surface for the same wire shape."
     ]
   },
   "devices": {
@@ -68,7 +68,7 @@
     "iOS MessageAdvertisementObserver decodes Android-emitted 22-byte MB legacy beacons byte-for-byte at the harness layer.",
     "Cross-platform identity (sender_peer_id_hash) round-trips correctly between Android base64 and iPhone hex.",
     "Two independent Android peers were decoded simultaneously, confirming multi-peer scanning works.",
-    "MeshxLegacyBeaconAdvertisement.parse(manufacturerData:) accepts the same byte layout that Android's MeshxMessageAdvertisement legacy beacon path emits — this corroborates the static cross-platform fixture test in MessageAdvertisementTests.swift (commit ec09551) with live radio."
+    "MobLegacyBeaconAdvertisement.parse(manufacturerData:) accepts the same byte layout that Android's MobMessageAdvertisement legacy beacon path emits — this corroborates the static cross-platform fixture test in MessageAdvertisementTests.swift (commit ec09551) with live radio."
   ],
   "what_this_does_not_prove": [
     "iPhone → Android receive: the Android app's MeshX-level scanner was not running in this capture (only BleSelfTest dispatch was active). The Android receive path on shipping app code is a separate follow-up.",

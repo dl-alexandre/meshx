@@ -1,9 +1,9 @@
-defmodule MeshxScripts.TCPRelayNode do
+defmodule MobScripts.TCPRelayNode do
   @moduledoc false
 
-  alias MeshxProtocol.Packet
-  alias MeshxRuntime.Router
-  alias MeshxTransport.TCP
+  alias Mob.Protocol.Packet
+  alias Mob.Runtime.Router
+  alias Mob.Routing.TCP
 
   def main do
     role = System.fetch_env!("MESHX_ROLE")
@@ -31,7 +31,7 @@ defmodule MeshxScripts.TCPRelayNode do
     payload_file = System.fetch_env!("MESHX_PAYLOAD_FILE")
 
     receive do
-      {:meshx_runtime, :packet, :tcp, peer_id, packet} ->
+      {:mob_runtime, :packet, :tcp, peer_id, packet} ->
         File.write!(
           payload_file,
           :erlang.term_to_binary({peer_id, packet.msg_id, packet.payload})
@@ -54,7 +54,7 @@ defmodule MeshxScripts.TCPRelayNode do
     wait_for_peer!(downstream_id, timeout_ms)
 
     receive do
-      {:meshx_runtime, :packet, :tcp, peer_id, packet} ->
+      {:mob_runtime, :packet, :tcp, peer_id, packet} ->
         File.write!(
           relayed_file,
           :erlang.term_to_binary({peer_id, packet.msg_id, packet.payload, packet.ttl})
@@ -90,7 +90,7 @@ defmodule MeshxScripts.TCPRelayNode do
 
   defp wait_for_peer!(peer_id, timeout_ms) do
     receive do
-      {:meshx_runtime, :peer_up, :tcp, %{id: ^peer_id}} -> :ok
+      {:mob_runtime, :peer_up, :tcp, %{id: ^peer_id}} -> :ok
     after
       timeout_ms ->
         IO.puts(:stderr, "timed out waiting for peer #{peer_id}")
@@ -100,16 +100,16 @@ defmodule MeshxScripts.TCPRelayNode do
 
   defp start_runtime! do
     configure_store!()
-    {:ok, _apps} = Application.ensure_all_started(:meshx_store)
-    {:ok, _apps} = Application.ensure_all_started(:meshx_runtime)
-    :ok = MeshxRuntime.ensure_dependency_workers_started()
+    {:ok, _apps} = Application.ensure_all_started(:mob_store)
+    {:ok, _apps} = Application.ensure_all_started(:mob_runtime)
+    :ok = Mob.Runtime.ensure_dependency_workers_started()
   end
 
   defp configure_store! do
     if data_dir = System.get_env("MESHX_STORE_DATA_DIR") do
-      Application.put_env(:meshx_store, :data_dir, data_dir)
+      Application.put_env(:mob_store, :data_dir, data_dir)
     end
   end
 end
 
-MeshxScripts.TCPRelayNode.main()
+MobScripts.TCPRelayNode.main()
