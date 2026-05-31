@@ -1,8 +1,0 @@
-chore: do not gate umbrella coverage on this plugin
-
-Use test_coverage: [summary: [threshold: 0]] so the umbrella mix test --cover
-step reports this plugin coverage in the summary without failing the build.
-The summary threshold value is the actual gate in Elixir; 90 would hard-fail
-below 90% (this plugin is independently published and tested).
-
-Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>

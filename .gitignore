@@ -62,3 +62,11 @@ apps/*/android/local.properties
 
 # macOS Finder metadata
 .DS_Store
+
+# Local-only artifacts (Claude Code session state, agent research notes,
+# scheduled task locks) — should never be committed.
+.claude/
+
+# iCloud Drive occasionally corrupts .git internals; rescue scripts move
+# the broken state aside as .git.broken-*/ for forensics. Local only.
+.git.broken-*/

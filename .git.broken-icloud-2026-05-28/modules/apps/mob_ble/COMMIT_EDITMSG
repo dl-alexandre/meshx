@@ -1,9 +1,0 @@
-feat(lever-2a): restartScanFromForeground entry for FGS-owned scan re-register
-
-Provides MobBleNative.restartScanFromForeground() so the meshx_mobile_app
-foreground service can rebind an active scan to the foreground-app context
-after startForeground. Empirically did not change locked-receive on T577U
-(scan stayed unfiltered, Samsung still suspended on screen-off), but the
-entry point is the right shape for the next experiment.
-
-Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
