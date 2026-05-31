@@ -1,13 +1,21 @@
-# MeshX
+# mob mesh
 
-**MeshX** is a modular, BEAM-native mesh networking stack for building
-resilient, decentralized applications on Elixir/Erlang.
+**mob mesh** is a modular, BEAM-native mesh networking stack for building
+resilient, decentralized applications on Elixir/Erlang. It is the mesh
+networking layer of the **mob** ecosystem (BEAM-on-device + plugins).
 
 It provides compact binary protocol framing, Noise XX encryption,
 store-and-forward message queuing, and pluggable transports (TCP, UDP,
 BLE) — all supervised as a first-class OTP application.
 
-## What MeshX Is
+> **Renamed from MeshX (2026-05):** the `meshx_*` umbrella was absorbed
+> into the `mob_*` package family for a single, consistent prefix across
+> the ecosystem. Wire format is unchanged; captured BLE advertisements
+> with the historical `meshx-` local-name prefix remain parseable. See
+> [CHANGELOG.md](CHANGELOG.md) for the full rename table and migration
+> notes.
+
+## What mob mesh Is
 
 - A **substrate library** for mesh networking inside a BEAM application
 - **Noise XX** end-to-end encryption between peers
@@ -17,7 +25,7 @@ BLE) — all supervised as a first-class OTP application.
 - **Identity pinning** with TOFU (trust-on-first-use) and allowlist policies
 - **Causality-agnostic** — no consensus, no global ordering, no leader election
 
-## What MeshX Is Not
+## What mob mesh Is Not
 
 - A **distributed consensus** system (no Raft, no Paxos)
 - An **application-level pub/sub broker** — topics and routing logic are the
@@ -32,7 +40,7 @@ BLE) — all supervised as a first-class OTP application.
 
 ## Quickstart
 
-Add MeshX to your `mix.exs`:
+Add `mob_runtime` to your `mix.exs`:
 
 ```elixir
 defp deps do
@@ -42,9 +50,10 @@ defp deps do
 end
 ```
 
-> **Note:** MeshX is not yet published to Hex. Installation is via `git`
-> dependency only until all umbrella apps can be published coherently. See
-> [`docs/RELEASE.md`](docs/RELEASE.md) for the planned Hex publish order.
+> **Note:** the `mob_*` umbrella is not yet published to Hex. Installation
+> is via `git` dependency only until all umbrella apps can be published
+> coherently. See [`docs/RELEASE.md`](docs/RELEASE.md) for the planned
+> publish order.
 
 Start a node and send a packet:
 
@@ -79,7 +88,6 @@ child apps:
 - **`mob_store`** — CubDB persistence, ETS dedupe, relay cache, and outbox
 - **`mob_routing`** — Transport behavior plus in-memory and TCP transports
 - **`mob_routing_ble`** — Bluetooth Low Energy (BLE) native bridge adapter
-- **`mob_node`** — Mobile platform context and transport metadata helpers
 
 ### Runtime
 
@@ -87,8 +95,10 @@ child apps:
 
 ### Mobile App
 
-- **`mob_node`** — Mob-based iOS app shell. Runs the MeshX runtime inside
-  the on-device BEAM and delegates platform BLE to a native bridge contract.
+- **`mob_node`** — Mob-based mobile app shell. Runs the mob mesh runtime
+  inside the on-device BEAM and delegates platform BLE to a native bridge
+  contract. Also hosts the chat MVP (`Mob.Node.Chat.*`,
+  `Mob.Node.ChatScreen`, `Mob.Node.ChannelsScreen`).
 
 ## Implemented Components
 
@@ -97,8 +107,8 @@ child apps:
 - `Mob.Store.DB`, `Identity`, `Trust`, `Message`, `Outbox`, `Dedupe`, and `RelayCache`
 - `Mob.Routing.Peer`, `Capabilities`, `Event`, `Memory`, `Memory.Hub`, `TCP`, `UDP`, and `QUIC`
 - `Mob.Routing.BLE.Bridge`, `NoopBridge`, `PortBridge`, and `BluezBridge`
-- `Mob.Node.Platform`
-- `Mob.Node.Session`, `HomeScreen`, and native bridge contract
+- `Mob.Node.Platform`, `Session`, `HomeScreen`, `ChatScreen`, `ChannelsScreen`, and native bridge contract
+- `Mob.Node.Chat.Identity`, `Composer`, `ChannelViewModel`, and `ChannelNativeSurface`
 - `Mob.Runtime.SessionManager`, `FragmentBuffer`, `PeerRegistry`, `Router`, `Outbox`, and `Topology`
 
 ## Transport and Runtime Status
@@ -141,7 +151,7 @@ retry attempts until `max_attempts` marks the row failed.
 
 `Mob.Routing.TCP` provides a real node-to-node transport for local networks
 and test deployments. Endpoints listen on a TCP port, exchange peer IDs and
-metadata during a transport handshake, then carry MeshX protocol frames as
+metadata during a transport handshake, then carry mob mesh protocol frames as
 length-prefixed TCP messages. Runtime nodes attach it the same way as other
 transports:
 
@@ -158,7 +168,7 @@ bridge modules behind the same behaviour.
 
 ## Documentation
 
-Read the contracts first — they define what MeshX guarantees and what it
+Read the contracts first — they define what mob mesh guarantees and what it
 does not:
 
 - **[v1 Contracts](docs/CONTRACTS.md)** — normative boundary doc. Read this first.
@@ -167,6 +177,8 @@ does not:
 - [Runtime API](docs/RUNTIME_API.md)
 - [Transport Integration](docs/TRANSPORTS.md)
 - [BLE Native Bridge Guide](docs/BLE_BRIDGE.md)
+- [Chat MVP Architecture](docs/chat_interface_mvp.md) — `Mob.Node.Chat.*`
+  module layout, identity contract, send/receive flow
 - [BLE Remaining Items Audit](docs/remaining_items_audit.md) — focused status
   for the iOS responder proof, direct full-MX AUX boundary, upstream Mob PRs,
   and `--no-start` startup fix
@@ -193,16 +205,16 @@ Relay broadcasts skip peers that advertise `relay: false`.
 ## High-Level Architecture
 
 ```
-┌─────────────────────────────────────────────────────┐
-│                   mob_runtime                     │
-│  (Application + Supervisor)                         │
-├─────────────────────────────────────────────────────┤
-│  mob_protocol   mob_noise     mob_store      │
-│  mob_routing  mob_routing_ble  mob_node   │
-├─────────────────────────────────────────────────────┤
-│                   mob_node                  │
-│       (Mob iOS shell + mobile session boundary)     │
-└─────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                       mob_runtime                           │
+│             (Application + Supervisor)                      │
+├─────────────────────────────────────────────────────────────┤
+│  mob_protocol   mob_noise        mob_store                  │
+│  mob_routing    mob_routing_ble                             │
+├─────────────────────────────────────────────────────────────┤
+│                        mob_node                             │
+│       (mobile shell + chat MVP + native BLE bridge)         │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 All components follow BEAM-oriented design practices:
@@ -215,8 +227,6 @@ All components follow BEAM-oriented design practices:
 ## Development
 
 ```bash
-cd mob
-
 # Build everything
 mix deps.get
 mix compile
