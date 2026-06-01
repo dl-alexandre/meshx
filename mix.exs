@@ -1,4 +1,4 @@
-defmodule Mob.MixProject do
+defmodule MobMesh.MixProject do
   use Mix.Project
 
   @github_url "https://github.com/dl-alexandre/mob"
