@@ -1,12 +1,12 @@
 import XCTest
-@testable import Mob.Node
+@testable import MeshxMobile
 
 /// Pure-protocol round-trip tests for the MFQ/MFR wire format —
 /// no CoreBluetooth, no devices required.
 ///
 /// These prove the encode/decode pairs in `FetchProtocol` are
 /// inverses of each other and that the responder's
-/// `MobFetchGattResponder` (when given a parsed request) prepares
+/// `FetchGattResponder` (when given a parsed request) prepares
 /// bytes the client's `FetchGattClient` can correctly decode.
 ///
 /// Hardware-level GATT delivery is exercised by the Android
@@ -44,7 +44,7 @@ final class FetchProtocolRoundTripTests: XCTestCase {
         let original = FetchProtocol.Request(
             requestId: "abc-123",
             messageIdHash: Data([0xA1, 0xB2, 0xC3, 0xD4, 0xE5, 0xF6, 0x07, 0x18]),
-            requesterPeerId: "mob-ios-test"
+            requesterPeerId: "meshx-ios-test"
         )
 
         let encoded = FetchProtocol.encodeRequest(original)
@@ -118,12 +118,12 @@ final class FetchProtocolRoundTripTests: XCTestCase {
 
     func testResponderRefusesInvalidEnvelopeAtInit() {
         XCTAssertThrowsError(
-            try MobFetchGattResponder(
+            try FetchGattResponder(
                 envelope: Data([0xFF, 0xFF, 0xFF]),  // not "MX..."
                 responderPeerId: "test"
             )
         ) { error in
-            guard case MobFetchGattResponder.ResponderError.invalidEnvelope = error else {
+            guard case FetchGattResponder.ResponderError.invalidEnvelope = error else {
                 XCTFail("expected ResponderError.invalidEnvelope, got \(error)")
                 return
             }
@@ -138,11 +138,11 @@ final class FetchProtocolRoundTripTests: XCTestCase {
             createdAt: 42,
             payload: Data("served-over-gatt".utf8)
         )
-        let beacon = MobLegacyBeaconAdvertisement.build(
+        let beacon = LegacyBeaconAdvertisement.build(
             messageId: messageId,
             senderPeerId: "ios-responder"
         )
-        let responder = try MobFetchGattResponder(
+        let responder = try FetchGattResponder(
             envelope: envelope,
             responderPeerId: "ios-responder"
         )
@@ -169,7 +169,7 @@ final class FetchProtocolRoundTripTests: XCTestCase {
             createdAt: 42,
             payload: Data("served-over-gatt".utf8)
         )
-        let responder = try MobFetchGattResponder(
+        let responder = try FetchGattResponder(
             envelope: envelope,
             responderPeerId: "ios-responder"
         )

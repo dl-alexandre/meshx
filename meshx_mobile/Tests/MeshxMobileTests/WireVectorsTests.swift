@@ -1,8 +1,8 @@
 import XCTest
-@testable import Mob.Node
+@testable import MeshxMobile
 
 /// Mirror of `docs/WIRE_VECTORS.md` and the Elixir-side
-/// `apps/mob_protocol/test/mob_protocol/wire_vectors_test.exs`.
+/// `apps/meshx_protocol/test/meshx_protocol/wire_vectors_test.exs`.
 /// If these fail, the Swift codec disagrees with the canonical bytes.
 final class WireVectorsTests: XCTestCase {
 

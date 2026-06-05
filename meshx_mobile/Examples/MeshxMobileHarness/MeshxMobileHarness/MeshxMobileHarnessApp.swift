@@ -1,7 +1,7 @@
 import SwiftUI
 
 @main
-struct Mob.NodeHarnessApp: App {
+struct MeshxMobileHarnessApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()

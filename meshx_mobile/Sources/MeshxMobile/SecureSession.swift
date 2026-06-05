@@ -27,7 +27,7 @@ public final class SecureSession {
     }
 
     public init(role: NoiseRole = .initiator) {
-        self.noiseSession = Mob.NoiseSession(role: role)
+        self.noiseSession = MeshxNoiseSession(role: role)
     }
 
     public init(noiseSession: NoiseSession) {

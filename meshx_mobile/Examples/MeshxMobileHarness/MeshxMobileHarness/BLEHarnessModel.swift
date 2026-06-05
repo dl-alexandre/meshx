@@ -1,5 +1,5 @@
 import Foundation
-import Mob.Node
+import MeshxMobile
 import Security
 
 struct HarnessEvent: Identifiable, Equatable {
@@ -67,19 +67,19 @@ final class BLEHarnessModel: NSObject, ObservableObject {
         }
         didHandleLaunchArguments = true
 
-        logMessageObserverDiscoveries = arguments.contains("--mob-log-discoveries")
-        logMessageObserverCandidateDiscoveries = arguments.contains("--mob-log-candidate-discoveries")
-        messageObserver.debugLogRawAdvertisementData = arguments.contains("--mob-log-raw-advert-data")
+        logMessageObserverDiscoveries = arguments.contains("--meshx-log-discoveries")
+        logMessageObserverCandidateDiscoveries = arguments.contains("--meshx-log-candidate-discoveries")
+        messageObserver.debugLogRawAdvertisementData = arguments.contains("--meshx-log-raw-advert-data")
         if messageObserver.debugLogRawAdvertisementData {
             print("MessageObserver: raw_advert_logging_enabled")
         }
 
-        let autoScan = arguments.contains("--mob-auto-scan")
-        let autoBeacon = arguments.contains("--mob-auto-beacon")
-        let autoBeaconBasic = arguments.contains("--mob-auto-beacon-basic")
-        let autoServiceAdvertise = arguments.contains("--mob-auto-service-advertise")
-        let autoDirectMxServiceAdvertise = arguments.contains("--mob-auto-direct-mx-service-advertise")
-        let autoDirectMxHybridAdvertise = arguments.contains("--mob-auto-direct-mx-hybrid-advertise")
+        let autoScan = arguments.contains("--meshx-auto-scan")
+        let autoBeacon = arguments.contains("--meshx-auto-beacon")
+        let autoBeaconBasic = arguments.contains("--meshx-auto-beacon-basic")
+        let autoServiceAdvertise = arguments.contains("--meshx-auto-service-advertise")
+        let autoDirectMxServiceAdvertise = arguments.contains("--meshx-auto-direct-mx-service-advertise")
+        let autoDirectMxHybridAdvertise = arguments.contains("--meshx-auto-direct-mx-hybrid-advertise")
 
         guard autoScan || autoBeacon || autoBeaconBasic || autoServiceAdvertise || autoDirectMxServiceAdvertise || autoDirectMxHybridAdvertise else {
             return
@@ -460,7 +460,7 @@ extension BLEHarnessModel: FetchGattResponderDelegate {
     }
 
     func fetchResponderDidServeRequest(
-        request: MobFetchProtocol.Request,
+        request: FetchProtocol.Request,
         status: UInt8
     ) {
         let requestHash = request.messageIdHash.map { String(format: "%02x", $0) }.joined()
@@ -492,7 +492,7 @@ extension BLEHarnessModel: MessageAdvertisementObserverDelegate {
         let isCandidate = serviceUUIDs.contains { $0.caseInsensitiveCompare(BLEUUID.service.uuidString) == .orderedSame }
             || serviceUUIDs.contains { $0.caseInsensitiveCompare(BLEUUID.directMxService.uuidString) == .orderedSame }
             || manufacturerDataLength >= 60
-            || (localName?.localizedCaseInsensitiveContains("mob") ?? false)
+            || (localName?.localizedCaseInsensitiveContains("meshx") ?? false)
 
         guard logMessageObserverDiscoveries || (logMessageObserverCandidateDiscoveries && isCandidate) else {
             return
@@ -511,12 +511,12 @@ extension BLEHarnessModel: MessageAdvertisementObserverDelegate {
         print("MessageObserver: state \(state)")
     }
 
-    func mobMessageObserverDidError(_ error: Error) {
+    func messageObserverDidError(_ error: Error) {
         print("MessageObserver: error \(String(describing: error))")
         record("Message observer error", detail: String(describing: error))
     }
 
-    func mobMessageObserverDidObserveLegacyBeacon(
+    func messageObserverDidObserveLegacyBeacon(
         _ beacon: LegacyBeaconAdvertisement,
         deviceId: String,
         rssi: Int

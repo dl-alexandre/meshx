@@ -1,5 +1,5 @@
 import XCTest
-@testable import Mob.Node
+@testable import MeshxMobile
 
 final class NoiseSessionTests: XCTestCase {
     func testBLAKE2sKnownVectors() {
@@ -20,12 +20,12 @@ final class NoiseSessionTests: XCTestCase {
     func testNoiseXXHandshakeAndTransportRoundTrip() throws {
         // Fixed vectors generated with a Noise rev34-compatible implementation
         // using the same static and ephemeral X25519 private keys below.
-        let initiator = try Mob.NoiseSession(
+        let initiator = try MeshxNoiseSession(
             role: .initiator,
             staticPrivateKey: Data(hex: "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f")!,
             ephemeralPrivateKey: Data(hex: "202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f")!
         )
-        let responder = try Mob.NoiseSession(
+        let responder = try MeshxNoiseSession(
             role: .responder,
             staticPrivateKey: Data(hex: "404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f")!,
             ephemeralPrivateKey: Data(hex: "606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f")!
@@ -80,14 +80,14 @@ final class NoiseSessionTests: XCTestCase {
     }
 
     func testNoiseRejectsTransportDecryptBeforeHandshakeCompletes() throws {
-        let session = Mob.NoiseSession(role: .initiator)
+        let session = MeshxNoiseSession(role: .initiator)
         XCTAssertThrowsError(try session.encrypt(Data([0x01]))) { err in
             XCTAssertEqual(err as? NoiseError, .handshakeIncomplete)
         }
     }
 
     /// Cross-implementation pinned vector — mirrors
-    /// `apps/mob_noise/test/mob_noise/interop_vector_test.exs` on
+    /// `apps/meshx_noise/test/meshx_noise/interop_vector_test.exs` on
     /// the Elixir Decibel side. Same four X25519 private keys
     /// (initiator + responder × static + ephemeral), same expected
     /// handshake messages, same expected handshake hash, same expected
@@ -104,12 +104,12 @@ final class NoiseSessionTests: XCTestCase {
     /// See project memory `[[noise-cross-impl-vector]]` for the full
     /// convention.
     func testNoiseXXHandshakeMatchesElixirInteropVector() throws {
-        let initiator = try Mob.NoiseSession(
+        let initiator = try MeshxNoiseSession(
             role: .initiator,
             staticPrivateKey: Data(hex: "1111111111111111111111111111111111111111111111111111111111111111")!,
             ephemeralPrivateKey: Data(hex: "2222222222222222222222222222222222222222222222222222222222222222")!
         )
-        let responder = try Mob.NoiseSession(
+        let responder = try MeshxNoiseSession(
             role: .responder,
             staticPrivateKey: Data(hex: "3333333333333333333333333333333333333333333333333333333333333333")!,
             ephemeralPrivateKey: Data(hex: "4444444444444444444444444444444444444444444444444444444444444444")!

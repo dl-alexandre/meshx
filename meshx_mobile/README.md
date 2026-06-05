@@ -1,10 +1,10 @@
-# Mob.Node (Swift Native Harness)
+# MeshxMobile (Swift Native Harness)
 
 iOS / macOS native harness for the MeshX BLE wire format specified in
 [`../docs/WIRE_FORMAT.md`](../docs/WIRE_FORMAT.md).
 
 The production mobile app surface is now the Mob app in
-[`../apps/mob_node`](../apps/mob_node). This Swift package is
+[`../apps/meshx_mobile_app`](../apps/meshx_mobile_app). This Swift package is
 kept for byte-vector interop tests, CoreBluetooth bridge work, and direct
 hardware smoke tests while the Mob native bridge is completed.
 
@@ -28,7 +28,7 @@ issues on macOS 26). Use `xcrun swift` if your default `swift` is from
 a third-party toolchain:
 
 ```sh
-cd mob_node
+cd meshx_mobile
 xcrun swift test
 ```
 
@@ -36,7 +36,7 @@ Or open `Package.swift` in Xcode and `Cmd+U`.
 
 ## iOS harness
 
-A small SwiftUI harness lives in `Examples/Mob.NodeHarness`. It scans for
+A small SwiftUI harness lives in `Examples/MeshxMobileHarness`. It scans for
 MeshX BLE peers, can advertise as a BLE peripheral responder, shows
 connection/events, and sends an encrypted ping once a secure peer is connected.
 Use it as a bridge-validation tool, not as the long-term app shell.
@@ -44,9 +44,9 @@ Use it as a bridge-validation tool, not as the long-term app shell.
 Generate the local Xcode project with XcodeGen:
 
 ```sh
-cd mob_node/Examples/Mob.NodeHarness
+cd meshx_mobile/Examples/MeshxMobileHarness
 xcodegen generate
-open Mob.NodeHarness.xcodeproj
+open MeshxMobileHarness.xcodeproj
 ```
 
 The generated `.xcodeproj` is ignored by git. Use a real iOS device for BLE
@@ -68,7 +68,7 @@ For a two-device iOS smoke test:
         |
         v
 +-------------------+   Noise transport encryption
-| MobSecureSession|   MXN1 handshake + plaintext/ciphertext frames
+| MeshxSecureSession|   MXN1 handshake + plaintext/ciphertext frames
 +-------------------+
         |
         v
@@ -88,8 +88,8 @@ For a two-device iOS smoke test:
         |
         v
 +-------------------+
-| MobBLEClient /  |   CoreBluetooth central/peripheral: RX writes,
-| MobBLEPeripheral|   TX notifications
+| MeshxBLEClient /  |   CoreBluetooth central/peripheral: RX writes,
+| MeshxBLEPeripheral|   TX notifications
 +-------------------+
 ```
 
@@ -98,7 +98,7 @@ For a two-device iOS smoke test:
 1. **Smoke test against a Pi.** On a Linux+BlueZ host, run:
 
    ```sh
-   # From the mob Elixir umbrella root:
+   # From the meshx Elixir umbrella root:
    MESHX_NODE_ID=pi-receiver \
    MESHX_READY_FILE=/tmp/ble_ready \
    MESHX_PAYLOAD_FILE=/tmp/ble_payload.bin \
@@ -121,12 +121,12 @@ For a two-device iOS smoke test:
 ## Project layout
 
 ```
-mob_node/
+meshx_mobile/
 ├── Package.swift
 ├── README.md
 ├── Examples/
-│   └── Mob.NodeHarness/ # SwiftUI iOS test app, generated with XcodeGen
-├── Sources/Mob.Node/
+│   └── MeshxMobileHarness/ # SwiftUI iOS test app, generated with XcodeGen
+├── Sources/MeshxMobile/
 │   ├── Frame.swift       # MeshX frame codec, CRC
 │   ├── Fragment.swift    # Application-level fragmentation
 │   ├── Chunk.swift       # MXB1 BLE chunk codec + reassembler
@@ -134,7 +134,7 @@ mob_node/
 │   ├── Noise.swift       # Noise XX session + MXN1 wrapper
 │   ├── SecureSession.swift # Frame/Noise bridge for BLE sessions
 │   └── BLE.swift         # CoreBluetooth client (hardware untested)
-└── Tests/Mob.NodeTests/
+└── Tests/MeshxMobileTests/
     ├── NoiseSessionTests.swift
     ├── SecureSessionTests.swift
     └── WireVectorsTests.swift

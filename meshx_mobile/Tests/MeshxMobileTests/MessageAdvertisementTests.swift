@@ -1,6 +1,6 @@
 import XCTest
 import CryptoKit
-@testable import Mob.Node
+@testable import MeshxMobile
 
 final class MessageAdvertisementTests: XCTestCase {
     private let envelopeBase64 = "TVgBAAAAAAAAAAAAAAAAAAAAAAEAAAGLz+VoAAELbWVzaHgtYWxwaGEKbWVzaHgtYmV0YQJUWAAAAmhp"
@@ -16,7 +16,7 @@ final class MessageAdvertisementTests: XCTestCase {
         let manufacturerData = Data([0xFF, 0xFF]) + payload
 
         let beacon = try XCTUnwrap(
-            MobLegacyBeaconAdvertisement.parse(manufacturerData: manufacturerData)
+            LegacyBeaconAdvertisement.parse(manufacturerData: manufacturerData)
         )
 
         XCTAssertEqual(beacon.beaconVersion, 1)
@@ -36,9 +36,9 @@ final class MessageAdvertisementTests: XCTestCase {
             8, 7, 6, 5, 4, 3, 2, 1
         ])
 
-        XCTAssertNil(MobLegacyBeaconAdvertisement.parse(manufacturerData: Data([0x4C, 0x00]) + validPayload))
-        XCTAssertNil(MobLegacyBeaconAdvertisement.parse(manufacturerData: Data([0xFF, 0xFF]) + validPayload.dropLast()))
-        XCTAssertNil(MobLegacyBeaconAdvertisement.parse(manufacturerData: Data([0xFF, 0xFF, 0x4D, 0x58]) + validPayload.dropFirst(2)))
+        XCTAssertNil(LegacyBeaconAdvertisement.parse(manufacturerData: Data([0x4C, 0x00]) + validPayload))
+        XCTAssertNil(LegacyBeaconAdvertisement.parse(manufacturerData: Data([0xFF, 0xFF]) + validPayload.dropLast()))
+        XCTAssertNil(LegacyBeaconAdvertisement.parse(manufacturerData: Data([0xFF, 0xFF, 0x4D, 0x58]) + validPayload.dropFirst(2)))
     }
 
     func testParsesM14EnvelopeFixture() throws {
@@ -50,8 +50,8 @@ final class MessageAdvertisementTests: XCTestCase {
         }
 
         XCTAssertEqual(envelope.messageId, Data(repeating: 0, count: 15) + Data([1]))
-        XCTAssertEqual(envelope.senderPeerId, "mob-alpha")
-        XCTAssertEqual(envelope.recipientPeerId, "mob-beta")
+        XCTAssertEqual(envelope.senderPeerId, "meshx-alpha")
+        XCTAssertEqual(envelope.recipientPeerId, "meshx-beta")
         XCTAssertEqual(envelope.createdAt, 1_700_000_000_000)
         XCTAssertEqual(envelope.ttl, 1)
         XCTAssertEqual(envelope.payloadType, "TX")
@@ -76,8 +76,8 @@ final class MessageAdvertisementTests: XCTestCase {
         }
 
         XCTAssertEqual(event.messageId, Data(repeating: 0, count: 15) + Data([1]))
-        XCTAssertEqual(event.senderPeerId, "mob-alpha")
-        XCTAssertEqual(event.recipientPeerId, "mob-beta")
+        XCTAssertEqual(event.senderPeerId, "meshx-alpha")
+        XCTAssertEqual(event.recipientPeerId, "meshx-beta")
         XCTAssertEqual(event.receivedDeviceId, "observer-device")
         XCTAssertEqual(event.receivedAt, 12_345)
         XCTAssertEqual(event.rssi, -61)
@@ -101,8 +101,8 @@ final class MessageAdvertisementTests: XCTestCase {
         }
         let event = ReceivedMessageEvent(
             messageId: Data(repeating: 7, count: 16),
-            senderPeerId: "mob-\"alpha\\one",
-            recipientPeerId: "mob\nbeta",
+            senderPeerId: "meshx-\"alpha\\one",
+            recipientPeerId: "meshx\nbeta",
             receivedDeviceId: "observer\"device",
             receivedAt: 42,
             rssi: -1,
@@ -127,8 +127,8 @@ final class MessageAdvertisementTests: XCTestCase {
         XCTAssertEqual(object["event"] as? String, "received_message")
         XCTAssertEqual(object["v"] as? Int, 1)
         XCTAssertEqual(object["message_id"] as? String, event.messageId.base64EncodedString())
-        XCTAssertEqual(object["sender_peer_id"] as? String, "mob-\"alpha\\one")
-        XCTAssertEqual(object["recipient_peer_id"] as? String, "mob\nbeta")
+        XCTAssertEqual(object["sender_peer_id"] as? String, "meshx-\"alpha\\one")
+        XCTAssertEqual(object["recipient_peer_id"] as? String, "meshx\nbeta")
         XCTAssertEqual(object["received_device_id"] as? String, "observer\"device")
         XCTAssertEqual(object["received_at"] as? UInt64, 42)
         XCTAssertEqual(object["rssi"] as? Int, -1)
@@ -188,15 +188,15 @@ final class MessageAdvertisementTests: XCTestCase {
 
     func testLegacyBeaconBuildProducesByteLayoutPerWireSpec() {
         let messageId = Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15])
-        let senderPeerId = "mob-ios"
+        let senderPeerId = "meshx-ios"
 
-        let beacon = MobLegacyBeaconAdvertisement.build(
+        let beacon = LegacyBeaconAdvertisement.build(
             messageId: messageId,
             senderPeerId: senderPeerId,
             payloadKind: "TX"
         )
 
-        XCTAssertEqual(beacon.beaconPayload.count, MobLegacyBeaconAdvertisement.payloadSize)
+        XCTAssertEqual(beacon.beaconPayload.count, LegacyBeaconAdvertisement.payloadSize)
         // M B (magic) then versions, kind, flags.
         XCTAssertEqual(beacon.beaconPayload[0], 0x4D)
         XCTAssertEqual(beacon.beaconPayload[1], 0x42)
@@ -234,15 +234,15 @@ final class MessageAdvertisementTests: XCTestCase {
             0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77,
             0x88, 0x99, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF
         ])
-        let senderPeerId = "mob-t577u"
+        let senderPeerId = "meshx-t577u"
 
-        let built = MobLegacyBeaconAdvertisement.build(
+        let built = LegacyBeaconAdvertisement.build(
             messageId: messageId,
             senderPeerId: senderPeerId
         )
 
         let parsed = try XCTUnwrap(
-            MobLegacyBeaconAdvertisement.parse(manufacturerData: built.manufacturerData)
+            LegacyBeaconAdvertisement.parse(manufacturerData: built.manufacturerData)
         )
 
         XCTAssertEqual(parsed.beaconVersion, built.beaconVersion)
@@ -263,9 +263,9 @@ final class MessageAdvertisementTests: XCTestCase {
         // This test pins the hash inputs and verifies that property by
         // recomputing the truncation independently here.
         let messageId = Data([0xDE, 0xAD, 0xBE, 0xEF] + Array(repeating: UInt8(0), count: 12))
-        let senderPeerId = "mob-android-test"
+        let senderPeerId = "meshx-android-test"
 
-        let beacon = MobLegacyBeaconAdvertisement.build(
+        let beacon = LegacyBeaconAdvertisement.build(
             messageId: messageId,
             senderPeerId: senderPeerId
         )
@@ -280,7 +280,7 @@ final class MessageAdvertisementTests: XCTestCase {
     func testIOSParseDecodesAndroidEmittedBeaconByteForByte() throws {
         // Bytes captured from the bidirectional run on real hardware
         // (commit cd5b473, T390 dispatching a beacon decoded by T577U):
-        //   MobBleDispatch: legacy_beacon_advertising_started
+        //   MeshxBleDispatch: legacy_beacon_advertising_started
         //     beacon = "TUIBAQEAIfYKelgWpNr3CAbt3ChbzA=="  (22 bytes)
         //     message_id_hash    = "IfYKelgWpNo="          (8 bytes)
         //     sender_peer_id_hash = "9wgG7dwoW8w="          (8 bytes)
@@ -302,7 +302,7 @@ final class MessageAdvertisementTests: XCTestCase {
         manufacturerData.append(beaconPayload)
 
         let parsed = try XCTUnwrap(
-            MobLegacyBeaconAdvertisement.parse(manufacturerData: manufacturerData)
+            LegacyBeaconAdvertisement.parse(manufacturerData: manufacturerData)
         )
 
         XCTAssertEqual(parsed.beaconVersion, 1)
@@ -321,7 +321,7 @@ final class MessageAdvertisementTests: XCTestCase {
     }
 
     func testLegacyBeaconBuildAcceptsUnknownPayloadKindCodeZero() {
-        let beacon = MobLegacyBeaconAdvertisement.build(
+        let beacon = LegacyBeaconAdvertisement.build(
             messageId: Data(repeating: 0xAA, count: 16),
             senderPeerId: "x",
             payloadKind: "OTHER"
@@ -330,7 +330,7 @@ final class MessageAdvertisementTests: XCTestCase {
         XCTAssertEqual(beacon.beaconPayload[4], 0) // kindCode = 0 for non-TX
 
         // parse maps kindCode 0 → "unknown" (per existing parse logic).
-        let parsed = MobLegacyBeaconAdvertisement.parse(
+        let parsed = LegacyBeaconAdvertisement.parse(
             manufacturerData: beacon.manufacturerData
         )
         XCTAssertEqual(parsed?.payloadKind, "unknown")
