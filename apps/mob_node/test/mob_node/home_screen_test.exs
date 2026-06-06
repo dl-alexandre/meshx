@@ -3,6 +3,12 @@ defmodule Mob.Node.HomeScreenTest do
 
   alias Mob.Node.HomeScreen
 
+  setup do
+    Application.ensure_all_started(:mob_store)
+    ensure_db_started()
+    :ok
+  end
+
   defp mounted_socket do
     socket = Mob.Socket.new(HomeScreen)
     assert {:ok, socket} = HomeScreen.mount(%{}, %{}, socket)
@@ -14,6 +20,17 @@ defmodule Mob.Node.HomeScreenTest do
     end)
 
     socket
+  end
+
+  defp ensure_db_started do
+    case Mob.Store.DB.start_link([]) do
+      {:ok, pid} ->
+        Process.unlink(pid)
+        :ok
+
+      {:error, {:already_started, _pid}} ->
+        :ok
+    end
   end
 
   test "mount initializes nearby messages control state" do

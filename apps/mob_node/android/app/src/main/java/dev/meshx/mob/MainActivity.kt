@@ -248,6 +248,11 @@ class MainActivity : ComponentActivity() {
             }
         }
 
+        if (intent?.extras?.getBoolean("mob_ble_full_mx_send", false) == true) {
+            android.system.Os.setenv("MOB_BLE_FULL_MX_SEND", "1", true)
+            Log.i(TAG, "onCreate: MOB_BLE_FULL_MX_SEND=1")
+        }
+
         if (intent?.extras?.containsKey("mob_ble_selftest_send") == true) {
             val enabled = intent?.extras?.getBoolean("mob_ble_selftest_send", true) != false
             android.system.Os.setenv("MESHX_BLE_SELFTEST_SEND", if (enabled) "1" else "0", true)
