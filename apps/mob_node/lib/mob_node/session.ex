@@ -12,6 +12,7 @@ defmodule Mob.Node.Session do
 
   alias Mob.Node.BLE.Adapter
   alias Mob.Node.BLE.Events
+  alias Mob.Node.Chat.RouterIngress
   alias Mob.Node.BLE.LocalInbox
   alias Mob.Node.BLE.LocalInboxStore
   alias Mob.Node.BLE.PeerTable
@@ -81,6 +82,7 @@ defmodule Mob.Node.Session do
       restored_local_inbox: restored_local_inbox
     }
 
+    Mob.Node.MeshStatus.publish_session_hint(session_hint(state))
     {:ok, state}
   end
 
@@ -213,6 +215,8 @@ defmodule Mob.Node.Session do
   end
 
   def handle_info({Adapter, :event, %Events.ReceivedMessage{} = e}, s) do
+    _ = RouterIngress.forward_received_message(e)
+
     detail =
       "#{e.sender_peer_id} -> #{e.recipient_peer_id || "broadcast"}: " <>
         "#{byte_size(e.envelope.payload)} bytes"
@@ -303,7 +307,7 @@ defmodule Mob.Node.Session do
   defp to_snapshot(state) do
     state
     |> Map.take([:mode, :status, :peer_id, :events, :peers])
-    |> Map.put(:local_inbox, LocalInbox.snapshot(state.local_inbox))
+    |> Map.put(:local_inbox, LocalInbox.product_snapshot(state.local_inbox))
     |> Map.put(:local_inbox_persistence, persistence_snapshot(state.local_inbox_persistence))
     |> Map.put(:restored_local_inbox, state.restored_local_inbox)
   end
@@ -402,7 +406,12 @@ defmodule Mob.Node.Session do
 
   defp broadcast(state) do
     snapshot = to_snapshot(state)
+    Mob.Node.MeshStatus.publish_session_hint(session_hint(state))
     Enum.each(state.subscribers, &send(&1, {__MODULE__, :updated, snapshot}))
+  end
+
+  defp session_hint(state) do
+    Map.take(state, [:mode, :status, :peer_id])
   end
 
   defp rt_probe(phase, event, metadata) do

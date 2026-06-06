@@ -74,7 +74,7 @@ defmodule Mob.Node.BLE.LocalSecurityAuthorshipProof do
           {:ok, Proof.t()} | {:error, verify_error()}
   def sign(%MessageEnvelope{} = envelope, private_key, key_id)
       when is_binary(private_key) and is_binary(key_id) do
-    with :ok <- validate_private_key(private_key),
+    with {:ok, seed} <- normalize_private_key(private_key),
          :ok <- validate_key_id(key_id),
          {:ok, payload} <- signing_payload(envelope) do
       proof = %Proof{
@@ -82,7 +82,7 @@ defmodule Mob.Node.BLE.LocalSecurityAuthorshipProof do
         algorithm: @algorithm,
         key_id: key_id,
         signer_peer_id: envelope.sender_peer_id,
-        signature: :crypto.sign(:eddsa, :none, payload, [private_key, :ed25519])
+        signature: :crypto.sign(:eddsa, :none, payload, [seed, :ed25519])
       }
 
       {:ok, proof}
@@ -157,8 +157,21 @@ defmodule Mob.Node.BLE.LocalSecurityAuthorshipProof do
   defp validate_public_key(public_key) when byte_size(public_key) == @ed25519_key_size, do: :ok
   defp validate_public_key(_), do: {:error, :invalid_public_key}
 
-  defp validate_private_key(private_key) when byte_size(private_key) == @ed25519_key_size, do: :ok
+  # OTP 27+ `:crypto.generate_key(:eddsa, :ed25519)` may return a 64-byte
+  # private key (seed || public) on device; signing uses the 32-byte seed.
+  defp validate_private_key(private_key)
+       when byte_size(private_key) in [@ed25519_key_size, @ed25519_key_size * 2],
+       do: :ok
+
   defp validate_private_key(_), do: {:error, :invalid_private_key}
+
+  defp normalize_private_key(private_key) when byte_size(private_key) == @ed25519_key_size,
+    do: {:ok, private_key}
+
+  defp normalize_private_key(private_key) when byte_size(private_key) == @ed25519_key_size * 2,
+    do: {:ok, binary_part(private_key, 0, @ed25519_key_size)}
+
+  defp normalize_private_key(_), do: {:error, :invalid_private_key}
 
   defp validate_key_id(key_id) when is_binary(key_id) and byte_size(key_id) > 0, do: :ok
   defp validate_key_id(_), do: {:error, :invalid_key_id}

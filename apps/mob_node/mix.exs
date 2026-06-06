@@ -7,6 +7,8 @@ defmodule Mob.Node.MixProject do
       version: "0.1.0",
       elixir: "~> 1.18",
       start_permanent: false,
+      elixirc_paths: elixirc_paths(Mix.env()),
+      aliases: aliases(),
       deps: deps(),
       erlc_paths: ["src"],
       erlc_options: [:debug_info],
@@ -36,6 +38,16 @@ defmodule Mob.Node.MixProject do
 
   def application do
     [extra_applications: [:logger]]
+  end
+
+  defp elixirc_paths(:test), do: ["lib", "test/support"]
+  defp elixirc_paths(_), do: ["lib"]
+
+  defp aliases do
+    [
+      preinstall: "mob.node.guardrails",
+      guardrails: "mob.node.guardrails"
+    ]
   end
 
   defp deps do

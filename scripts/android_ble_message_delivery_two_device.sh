@@ -173,12 +173,40 @@ fi
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ANDROID_DIR="$ROOT/apps/mob_node/android"
-APK="$ANDROID_DIR/build/outputs/apk/debug/Mob.Node-debug.apk"
+APK="$ANDROID_DIR/app/build/outputs/apk/debug/app-debug.apk"
 SCRIPT_INVOCATION="$(
   ruby -rshellwords -e 'puts (["scripts/android_ble_message_delivery_two_device.sh"] + ARGV).shelljoin' \
     -- \
     "${ORIGINAL_ARGS[@]}"
 )"
+
+resolve_debug_apk() {
+  local candidates=(
+    "$ANDROID_DIR/app/build/outputs/apk/debug/app-debug.apk"
+    "$ANDROID_DIR/build/outputs/apk/debug/Mob.Node-debug.apk"
+  )
+  local candidate
+
+  for candidate in "${candidates[@]}"; do
+    if [[ -f "$candidate" ]]; then
+      APK="$candidate"
+      return 0
+    fi
+  done
+
+  candidate="$(
+    find "$ANDROID_DIR" -path '*/build/outputs/apk/debug/*.apk' -type f ! -name '*androidTest*' \
+      | sort \
+      | head -n 1
+  )"
+  if [[ -n "$candidate" ]]; then
+    APK="$candidate"
+    return 0
+  fi
+
+  echo "debug APK not found under $ANDROID_DIR" >&2
+  return 1
+}
 
 ensure_out_dir() {
   if [[ -z "$OUT_DIR" ]]; then
@@ -2018,6 +2046,7 @@ fi
 
 if [[ "$INSTALL" -eq 1 ]]; then
   (cd "$ANDROID_DIR" && ./gradlew --no-daemon assembleDebug)
+  resolve_debug_apk
   adb -s "$SENDER_SERIAL" install -r "$APK" >/dev/null
   adb -s "$OBSERVER_SERIAL" install -r "$APK" >/dev/null
 fi

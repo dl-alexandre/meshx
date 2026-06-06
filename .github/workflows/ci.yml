@@ -50,6 +50,17 @@ jobs:
           python3 -m py_compile apps/mob_routing_ble/priv/bin/mob_bluez_bridge
           python3 apps/mob_routing_ble/priv/bin/mob_bluez_bridge --self-test --require-dbus-next
 
+      # Fail fast before the full suite: catches silent production wiring bugs
+      # (adapter env drift, router transport not attached, chat ingress gaps).
+      - name: MobNode mesh and chat wiring guardrails
+        run: >
+          mix test
+          apps/mob_node/test/mob_node/production_wiring_test.exs
+          apps/mob_node/test/mob_node/mesh_status_test.exs
+          apps/mob_node/test/mob_node/chat/
+          apps/mob_node/test/mob_node/mob_ble_transport_wiring_test.exs
+          apps/mob_node/test/mob_node/ble/adapter_test.exs
+
       - name: Run tests
         run: mix test
 

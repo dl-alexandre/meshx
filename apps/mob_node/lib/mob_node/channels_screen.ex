@@ -14,6 +14,7 @@ defmodule Mob.Node.ChannelsScreen do
 
   use Mob.Screen
 
+  alias Mob.Node.MeshStatus
   alias Mob.Store.DB
 
   @joined_key {:chat, :joined_channels}
@@ -34,10 +35,13 @@ defmodule Mob.Node.ChannelsScreen do
 
   @impl Mob.Screen
   def render(assigns) do
+    readiness = MeshStatus.readiness()
+
     ~MOB"""
     <Scroll background={:background}>
       <Column background={:background} padding={:space_lg} gap={:space_md}>
         <Text text="Channels" text_size={:xl} text_color={:on_surface} />
+        {readiness_banner(readiness)}
         <Text text={summary_line(assigns.channels)} text_size={:sm} text_color={:muted} />
         {channel_list(assigns.channels)}
         {join_row(assigns)}
@@ -109,6 +113,19 @@ defmodule Mob.Node.ChannelsScreen do
   end
 
   # ── render helpers ──────────────────────────────────────────────────────
+
+  defp readiness_banner(%{state: state, headline: headline, detail: detail}) do
+    {background, headline_color, detail_color} = Mob.Node.MeshStatusBanner.colors_for(state)
+    tech = MeshStatus.line()
+
+    ~MOB"""
+    <Column background={background} padding={:space_md} gap={:space_sm}>
+      <Text text={headline} text_size={:md} text_color={headline_color} />
+      <Text text={detail} text_size={:sm} text_color={detail_color} />
+      <Text text={tech} text_size={:sm} text_color={:muted} />
+    </Column>
+    """
+  end
 
   defp channel_list(channels) do
     rows =

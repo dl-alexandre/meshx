@@ -166,6 +166,14 @@ through `mob_routing_ble`; Linux deployments can use the bundled BlueZ
 bridge, while iOS and Android deployments provide CoreBluetooth/Android BLE
 bridge modules behind the same behaviour.
 
+## AI agents
+
+- [`AGENTS.md`](AGENTS.md) — repo-wide guide (guardrails, wiring contracts, test map)
+- [`apps/mob_node/AGENTS.md`](apps/mob_node/AGENTS.md) — MobNode iOS/BLE/chat specifics
+- [`.cursor/rules/`](.cursor/rules/) — Cursor rules (always-on + path-scoped)
+
+Run wiring checks before device install: `mix mob.node.guardrails` (from repo root or `apps/mob_node`).
+
 ## Documentation
 
 Read the contracts first — they define what mob mesh guarantees and what it

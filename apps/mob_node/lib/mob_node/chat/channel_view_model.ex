@@ -191,8 +191,14 @@ defmodule Mob.Node.Chat.ChannelViewModel do
     }
   end
 
-  defp dispatch(nil, _packet), do: :ok
-  defp dispatch(router, packet), do: router.broadcast_packet(packet)
+  defp dispatch(nil, _packet), do: {:error, :router_unavailable}
+
+  defp dispatch(router, packet) do
+    case router.broadcast_packet(packet) do
+      :ok -> :ok
+      {:error, reason} -> {:error, {:broadcast_failed, reason}}
+    end
+  end
 
   # Identity carries both display peer_id (Base64URL) and wire_peer_id (raw
   # 32-byte public key); the outbound entry uses wire_peer_id so receivers

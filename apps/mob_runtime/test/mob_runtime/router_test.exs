@@ -122,6 +122,12 @@ defmodule Mob.Runtime.RouterTest do
     refute_receive {:mob_runtime, :packet, :memory, "remote", _packet}
   end
 
+  test "broadcast without attached transports returns :no_transports" do
+    Router.reset()
+    packet = Packet.new(:data, msg_id(), "orphan")
+    assert {:error, :no_transports} = Router.broadcast_packet(packet)
+  end
+
   test "broadcasts outbound packets through attached transports" do
     flush_transport_events()
     packet = Packet.new(:data, msg_id(), "outbound")

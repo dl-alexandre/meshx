@@ -60,6 +60,7 @@ defmodule Mob.Node.BLE.Adapter do
 
   @spec configured() :: module()
   def configured do
-    Application.get_env(:mob_node, :ble_adapter, Mob.Node.NativeBridge.Noop)
+    Application.get_env(:mob_node, :ble_adapter) ||
+      Application.get_env(:mob_node, :native_bridge, Mob.Node.NativeBridge.Noop)
   end
 end

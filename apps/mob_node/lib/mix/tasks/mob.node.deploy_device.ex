@@ -18,18 +18,16 @@ defmodule Mix.Tasks.Mob.Node.DeployDevice do
     mix = System.find_executable("mix") || "mix"
     System.cmd(mix, ["deps.get"], into: IO.stream())
     Mix.Task.run("compile")
+    Mob.Node.Guardrails.run!()
 
     with {:ok, cfg} <- signed_config(),
          {:ok, otp_root} <- MobDev.OtpDownloader.ensure_ios_device(),
          {:ok, python_bundle} <- maybe_ensure_python_bundle() do
-      script =
-        cfg
-        |> generate_build_device_sh(otp_root)
-        |> Mob.Node.IOSDeviceBuild.bridge_linked_script()
+      {script_path, wrote_script?} = resolve_build_device_script(cfg, otp_root)
 
-      script_path = Path.join(["ios", "build_device_mob.sh"])
-      File.write!(script_path, script)
-      File.chmod!(script_path, 0o755)
+      if wrote_script? do
+        File.chmod!(script_path, 0o755)
+      end
 
       env = build_device_env(cfg, otp_root, python_bundle, opts)
 
@@ -152,6 +150,25 @@ defmodule Mix.Tasks.Mob.Node.DeployDevice do
     end
   end
 
+  defp resolve_build_device_script(cfg, otp_root) do
+    meshx_script = Path.join(["ios", "build_device_meshx.sh"])
+
+    cond do
+      File.exists?(meshx_script) ->
+        {meshx_script, false}
+
+      true ->
+        script =
+          cfg
+          |> generate_build_device_sh(otp_root)
+          |> Mob.Node.IOSDeviceBuild.bridge_linked_script()
+
+        script_path = Path.join(["ios", "build_device_mob.sh"])
+        File.write!(script_path, script)
+        {script_path, true}
+    end
+  end
+
   defp generate_build_device_sh(cfg, otp_root) do
     with {:module, module} <- Code.ensure_loaded(MobDev.NativeBuild),
          true <- function_exported?(module, :generate_build_device_sh, 2) do
@@ -160,8 +177,7 @@ defmodule Mix.Tasks.Mob.Node.DeployDevice do
       _ ->
         Mix.raise("""
         MobDev.NativeBuild.generate_build_device_sh/2 is not available in this mob_dev version.
-        Use `mix mob.deploy --native --platform ios --device <udid>` or migrate
-        mob.node.deploy_device to the current Mob native build pipeline.
+        Ensure ios/build_device_meshx.sh exists or upgrade mob_dev.
         """)
     end
   end

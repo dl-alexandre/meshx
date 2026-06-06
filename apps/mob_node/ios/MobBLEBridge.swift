@@ -364,7 +364,7 @@ extension MobNativeBLEBridge: MessageAdvertisementObserverDelegate {
                     adType: LegacyBeaconAdvertisement.manufacturerDataAdType
                 )
             )
-            mobDidObserveReceivedMessage(event)
+            didObserveReceivedMessage(event)
         case .failure(let reason):
             emitError("gatt_fetch_decode_error: \(reason)")
         }

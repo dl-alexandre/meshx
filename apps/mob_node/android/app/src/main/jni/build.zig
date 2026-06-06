@@ -105,6 +105,7 @@ pub fn build(b: *std.Build) void {
         // the driver_tab references all live in mob_nif.zig now.
         .{ .name = "mob_nif", .source = b.fmt("{s}/android/jni/mob_nif.zig", .{mob_dir}) },
         .{ .name = "mob_beam", .source = b.fmt("{s}/android/jni/mob_beam.zig", .{mob_dir}) },
+        .{ .name = "mob_ble_nif", .source = b.fmt("{s}/../mob_ble/priv/native/android/jni/mob_ble_nif.c", .{project_root}) },
         .{ .name = "beam_jni", .source = b.fmt("{s}/beam_jni.c", .{project_jni_dir}) },
     };
 

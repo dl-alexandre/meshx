@@ -138,6 +138,13 @@ final class BLEHarnessModel: NSObject, ObservableObject {
                 self.fetchResponder = responder
                 responder.start()
                 self.peripheral.startBeaconAdvertising(beacon)
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self, weak responder] in
+                    guard let self, let responder, self.fetchResponder === responder else { return }
+                    self.peripheral.stopAdvertising()
+                    responder.stop()
+                    responder.start()
+                    print("MessageObserver: fetch_responder_restarted_after_beacon")
+                }
             } catch {
                 print("MessageObserver: fetch_responder_start_failed error=\(String(describing: error))")
                 return

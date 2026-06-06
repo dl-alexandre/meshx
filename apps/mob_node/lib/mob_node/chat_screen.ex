@@ -17,18 +17,14 @@ defmodule Mob.Node.ChatScreen do
   use Mob.Screen
 
   alias Mob.Node.Chat.{ChannelNativeSurface, ChannelViewModel, Identity}
+  alias Mob.Node.MeshStatus
 
   @impl Mob.Screen
   def mount(params, _session, socket) do
     channel = Map.get(params, "channel", "#general")
     {:ok, vm} = ChannelViewModel.start_link(channel: channel)
     {:ok, snapshot} = ChannelViewModel.subscribe(vm)
-
-    # Identity.get/0's spec is `{:ok, t()}`; let the screen crash on init if
-    # the store isn't up so the supervisor surfaces the real cause instead of
-    # masking it as a "nil sender" UX bug. The wire_peer_id (raw 32 bytes) is
-    # what envelopes carry, so `from_self?` row tagging matches consistently.
-    {:ok, %{wire_peer_id: local_peer_id}} = Identity.get()
+    {:ok, identity} = Identity.get()
 
     socket =
       socket
@@ -36,7 +32,8 @@ defmodule Mob.Node.ChatScreen do
       |> Mob.Socket.assign(:channel, channel)
       |> Mob.Socket.assign(:draft, "")
       |> Mob.Socket.assign(:status_line, nil)
-      |> Mob.Socket.assign(:local_peer_id, local_peer_id)
+      |> Mob.Socket.assign(:local_peer_id, identity.wire_peer_id)
+      |> Mob.Socket.assign(:nickname_for, nickname_for_fn(identity))
       |> assign_snapshot(snapshot)
 
     {:ok, socket}
@@ -44,16 +41,22 @@ defmodule Mob.Node.ChatScreen do
 
   @impl Mob.Screen
   def render(assigns) do
+    readiness = MeshStatus.readiness()
+
     surface =
-      ChannelNativeSurface.build(assigns.snapshot, local_peer_id: assigns.local_peer_id)
+      ChannelNativeSurface.build(assigns.snapshot,
+        local_peer_id: assigns.local_peer_id,
+        nickname_for: assigns.nickname_for
+      )
 
     ~MOB"""
     <Scroll background={:background}>
       <Column background={:background} padding={:space_lg} gap={:space_md}>
         <Text text={surface.title} text_size={:xl} text_color={:on_surface} />
+        {readiness_banner(readiness)}
         <Text text={message_count_line(surface)} text_size={:sm} text_color={:muted} />
         {messages(surface)}
-        {compose_row(assigns, surface)}
+        {compose_row(assigns, surface, readiness)}
         {status_line(assigns.status_line)}
       </Column>
     </Scroll>
@@ -66,6 +69,22 @@ defmodule Mob.Node.ChatScreen do
   end
 
   def handle_info({:tap, :send}, socket) do
+    readiness = MeshStatus.readiness()
+
+    unless MeshStatus.ready_for_chat?(readiness) do
+      {:noreply, Mob.Socket.assign(socket, :status_line, readiness.detail)}
+    else
+      send_draft(socket)
+    end
+  end
+
+  def handle_info({ChannelViewModel, :updated, snapshot}, socket) do
+    {:noreply, assign_snapshot(socket, snapshot)}
+  end
+
+  def handle_info(_other, socket), do: {:noreply, socket}
+
+  defp send_draft(socket) do
     draft = String.trim(socket.assigns.draft || "")
 
     case draft do
@@ -83,18 +102,42 @@ defmodule Mob.Node.ChatScreen do
             {:noreply, socket}
 
           {:error, reason} ->
-            {:noreply, Mob.Socket.assign(socket, :status_line, "Send failed: #{inspect(reason)}")}
+            msg = send_error_message(reason)
+            {:noreply, Mob.Socket.assign(socket, :status_line, msg)}
         end
     end
   end
 
-  def handle_info({ChannelViewModel, :updated, snapshot}, socket) do
-    {:noreply, assign_snapshot(socket, snapshot)}
+  defp nickname_for_fn(%{wire_peer_id: local_wire, nickname: local_nick}) do
+    fn peer_id ->
+      if peer_id == local_wire do
+        local_nick
+      else
+        Identity.default_nickname(display_peer_id(peer_id))
+      end
+    end
   end
 
-  def handle_info(_other, socket), do: {:noreply, socket}
+  defp display_peer_id(wire) when is_binary(wire) and byte_size(wire) > 0 do
+    Base.url_encode64(wire, padding: false)
+  end
+
+  defp display_peer_id(_), do: "unknown"
 
   # ── render helpers ──────────────────────────────────────────────────────
+
+  defp readiness_banner(%{state: state, headline: headline, detail: detail}) do
+    {background, headline_color, detail_color} = Mob.Node.MeshStatusBanner.colors_for(state)
+    tech = MeshStatus.line()
+
+    ~MOB"""
+    <Column background={background} padding={:space_md} gap={:space_sm}>
+      <Text text={headline} text_size={:md} text_color={headline_color} />
+      <Text text={detail} text_size={:sm} text_color={detail_color} />
+      <Text text={tech} text_size={:sm} text_color={:muted} />
+    </Column>
+    """
+  end
 
   defp assign_snapshot(socket, snapshot) do
     Mob.Socket.assign(socket, :snapshot, snapshot)
@@ -135,9 +178,12 @@ defmodule Mob.Node.ChatScreen do
 
   defp row_body(row), do: row.body
 
-  defp compose_row(assigns, surface) do
+  defp compose_row(assigns, surface, readiness) do
     on_change = {self(), :draft}
     send_tap = {self(), :send}
+    enabled = MeshStatus.ready_for_chat?(readiness)
+    send_bg = if enabled, do: :primary, else: :surface
+    send_fg = if enabled, do: :on_primary, else: :muted
 
     ~MOB"""
     <Row fill_width={true} gap={:space_sm}>
@@ -150,8 +196,8 @@ defmodule Mob.Node.ChatScreen do
       />
       <Button
         text="Send"
-        background={:primary}
-        text_color={:on_primary}
+        background={send_bg}
+        text_color={send_fg}
         padding={:space_md}
         on_tap={send_tap}
       />
@@ -164,4 +210,15 @@ defmodule Mob.Node.ChatScreen do
   defp status_line(line) do
     ~MOB(<Text text={line} text_size={:sm} text_color={:muted} />)
   end
+
+  defp send_error_message({:broadcast_failed, :no_transports}),
+    do: "Send failed: mesh transport not started. Restart the app."
+
+  defp send_error_message({:broadcast_failed, _reason}),
+    do: "Send failed: mesh transport unavailable. On Home, tap Start Scan or Advertise."
+
+  defp send_error_message(:router_unavailable),
+    do: "Send failed: mesh router not running."
+
+  defp send_error_message(reason), do: "Send failed: #{inspect(reason)}"
 end

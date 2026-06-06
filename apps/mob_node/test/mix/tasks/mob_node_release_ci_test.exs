@@ -74,6 +74,18 @@ defmodule Mix.Tasks.Mob.NodeReleaseCITest do
     assert workflow =~ ~s(local-completion-audit.txt)
     assert workflow =~ ~s(release["whole_project_complete?"] == false)
     assert workflow =~ ~s(release["policy_gates"]["routing"]["routing_claims_allowed?"] == false)
+
+    assert workflow =~ "MobNode mesh and chat wiring guardrails"
+    assert workflow =~ "apps/mob_node/test/mob_node/production_wiring_test.exs"
+    assert workflow =~ "apps/mob_node/test/mob_node/mesh_status_test.exs"
+    assert workflow =~ "apps/mob_node/test/mob_node/chat/"
+    assert workflow =~ "apps/mob_node/test/mob_node/mob_ble_transport_wiring_test.exs"
+    assert workflow =~ "apps/mob_node/test/mob_node/ble/adapter_test.exs"
+  end
+
+  test "device deploy runs guardrails before install" do
+    source = File.read!("lib/mix/tasks/mob.node.deploy_device.ex")
+    assert source =~ "Mob.Node.Guardrails.run!()"
   end
 
   test "release docs require plain-text completion audit open item review" do

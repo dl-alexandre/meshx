@@ -659,6 +659,14 @@ defmodule Mob.Runtime.Router do
   end
 
   defp broadcast(packet, opts, state) do
+    if map_size(state.transports) == 0 do
+      {:error, :no_transports}
+    else
+      do_broadcast(packet, opts, state)
+    end
+  end
+
+  defp do_broadcast(packet, opts, state) do
     case encode_frames(packet, nil, opts) do
       {:ok, frames} ->
         results =

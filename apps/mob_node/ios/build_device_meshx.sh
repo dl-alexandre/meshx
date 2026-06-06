@@ -387,7 +387,7 @@ cp "$MOB_DIR/assets/logo/logo_light.png" "$OTP_ROOT/mob_logo_light.png" 2>/dev/n
 echo "=== Compiling native sources ==="
 BUILD_DIR=$(mktemp -d)
 SWIFT_BRIDGING="$MOB_DIR/ios/MobDemo-Bridging-Header.h"
-MESHX_SWIFT_DIR="../../mob_node/Sources/Mob.Node"
+MESHX_SWIFT_DIR="Sources/Mob.Node"
 
 $CC -fobjc-arc -fmodules $IFLAGS \
     -c "$MOB_DIR/ios/MobNode.m" -o "$BUILD_DIR/MobNode.o"
@@ -401,6 +401,7 @@ xcrun -sdk iphoneos swiftc \
     -parse-as-library -wmo \
     "$MOB_DIR/ios/MobViewModel.swift" \
     "$MOB_DIR/ios/MobRootView.swift" \
+    "$MOB_DIR/ios/MobGpuView.swift" \
     "$MESHX_SWIFT_DIR/BLAKE2s.swift" \
     "$MESHX_SWIFT_DIR/Frame.swift" \
     "$MESHX_SWIFT_DIR/Fragment.swift" \

@@ -59,48 +59,10 @@ defmodule Mob.Node.App do
   # See: `Mob.Ble.bridge_module/0`, `docs/mob_ble_bridge_migration.md`,
   # `apps/mob_ble/lib/mob/ble/mobile_bridge.ex`, wiring test.
   defp maybe_start_mob_ble_transport do
-    if System.get_env("MOB_BLE_TRANSPORT") == "0" do
-      Logger.info("mob_node: mob_ble transport skipped (MOB_BLE_TRANSPORT=0; legacy path active)")
-
-      rt_probe(:transport, :mob_ble_transport_skipped, %{reason: "MOB_BLE_TRANSPORT=0"})
-      :ok
-    else
-      local_name = System.get_env("MOB_BLE_LOCAL_NAME") || "mob-mobile"
-      rt_probe(:transport, :mob_ble_transport_start_requested, %{local_name: local_name})
-
-      # Route the transport's outer frame events into BleSelfTest when the
-      # selftest is running, so the receive pipeline reaches Observability and
-      # the rt-event-model analyzer events (`mesh_message_received` etc.) fire.
-      # Without this wiring `{:mob_routing, :ble, {:frame, ...}}` events
-      # drop on the floor and every RT-01 verdict comes back inconclusive
-      # regardless of whether the locked-window scan survived.
-      transport_opts = [
-        bridge: Mob.Ble.bridge_module(),
-        bridge_opts: [local_name: local_name]
-      ]
-
-      transport_opts =
-        if System.get_env("MESHX_BLE_SELFTEST") in [nil, ""] do
-          transport_opts
-        else
-          Keyword.put(transport_opts, :event_target, Mob.Node.BleSelfTest)
-        end
-
-      case Mob.Routing.BLE.start_link(transport_opts) do
-        {:ok, _pid} ->
-          Logger.info(
-            "mob_node: mob_ble transport up (bridge=#{inspect(Mob.Ble.bridge_module())})"
-          )
-
-          rt_probe(:transport, :mob_ble_transport_started, %{
-            bridge: inspect(Mob.Ble.bridge_module()),
-            local_name: local_name
-          })
-
-        other ->
-          Logger.warning("mob_node: mob_ble transport not started: #{inspect(other)}")
-          rt_probe(:transport, :mob_ble_transport_start_failed, %{reason: inspect(other)})
-      end
+    case Mob.Node.BleTransport.start() do
+      {:ok, _pid} -> :ok
+      :skipped -> :ok
+      {:error, _reason} -> :ok
     end
   end
 
@@ -208,24 +170,10 @@ defmodule Mob.Node.App do
   end
 
   defp configure_native_bridge do
-    case :mob_nif.platform() do
-      :ios ->
-        if ble_nif_available?(:mob_ble_nif) do
-          Application.put_env(:mob_node, :native_bridge, Mob.Node.NativeBridge.IOS)
-        end
-
-      :android ->
-        if ble_nif_available?(:mob_ble_nif) do
-          Application.put_env(
-            :mob_node,
-            :native_bridge,
-            Mob.Node.NativeBridge.Android
-          )
-        end
-
-      _platform ->
-        :ok
-    end
+    Mob.Node.BlePlatformConfig.apply_from_platform(
+      safe_platform(),
+      ble_nif_available?(:mob_ble_nif)
+    )
   end
 
   defp ble_nif_available?(module) do

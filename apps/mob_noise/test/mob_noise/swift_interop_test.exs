@@ -3,7 +3,7 @@ defmodule Mob.Noise.SwiftInteropTest do
   Cross-process interop tests for `Noise_XX_25519_ChaChaPoly_BLAKE2s`.
 
   These tests drive the Decibel-backed `Mob.Noise.Session` directly from
-  ExUnit and use the Swift package executable `Mob.NoiseInteropCLI` as the
+  ExUnit and use the Swift package executable `MeshxNoiseInteropCLI` as the
   opposite peer. The Swift peer uses fixed test-only static and ephemeral keys
   so each process invocation can deterministically replay the same side of the
   handshake while Decibel supplies the live counterparty messages.
@@ -16,8 +16,8 @@ defmodule Mob.Noise.SwiftInteropTest do
   alias Mob.Noise.Session
 
   @protocol "Noise_XX_25519_ChaChaPoly_BLAKE2s"
-  @swift_dir Path.expand("../../../../mob_node", __DIR__)
-  @swift_peer Path.join([@swift_dir, ".build", "debug", "Mob.NoiseInteropCLI"])
+  @swift_dir Path.expand("../../../../meshx_mobile", __DIR__)
+  @swift_peer Path.join([@swift_dir, ".build", "debug", "MeshxNoiseInteropCLI"])
 
   @ini_s_priv Base.decode16!("1111111111111111111111111111111111111111111111111111111111111111")
   @ini_e_priv Base.decode16!("2222222222222222222222222222222222222222222222222222222222222222")
@@ -27,8 +27,8 @@ defmodule Mob.Noise.SwiftInteropTest do
   setup_all do
     {cmd, args} =
       case System.find_executable("xcrun") do
-        nil -> {"swift", ["build", "--product", "Mob.NoiseInteropCLI"]}
-        _ -> {"xcrun", ["swift", "build", "--product", "Mob.NoiseInteropCLI"]}
+        nil -> {"swift", ["build", "--product", "MeshxNoiseInteropCLI"]}
+        _ -> {"xcrun", ["swift", "build", "--product", "MeshxNoiseInteropCLI"]}
       end
 
     {output, status} = System.cmd(cmd, args, cd: @swift_dir, stderr_to_stdout: true)

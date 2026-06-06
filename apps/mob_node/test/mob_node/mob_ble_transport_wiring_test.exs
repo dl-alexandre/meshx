@@ -15,13 +15,35 @@ defmodule Mob.Node.MobBleTransportWiringTest do
   use ExUnit.Case, async: false
 
   alias Mob.Ble.MobileBridge
+  alias Mob.Node.BleTransport
+  alias Mob.Runtime.Router
+
+  setup do
+    Application.ensure_all_started(:mob_runtime)
+    Router.reset()
+    :ok
+  end
+
+  test "BleTransport.start attaches router (production contract)" do
+    System.put_env("MOB_BLE_TRANSPORT", "1")
+
+    assert {:ok, pid} = BleTransport.start(event_target: Router, force?: true)
+    assert BleTransport.attached?()
+    assert %{adapter: Mob.Routing.BLE, pid: ^pid} = :sys.get_state(Router).transports |> Map.fetch!(:ble)
+
+    on_exit(fn -> if Process.alive?(pid), do: GenServer.stop(pid) end)
+  end
 
   test "starts the runtime transport with the mob_ble bridge and round-trips a peer_up event" do
     {:ok, transport} =
       Mob.Routing.BLE.start_link(
         bridge: Mob.Ble.bridge_module(),
-        bridge_opts: [local_name: "wiring-test", native?: false]
+        bridge_opts: [local_name: "wiring-test", native?: false, boot_native?: false],
+        event_target: Router
       )
+
+    :ok = Router.attach_transport(:ble, Mob.Routing.BLE, transport)
+    :ok = Router.subscribe(self())
 
     on_exit(fn -> if Process.alive?(transport), do: GenServer.stop(transport) end)
 
@@ -29,13 +51,10 @@ defmodule Mob.Node.MobBleTransportWiringTest do
     assert state.bridge_module == MobileBridge
     assert is_pid(state.bridge)
 
-    # Drive a native-style JSON event into the inner bridge — proves the
-    # whole chain: BridgeProtocol decode → MobileBridge forward →
-    # Mob.Routing.BLE normalize → test pid receives canonical event.
-    payload = ~s({"v":1,"event":"peer_up","peer_id":"wire-peer","metadata":{"rssi":-33}})
-    send(state.bridge, {MobileBridge, :bridge_event, payload})
+    # Drive a normalized BLE event into the transport — proves Mob.Routing.BLE
+    # forwards to the router, and router subscribers see runtime events.
+    send(transport, {:ble_peer_up, "wire-peer", %{rssi: -33}})
 
-    assert_receive {:mob_routing, :ble, {:peer_up, peer}}, 200
-    assert peer.id == "wire-peer"
+    assert_receive {:mob_runtime, :peer_up, :ble, %{id: "wire-peer"}}, 500
   end
 end

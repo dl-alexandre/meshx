@@ -716,6 +716,11 @@ object MobBridge {
     }
 
     @JvmStatic
+    fun audio_play_at(pid: Long, path: String, optsJson: String, atStr: String) {
+        audio_play(pid, path, optsJson)
+    }
+
+    @JvmStatic
     fun audio_stop_playback() {
         val player = audioPlayer ?: return
         audioPlayer = null
@@ -844,6 +849,15 @@ object MobBridge {
         _previewFacing.value = null
         previewCameraProvider?.unbindAll()
         previewCameraProvider = null
+    }
+
+    @JvmStatic
+    fun camera_start_frame_stream(pid: Long, optsJson: String) {
+        nativeDeliverAtom3(pid, "camera", "error", "frame_stream_unsupported")
+    }
+
+    @JvmStatic
+    fun camera_stop_frame_stream() {
     }
 
     private val _previewFacing = mutableStateOf<String?>(null)

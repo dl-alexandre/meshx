@@ -3,67 +3,88 @@
 #include <jni.h>
 #include "mob_beam.h"
 
-#define APP_MODULE    "meshx_mobile_app"
+#define APP_MODULE    "mob_node"
+
+JavaVM *g_jvm = NULL;
+jobject g_activity = NULL;
+
+void mob_ble_jni_on_load(JNIEnv *env);
+
+JNIEXPORT jint JNICALL
+JNI_OnLoad(JavaVM *vm, void *reserved) {
+    (void)reserved;
+
+    g_jvm = vm;
+
+    JNIEnv *env = NULL;
+    if ((*vm)->GetEnv(vm, (void **)&env, JNI_VERSION_1_6) != JNI_OK || env == NULL) {
+        return JNI_ERR;
+    }
+
+    mob_ui_cache_class(env, "dev/mob/mob/MobBridge");
+    mob_ble_jni_on_load(env);
+    return JNI_VERSION_1_6;
+}
 
 JNIEXPORT void JNICALL
-Java_dev_meshx_mob_MainActivity_nativeSetActivity(JNIEnv* env, jobject thiz, jobject activity) {
+Java_dev_mob_mob_MainActivity_nativeSetActivity(JNIEnv* env, jobject thiz, jobject activity) {
     mob_init_bridge(env, activity);
 }
 
 JNIEXPORT void JNICALL
-Java_dev_meshx_mob_MainActivity_nativeStartBeam(JNIEnv* env, jobject thiz) {
+Java_dev_mob_mob_MainActivity_nativeStartBeam(JNIEnv* env, jobject thiz) {
     mob_start_beam(APP_MODULE);
 }
 
 // Called from MobBridge.nativeSendTap(handle) in Kotlin when a button is tapped.
 JNIEXPORT void JNICALL
-Java_dev_meshx_mob_MobBridge_nativeSendTap(JNIEnv* env, jclass cls, jint handle) {
+Java_dev_mob_mob_MobBridge_nativeSendTap(JNIEnv* env, jclass cls, jint handle) {
     mob_send_tap((int)handle);
 }
 
 // Called from MobBridge.nativeSendChangeStr/Bool/Float when an input widget changes.
 JNIEXPORT void JNICALL
-Java_dev_meshx_mob_MobBridge_nativeSendChangeStr(JNIEnv* env, jclass cls, jint handle, jstring value) {
+Java_dev_mob_mob_MobBridge_nativeSendChangeStr(JNIEnv* env, jclass cls, jint handle, jstring value) {
     const char* utf8 = (*env)->GetStringUTFChars(env, value, NULL);
     mob_send_change_str((int)handle, utf8);
     (*env)->ReleaseStringUTFChars(env, value, utf8);
 }
 
 JNIEXPORT void JNICALL
-Java_dev_meshx_mob_MobBridge_nativeSendChangeBool(JNIEnv* env, jclass cls, jint handle, jboolean value) {
+Java_dev_mob_mob_MobBridge_nativeSendChangeBool(JNIEnv* env, jclass cls, jint handle, jboolean value) {
     mob_send_change_bool((int)handle, (int)value);
 }
 
 JNIEXPORT void JNICALL
-Java_dev_meshx_mob_MobBridge_nativeSendChangeFloat(JNIEnv* env, jclass cls, jint handle, jfloat value) {
+Java_dev_mob_mob_MobBridge_nativeSendChangeFloat(JNIEnv* env, jclass cls, jint handle, jfloat value) {
     mob_send_change_float((int)handle, (double)value);
 }
 
 JNIEXPORT void JNICALL
-Java_dev_meshx_mob_MobBridge_nativeSendFocus(JNIEnv* env, jclass cls, jint handle) {
+Java_dev_mob_mob_MobBridge_nativeSendFocus(JNIEnv* env, jclass cls, jint handle) {
     mob_send_focus((int)handle);
 }
 
 JNIEXPORT void JNICALL
-Java_dev_meshx_mob_MobBridge_nativeSendBlur(JNIEnv* env, jclass cls, jint handle) {
+Java_dev_mob_mob_MobBridge_nativeSendBlur(JNIEnv* env, jclass cls, jint handle) {
     mob_send_blur((int)handle);
 }
 
 JNIEXPORT void JNICALL
-Java_dev_meshx_mob_MobBridge_nativeSendSubmit(JNIEnv* env, jclass cls, jint handle) {
+Java_dev_mob_mob_MobBridge_nativeSendSubmit(JNIEnv* env, jclass cls, jint handle) {
     mob_send_submit((int)handle);
 }
 
 // Called from MobBridge.nativeHandleBack() when the Android back gesture fires.
 JNIEXPORT void JNICALL
-Java_dev_meshx_mob_MobBridge_nativeHandleBack(JNIEnv* env, jclass cls) {
+Java_dev_mob_mob_MobBridge_nativeHandleBack(JNIEnv* env, jclass cls) {
     mob_handle_back();
 }
 
 // Called from MobBridge.notifyColorSchemeChanged when MainActivity's
 // onConfigurationChanged sees a uiMode flip. `scheme` is "light" or "dark".
 JNIEXPORT void JNICALL
-Java_dev_meshx_mob_MobBridge_nativeNotifyColorScheme(JNIEnv* env, jclass cls,
+Java_dev_mob_mob_MobBridge_nativeNotifyColorScheme(JNIEnv* env, jclass cls,
     jstring scheme) {
     if (!scheme) return;
     const char* utf8 = (*env)->GetStringUTFChars(env, scheme, NULL);
@@ -77,7 +98,7 @@ Java_dev_meshx_mob_MobBridge_nativeNotifyColorScheme(JNIEnv* env, jclass cls,
 // Called from MobBridge when async results are ready.
 
 JNIEXPORT void JNICALL
-Java_dev_meshx_mob_MobBridge_nativeDeliverAtom2(JNIEnv* env, jclass cls,
+Java_dev_mob_mob_MobBridge_nativeDeliverAtom2(JNIEnv* env, jclass cls,
     jlong pid, jstring a1, jstring a2) {
     const char* ca1 = (*env)->GetStringUTFChars(env, a1, NULL);
     const char* ca2 = (*env)->GetStringUTFChars(env, a2, NULL);
@@ -87,7 +108,7 @@ Java_dev_meshx_mob_MobBridge_nativeDeliverAtom2(JNIEnv* env, jclass cls,
 }
 
 JNIEXPORT void JNICALL
-Java_dev_meshx_mob_MobBridge_nativeDeliverAtom3(JNIEnv* env, jclass cls,
+Java_dev_mob_mob_MobBridge_nativeDeliverAtom3(JNIEnv* env, jclass cls,
     jlong pid, jstring a1, jstring a2, jstring a3) {
     const char* ca1 = (*env)->GetStringUTFChars(env, a1, NULL);
     const char* ca2 = (*env)->GetStringUTFChars(env, a2, NULL);
@@ -99,20 +120,20 @@ Java_dev_meshx_mob_MobBridge_nativeDeliverAtom3(JNIEnv* env, jclass cls,
 }
 
 JNIEXPORT void JNICALL
-Java_dev_meshx_mob_MobBridge_nativeDeliverLocation(JNIEnv* env, jclass cls,
+Java_dev_mob_mob_MobBridge_nativeDeliverLocation(JNIEnv* env, jclass cls,
     jlong pid, jdouble lat, jdouble lon, jdouble acc, jdouble alt) {
     mob_deliver_location(pid, lat, lon, acc, alt);
 }
 
 JNIEXPORT void JNICALL
-Java_dev_meshx_mob_MobBridge_nativeDeliverMotion(JNIEnv* env, jclass cls,
+Java_dev_mob_mob_MobBridge_nativeDeliverMotion(JNIEnv* env, jclass cls,
     jlong pid, jdouble ax, jdouble ay, jdouble az,
     jdouble gx, jdouble gy, jdouble gz, jlong ts) {
     mob_deliver_motion(pid, ax, ay, az, gx, gy, gz, (long long)ts);
 }
 
 JNIEXPORT void JNICALL
-Java_dev_meshx_mob_MobBridge_nativeDeliverFileResult(JNIEnv* env, jclass cls,
+Java_dev_mob_mob_MobBridge_nativeDeliverFileResult(JNIEnv* env, jclass cls,
     jlong pid, jstring event, jstring sub, jstring json_items) {
     const char* ce  = (*env)->GetStringUTFChars(env, event, NULL);
     const char* cs  = (*env)->GetStringUTFChars(env, sub,   NULL);
@@ -124,7 +145,7 @@ Java_dev_meshx_mob_MobBridge_nativeDeliverFileResult(JNIEnv* env, jclass cls,
 }
 
 JNIEXPORT void JNICALL
-Java_dev_meshx_mob_MobBridge_nativeDeliverPushToken(JNIEnv* env, jclass cls,
+Java_dev_mob_mob_MobBridge_nativeDeliverPushToken(JNIEnv* env, jclass cls,
     jlong pid, jstring token) {
     const char* ct = (*env)->GetStringUTFChars(env, token, NULL);
     mob_deliver_push_token(pid, ct);
@@ -132,7 +153,7 @@ Java_dev_meshx_mob_MobBridge_nativeDeliverPushToken(JNIEnv* env, jclass cls,
 }
 
 JNIEXPORT void JNICALL
-Java_dev_meshx_mob_MobBridge_nativeDeliverNotification(JNIEnv* env, jclass cls,
+Java_dev_mob_mob_MobBridge_nativeDeliverNotification(JNIEnv* env, jclass cls,
     jlong pid, jstring json) {
     const char* cj = (*env)->GetStringUTFChars(env, json, NULL);
     mob_deliver_notification(pid, cj);
@@ -140,7 +161,7 @@ Java_dev_meshx_mob_MobBridge_nativeDeliverNotification(JNIEnv* env, jclass cls,
 }
 
 JNIEXPORT void JNICALL
-Java_dev_meshx_mob_MobBridge_nativeSetLaunchNotification(JNIEnv* env, jclass cls,
+Java_dev_mob_mob_MobBridge_nativeSetLaunchNotification(JNIEnv* env, jclass cls,
     jstring json) {
     if (!json) { mob_set_launch_notification(NULL); return; }
     const char* cj = (*env)->GetStringUTFChars(env, json, NULL);
@@ -149,7 +170,7 @@ Java_dev_meshx_mob_MobBridge_nativeSetLaunchNotification(JNIEnv* env, jclass cls
 }
 
 JNIEXPORT void JNICALL
-Java_dev_meshx_mob_MobBridge_nativeDeliverWebViewMessage(JNIEnv* env, jclass cls,
+Java_dev_mob_mob_MobBridge_nativeDeliverWebViewMessage(JNIEnv* env, jclass cls,
     jlong pid, jstring json) {
     const char* cj = (*env)->GetStringUTFChars(env, json, NULL);
     mob_deliver_webview_message(pid, cj);
@@ -157,7 +178,7 @@ Java_dev_meshx_mob_MobBridge_nativeDeliverWebViewMessage(JNIEnv* env, jclass cls
 }
 
 JNIEXPORT void JNICALL
-Java_dev_meshx_mob_MobBridge_nativeDeliverWebViewBlocked(JNIEnv* env, jclass cls,
+Java_dev_mob_mob_MobBridge_nativeDeliverWebViewBlocked(JNIEnv* env, jclass cls,
     jlong pid, jstring url) {
     const char* cu = (*env)->GetStringUTFChars(env, url, NULL);
     mob_deliver_webview_blocked(pid, cu);
@@ -165,7 +186,7 @@ Java_dev_meshx_mob_MobBridge_nativeDeliverWebViewBlocked(JNIEnv* env, jclass cls
 }
 
 JNIEXPORT void JNICALL
-Java_dev_meshx_mob_MobBridge_nativeDeliverAlertAction(JNIEnv* env, jclass cls,
+Java_dev_mob_mob_MobBridge_nativeDeliverAlertAction(JNIEnv* env, jclass cls,
     jstring action) {
     const char* ca = (*env)->GetStringUTFChars(env, action, NULL);
     mob_deliver_alert_action(ca);
@@ -173,7 +194,7 @@ Java_dev_meshx_mob_MobBridge_nativeDeliverAlertAction(JNIEnv* env, jclass cls,
 }
 
 JNIEXPORT void JNICALL
-Java_dev_meshx_mob_MobBridge_nativeDeliverComponentEvent(JNIEnv* env, jclass cls,
+Java_dev_mob_mob_MobBridge_nativeDeliverComponentEvent(JNIEnv* env, jclass cls,
     jint handle, jstring event, jstring payload_json) {
     const char* ce = (*env)->GetStringUTFChars(env, event,        NULL);
     const char* cj = (*env)->GetStringUTFChars(env, payload_json, NULL);

@@ -29,7 +29,10 @@ import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.core.content.FileProvider
+import mob.ble.LogcatEventSink
 import mob.ble.MobBleNative
+import mob.ble.RealBleBridge
+import org.json.JSONObject
 import java.io.File
 
 class MainActivity : ComponentActivity() {
@@ -41,6 +44,8 @@ class MainActivity : ComponentActivity() {
 
     external fun nativeSetActivity(activity: Activity)
     external fun nativeStartBeam()
+
+    private var debugBleBridge: RealBleBridge? = null
 
     // ── Camera launchers ──────────────────────────────────────────────────
     private var cameraPhotoUri: Uri? = null
@@ -252,6 +257,8 @@ class MainActivity : ComponentActivity() {
             MobBleNative.setSelftestSendEnabled(true)
         }
 
+        handleBleDebugExtras(intent)
+
         // Check if launched from a notification tap
         intent?.extras?.getString("mob_notification_json")?.let { json ->
             MobBridge.setLaunchNotification(json)
@@ -371,6 +378,7 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: android.content.Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
+        handleBleDebugExtras(intent)
         intent.extras?.getString("mob_notification_json")?.let { json ->
             val pid = MobBridge.notifyPid
             if (pid != 0L) {
@@ -379,6 +387,61 @@ class MainActivity : ComponentActivity() {
                 MobBridge.setLaunchNotification(json)
             }
         }
+    }
+
+    private fun handleBleDebugExtras(intent: Intent?) {
+        val extras = intent?.extras ?: return
+
+        if (extras.getBoolean("mob_start_scan", false)) {
+            startDebugBleScan()
+        }
+
+        if (extras.getBoolean("mob_dispatch_test", false)) {
+            val legacyBeacon = extras.getBoolean("mob_dispatch_legacy_beacon", false)
+            dispatchDebugBleTest(legacyBeacon)
+        }
+    }
+
+    private fun startDebugBleScan() {
+        val accepted = try {
+            val bridge = debugBleBridge ?: RealBleBridge(
+                applicationContext,
+                LogcatEventSink("MobBle"),
+                fetchOnBeaconEnabled = true
+            ).also { debugBleBridge = it }
+            bridge.startScan()
+        } catch (t: Throwable) {
+            Log.w(TAG, "debug BLE scan start failed: ${t.message}", t)
+            false
+        }
+
+        Log.i(
+            "MobBleControl",
+            JSONObject().apply {
+                put("v", 1)
+                put("event", "scan_start_result")
+                put("accepted", accepted)
+            }.toString()
+        )
+    }
+
+    private fun dispatchDebugBleTest(legacyBeacon: Boolean) {
+        val accepted = try {
+            MobBleNative.dispatchDebugTestEnvelope(forceLegacyBeacon = legacyBeacon)
+        } catch (t: Throwable) {
+            Log.w(TAG, "debug BLE dispatch failed: ${t.message}", t)
+            false
+        }
+
+        Log.i(
+            "MobBleControl",
+            JSONObject().apply {
+                put("v", 1)
+                put("event", "dispatch_test_result")
+                put("accepted", accepted)
+                put("legacy_beacon", legacyBeacon)
+            }.toString()
+        )
     }
 
     // Manifest declares `android:configChanges` including `uiMode`, so a

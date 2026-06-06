@@ -77,6 +77,43 @@ defmodule Mob.Node.BLE.LocalInbox do
     Enum.reduce(events, inbox, &ingest(&2, &1))
   end
 
+  @doc """
+  Lightweight snapshot for live UI (home screen, session assigns).
+
+  Skips release-audit modules that run crypto fixtures and can crash or
+  stall on device OTP. Use `snapshot/1` in tests and audit tasks.
+  """
+  @spec product_snapshot(t()) :: map()
+  def product_snapshot(%__MODULE__{} = inbox) do
+    snapshot = %{
+      transport_profile: AdvertOnlyTransportProfile.snapshot(inbox.transport_profile),
+      lifecycle_profile: LocalTransportLifecycleProfile.snapshot(inbox.lifecycle_profile),
+      full_messages: FullEnvelopeInbox.snapshot(inbox.full_envelope_inbox),
+      unresolved_beacon_refs: BeaconInbox.snapshot(inbox.beacon_inbox),
+      capability_notes: inbox.transport_profile.capability_notes,
+      security_acceptance: %{
+        acceptance_version: 1,
+        boundary: :current_unsigned_local_ble_security,
+        gates: [],
+        satisfied_count: 0,
+        blocked_count: 0,
+        authenticated_peer_identity_claim_allowed?: false,
+        trusted_message_claim_allowed?: false,
+        trusted_delivery_claim_allowed?: false,
+        replay_protection_claim_allowed?: false,
+        blocked_claims: [],
+        notes: ["UI product snapshot; audit gates omitted on device."]
+      }
+    }
+
+    snapshot = Map.put(snapshot, :nearby_messages, LocalInboxView.nearby_messages(snapshot))
+    snapshot = Map.put(snapshot, :trust_evidence, LocalInboxTrust.classify_snapshot(snapshot))
+    snapshot = Map.put(snapshot, :trust_policy, LocalTrustPolicy.snapshot(snapshot))
+    snapshot = Map.put(snapshot, :resolution_statuses, LocalInboxResolution.statuses(snapshot))
+
+    Map.put(snapshot, :ux_acceptance, %{acceptance_version: 1, notes: ["UI product snapshot"]})
+  end
+
   @spec snapshot(t()) :: map()
   def snapshot(%__MODULE__{} = inbox) do
     snapshot = %{

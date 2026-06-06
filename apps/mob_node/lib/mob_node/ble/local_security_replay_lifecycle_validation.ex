@@ -166,12 +166,20 @@ defmodule Mob.Node.BLE.LocalSecurityReplayLifecycleValidation do
   end
 
   defp signed_envelope(overrides) do
-    {public_key, private_key} = :crypto.generate_key(:eddsa, :ed25519)
+    {public_key, private_key} = fixture_ed25519_keypair()
     key_id = LocalSecurityAuthorshipProof.derive_key_id(public_key)
     envelope = envelope(overrides)
 
-    {:ok, proof} = LocalSecurityAuthorshipProof.sign(envelope, private_key, key_id)
-    {envelope, proof}
+    case LocalSecurityAuthorshipProof.sign(envelope, private_key, key_id) do
+      {:ok, proof} -> {envelope, proof}
+      {:error, reason} -> raise "signed_envelope fixture failed: #{inspect(reason)}"
+    end
+  end
+
+  # Deterministic 32-byte seed so fixture signing works on device OTP as well as host.
+  defp fixture_ed25519_keypair do
+    seed = :crypto.hash(:sha256, "mob_node_replay_fixture_v1") |> binary_part(0, 32)
+    :crypto.generate_key(:eddsa, :ed25519, seed)
   end
 
   defp envelope(overrides) do
