@@ -81,7 +81,7 @@ defmodule Mob.Protocol.Framing do
          true <-
            byte_size(after_channel) >= payload_len + @checksum_size or
              {:error, "insufficient data for payload + checksum"} do
-      <<payload::bytes-size(payload_len), checksum::16-little, leftover::binary>> = after_channel
+      <<payload::bytes-size(^payload_len), checksum::16-little, leftover::binary>> = after_channel
 
       header =
         <<version::8, type_byte::8, flags::8, ttl::8, payload_len::16-little, msg_id::32-little>>

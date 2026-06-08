@@ -262,7 +262,7 @@ defmodule Mob.Runtime.MDNS do
   defp chunk_binary(binary, size) when byte_size(binary) <= size, do: [binary]
 
   defp chunk_binary(binary, size) do
-    <<chunk::binary-size(size), rest::binary>> = binary
+    <<chunk::binary-size(^size), rest::binary>> = binary
     [chunk | chunk_binary(rest, size)]
   end
 
@@ -271,7 +271,7 @@ defmodule Mob.Runtime.MDNS do
   defp decode_txt(<<>>, acc), do: {:ok, acc}
 
   defp decode_txt(<<len, rest::binary>>, acc) when byte_size(rest) >= len do
-    <<entry::binary-size(len), rest::binary>> = rest
+    <<entry::binary-size(^len), rest::binary>> = rest
 
     acc =
       case String.split(entry, "=", parts: 2) do

@@ -153,19 +153,17 @@ defmodule Mix.Tasks.Mob.Node.DeployDevice do
   defp resolve_build_device_script(cfg, otp_root) do
     meshx_script = Path.join(["ios", "build_device_meshx.sh"])
 
-    cond do
-      File.exists?(meshx_script) ->
-        {meshx_script, false}
+    if File.exists?(meshx_script) do
+      {meshx_script, false}
+    else
+      script =
+        cfg
+        |> generate_build_device_sh(otp_root)
+        |> Mob.Node.IOSDeviceBuild.bridge_linked_script()
 
-      true ->
-        script =
-          cfg
-          |> generate_build_device_sh(otp_root)
-          |> Mob.Node.IOSDeviceBuild.bridge_linked_script()
-
-        script_path = Path.join(["ios", "build_device_mob.sh"])
-        File.write!(script_path, script)
-        {script_path, true}
+      script_path = Path.join(["ios", "build_device_mob.sh"])
+      File.write!(script_path, script)
+      {script_path, true}
     end
   end
 

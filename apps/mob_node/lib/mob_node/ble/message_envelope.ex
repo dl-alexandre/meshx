@@ -321,7 +321,7 @@ defmodule Mob.Node.BLE.MessageEnvelope do
   defp read_byte(_, err), do: {:error, err}
 
   defp read_n(bin, n, _err) when byte_size(bin) >= n do
-    <<head::binary-size(n), tail::binary>> = bin
+    <<head::binary-size(^n), tail::binary>> = bin
     {:ok, head, tail}
   end
 
@@ -331,7 +331,7 @@ defmodule Mob.Node.BLE.MessageEnvelope do
   defp read_uint64(_), do: {:error, :truncated_envelope}
 
   defp read_length_prefixed(<<len, rest::binary>>, _err) when byte_size(rest) >= len do
-    <<data::binary-size(len), tail::binary>> = rest
+    <<data::binary-size(^len), tail::binary>> = rest
     {:ok, data, tail}
   end
 
@@ -339,7 +339,7 @@ defmodule Mob.Node.BLE.MessageEnvelope do
 
   defp read_length_prefixed_16(<<len::16-big-unsigned, rest::binary>>)
        when byte_size(rest) >= len and len <= @max_payload_size do
-    <<data::binary-size(len), tail::binary>> = rest
+    <<data::binary-size(^len), tail::binary>> = rest
     {:ok, data, tail}
   end
 

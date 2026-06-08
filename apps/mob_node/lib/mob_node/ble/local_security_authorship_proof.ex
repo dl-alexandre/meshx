@@ -159,12 +159,6 @@ defmodule Mob.Node.BLE.LocalSecurityAuthorshipProof do
 
   # OTP 27+ `:crypto.generate_key(:eddsa, :ed25519)` may return a 64-byte
   # private key (seed || public) on device; signing uses the 32-byte seed.
-  defp validate_private_key(private_key)
-       when byte_size(private_key) in [@ed25519_key_size, @ed25519_key_size * 2],
-       do: :ok
-
-  defp validate_private_key(_), do: {:error, :invalid_private_key}
-
   defp normalize_private_key(private_key) when byte_size(private_key) == @ed25519_key_size,
     do: {:ok, private_key}
 

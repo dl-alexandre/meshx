@@ -108,7 +108,7 @@ defmodule Mob.Protocol.Fragment do
 
   defp chunk_payload(payload, size) do
     case payload do
-      <<chunk::bytes-size(size), rest::binary>> ->
+      <<chunk::bytes-size(^size), rest::binary>> ->
         [chunk | chunk_payload(rest, size)]
 
       last_chunk ->

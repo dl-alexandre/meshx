@@ -173,10 +173,8 @@ defmodule Mob.Node.BleSelfTest do
 
     # Fork the canonical event to the in-process observability surface.
     # No-op (returns :ok) when the Observability server isn't running.
-    case decoded do
-      {Adapter, :event, event} -> Mob.Node.BLE.Observability.record(event)
-      _ -> :ok
-    end
+    {Adapter, :event, event} = decoded
+    Mob.Node.BLE.Observability.record(event)
 
     state =
       case decoded do
@@ -419,7 +417,7 @@ defmodule Mob.Node.BleSelfTest do
 
     state = %{state | discovered: MapSet.put(state.discovered, device_id)}
 
-    if is_binary(bytes) and mob_advertisement?(bytes) and
+    if mob_advertisement?(bytes) and
          not MapSet.member?(state.mob_peers, device_id) do
       Logger.info(
         "BleSelfTest: MESHX PEER device_id=#{device_id} rssi=#{rssi} " <>

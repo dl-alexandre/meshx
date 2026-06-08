@@ -64,8 +64,9 @@ defmodule Mob.Protocol.PropertyTest do
       check all(packet <- packet_gen(max_payload: 64), max_runs: 50) do
         {:ok, frame} = Codec.encode_packet(packet)
         size = byte_size(frame)
+        head_size = size - 1
         # Flip the high byte of the checksum (last 2 bytes are checksum LE).
-        <<head::binary-size(size - 1), last::8>> = frame
+        <<head::binary-size(^head_size), last::8>> = frame
         corrupted = head <> <<Bitwise.bxor(last, 0xFF)::8>>
 
         assert {:error, _} = Codec.decode_packet(corrupted)

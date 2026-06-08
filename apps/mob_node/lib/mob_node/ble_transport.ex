@@ -48,7 +48,8 @@ defmodule Mob.Node.BleTransport do
   end
 
   defp do_start(opts) do
-    local_name = Keyword.get(opts, :local_name, System.get_env("MOB_BLE_LOCAL_NAME") || "mob-mobile")
+    local_name =
+      Keyword.get(opts, :local_name, System.get_env("MOB_BLE_LOCAL_NAME") || "mob-mobile")
 
     event_target =
       Keyword.get_lazy(opts, :event_target, fn ->

@@ -60,7 +60,7 @@ defmodule Mob.Node.Chat.MeshIntegrationTest do
     assert byte_size(RecordingBleBridge.last_broadcast(bridge_pid)) > 0
   end
 
-  test "BLE gossip ingress delivers CHAT to channel subscribers", %{vm: vm} do
+  test "BLE gossip ingress delivers CHAT to channel subscribers", %{vm: _vm} do
     {:ok, envelope} =
       MessageEnvelope.build(
         sender_peer_id: :crypto.strong_rand_bytes(32),

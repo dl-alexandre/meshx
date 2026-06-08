@@ -23,14 +23,21 @@ defmodule Mob.Node.MixProject do
           Mob.Node.App,
           Mob.Node.BLE.Capture,
           Mob.Node.BleSelfTest,
+          Mob.Node.ChannelsScreen,
+          Mob.Node.ChatScreen,
+          Mob.Node.Guardrails,
           Mob.Node.HomeScreen,
+          Mob.Node.MeshStatusBanner,
           Mob.Node.NativeBridge,
           Mob.Node.NativeBridge.IOS,
           Mob.Node.NativeBridge.Noop,
           Mix.Tasks.Mob.Node.AdvertGossip.Audit,
           Mix.Tasks.Mob.Node.Capture,
           Mix.Tasks.Mob.Node.DeployDevice,
-          Mix.Tasks.Mob.Node.Replay
+          Mix.Tasks.Mob.Node.Guardrails,
+          Mix.Tasks.Mob.Node.PushDevice,
+          Mix.Tasks.Mob.Node.Replay,
+          Mix.Tasks.Mob.Node.TwoDeviceMesh
         ]
       ]
     ]

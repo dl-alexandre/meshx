@@ -63,7 +63,9 @@ defmodule Mob.Node.MeshStatusTest do
 
     test "uses mesh_session_hint when session opt is omitted" do
       wire_transport_and_bridge!()
-      :ok = MeshStatus.publish_session_hint(%{status: "Advertising", mode: :advertise, peer_id: nil})
+
+      :ok =
+        MeshStatus.publish_session_hint(%{status: "Advertising", mode: :advertise, peer_id: nil})
 
       r = MeshStatus.readiness()
       assert r.state == :listening
@@ -80,9 +82,7 @@ defmodule Mob.Node.MeshStatusTest do
       assert MeshStatus.ready_for_chat?(listening)
 
       radio =
-        MeshStatus.readiness(
-          session: %{status: "Stopped", mode: :scan, peer_id: nil}
-        )
+        MeshStatus.readiness(session: %{status: "Stopped", mode: :scan, peer_id: nil})
 
       refute MeshStatus.ready_for_chat?(radio)
     end

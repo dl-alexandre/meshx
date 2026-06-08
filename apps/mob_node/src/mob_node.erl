@@ -14,6 +14,6 @@ start() ->
 
 step(N, Fun) ->
     mob_nif:log("step " ++ integer_to_list(N) ++ " starting"),
-    Result = (catch Fun()),
+    Result = try Fun() catch Class:Reason:Stacktrace -> {Class, Reason, Stacktrace} end,
     mob_nif:log("step " ++ integer_to_list(N) ++ " => " ++
                 lists:flatten(io_lib:format("~p", [Result]))).

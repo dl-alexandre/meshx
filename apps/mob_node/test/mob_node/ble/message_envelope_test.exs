@@ -324,7 +324,8 @@ defmodule Mob.Node.BLE.MessageEnvelopeTest do
       # bytes to claim a length far above the allowed max.
       {_e, bytes} = valid_broadcast()
 
-      <<header::binary-size(byte_size(bytes) - 17), _payload_len::16, payload::binary>> = bytes
+      header_size = byte_size(bytes) - 17
+      <<header::binary-size(^header_size), _payload_len::16, payload::binary>> = bytes
 
       forged = <<header::binary, 0xFFFF::16, payload::binary>>
       assert {:error, :payload_too_large} = MessageEnvelope.parse(forged)

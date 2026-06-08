@@ -4,7 +4,6 @@ defmodule Mob.Node.Chat.ChannelViewModelTest do
   alias Mob.Node.Chat.{ChannelViewModel, Composer}
   alias Mob.Node.Chat.ChannelViewModel.Message
 
-  @identity %{peer_id: "alice-peer", nickname: "Alice"}
   @now 1_700_000_000_000
 
   defmodule FakeRouter do

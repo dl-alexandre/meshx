@@ -75,7 +75,9 @@ defmodule Mix.Tasks.Mob.Node.PushDevice do
 
     try do
       Enum.each(beam_dirs, fn dir ->
-        case System.cmd("cp", ["-r", "#{Path.expand(dir)}/.", staging_dir], stderr_to_stdout: true) do
+        case System.cmd("cp", ["-r", "#{Path.expand(dir)}/.", staging_dir],
+               stderr_to_stdout: true
+             ) do
           {_, 0} -> :ok
           {out, _} -> throw({:error, "cp failed: #{out}"})
         end

@@ -230,7 +230,8 @@ defmodule Mob.Node.HomeScreen do
 />)
   end
 
-  defp advanced_section(%{advanced_ui: false}), do: ~MOB(<Text text="" text_size={:sm} text_color={:muted} />)
+  defp advanced_section(%{advanced_ui: false}),
+    do: ~MOB(<Text text="" text_size={:sm} text_color={:muted} />)
 
   defp advanced_section(assigns) do
     status_text = "Status: #{assigns.status}"

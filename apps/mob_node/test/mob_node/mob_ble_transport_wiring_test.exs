@@ -29,7 +29,9 @@ defmodule Mob.Node.MobBleTransportWiringTest do
 
     assert {:ok, pid} = BleTransport.start(event_target: Router, force?: true)
     assert BleTransport.attached?()
-    assert %{adapter: Mob.Routing.BLE, pid: ^pid} = :sys.get_state(Router).transports |> Map.fetch!(:ble)
+
+    assert %{adapter: Mob.Routing.BLE, pid: ^pid} =
+             :sys.get_state(Router).transports |> Map.fetch!(:ble)
 
     on_exit(fn -> if Process.alive?(pid), do: GenServer.stop(pid) end)
   end

@@ -14,6 +14,7 @@ defmodule Mix.Tasks.Mob.Node.TwoDeviceMesh do
   use Mix.Task
 
   alias MobDev.{Connector, Device, Tunnel}
+
   @switches [
     advertise: :string,
     scan: :string,
@@ -181,19 +182,25 @@ defmodule Mix.Tasks.Mob.Node.TwoDeviceMesh do
       {out, 0} ->
         lines = out |> String.downcase() |> String.split("\n")
 
-        Enum.find_value(needles, fn needle ->
-          Enum.find_value(lines, fn line ->
-            if needle != "" and String.contains?(line, needle) do
-              case Regex.run(~r/\((169\.254\.\d+\.\d+)\)/, line) do
-                [_, ip] -> ip
-                _ -> nil
-              end
-            end
-          end)
-        end)
+        Enum.find_value(needles, &usb_ip_for_needle(lines, &1))
 
       _ ->
         nil
+    end
+  end
+
+  defp usb_ip_for_needle(_lines, ""), do: nil
+
+  defp usb_ip_for_needle(lines, needle) do
+    Enum.find_value(lines, fn line ->
+      if String.contains?(line, needle), do: usb_ip_from_arp_line(line)
+    end)
+  end
+
+  defp usb_ip_from_arp_line(line) do
+    case Regex.run(~r/\((169\.254\.\d+\.\d+)\)/, line) do
+      [_, ip] -> ip
+      _ -> nil
     end
   end
 
@@ -406,6 +413,9 @@ defmodule Mix.Tasks.Mob.Node.TwoDeviceMesh do
   defp launch_ok?(:ok), do: true
   defp launch_ok?({:error, _}), do: false
 
+  defp launch_ok?(out),
+    do: String.contains?(out, "Launched application") or String.contains?(out, "pid")
+
   defp launch_device(device, bundle) do
     case launch_physical(device.serial, bundle, device.host_ip) do
       :ok -> {device, :ok}
@@ -424,7 +434,7 @@ defmodule Mix.Tasks.Mob.Node.TwoDeviceMesh do
 
     cond do
       launch_ok?(out) ->
-            :ok
+        :ok
 
       retryable_launch?(out) ->
         if System.monotonic_time(:second) > deadline do
@@ -439,9 +449,6 @@ defmodule Mix.Tasks.Mob.Node.TwoDeviceMesh do
         {:error, String.slice(out, 0, 400)}
     end
   end
-
-  defp launch_ok?(out),
-    do: String.contains?(out, "Launched application") or String.contains?(out, "pid")
 
   defp retryable_launch?(out) do
     String.contains?(out, "unlocked") or
@@ -495,7 +502,10 @@ defmodule Mix.Tasks.Mob.Node.TwoDeviceMesh do
           %{device | host_ip: connect_ip, node: node, dist_port: dist_port}
 
         _ ->
-          IO.puts("    #{device.name} EPMD not ready on #{connect_ip || "?"} — will retry connect")
+          IO.puts(
+            "    #{device.name} EPMD not ready on #{connect_ip || "?"} — will retry connect"
+          )
+
           %{device | host_ip: connect_ip}
       end
     end)

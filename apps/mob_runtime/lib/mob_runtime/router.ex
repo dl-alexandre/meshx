@@ -143,6 +143,7 @@ defmodule Mob.Runtime.Router do
   end
 
   def handle_call(:reset, _from, state) do
+    :ok = PeerRegistry.reset()
     {:reply, :ok, %{new_state() | subscribers: state.subscribers}}
   end
 

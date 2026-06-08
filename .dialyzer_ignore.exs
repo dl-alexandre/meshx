@@ -447,5 +447,12 @@
   {"lib/mob_node/ble/advert_gossip_scenario.ex", :invalid_contract},
   {"lib/mob_node/ble/advert_gossip_scenario.ex", :unused_fun},
   {"lib/mob_node/ble/local_inbox_query.ex", :invalid_contract},
-  {"lib/mob_node/ble/local_project_completion_audit.ex", :invalid_contract}
+  {"lib/mob_node/ble/local_project_completion_audit.ex", :invalid_contract},
+
+  # 2026-06-08 device-task restore pass.
+  {"lib/mix/tasks/mob.node.push_device.ex", :unknown_function},
+  {"lib/mix/tasks/mob.node.push_device.ex", :unmatched_return},
+  {"lib/mix/tasks/mob.node.two_device_mesh.ex", :call},
+  {"lib/mix/tasks/mob.node.two_device_mesh.ex", :unknown_function},
+  {"lib/mix/tasks/mob.node.two_device_mesh.ex", :unmatched_return}
 ]

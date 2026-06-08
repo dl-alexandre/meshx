@@ -236,8 +236,6 @@ defmodule Mob.Node.BLE.LocalSecurityOperatorTrustPolicy do
     end
   end
 
-  defp validate_binding(_binding), do: {:error, :invalid_binding}
-
   defp validate_peer_id(peer_id) when is_binary(peer_id) and byte_size(peer_id) > 0,
     do: :ok
 

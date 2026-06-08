@@ -51,6 +51,7 @@ defmodule Mob.Node.ProductionWiringTest do
                )
 
       assert BleTransport.attached?()
+
       assert %{adapter: Mob.Routing.BLE, pid: ^transport_pid} =
                :sys.get_state(Router).transports |> Map.fetch!(:ble)
     end

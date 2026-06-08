@@ -423,10 +423,10 @@ defmodule Mob.Node.BLE.Observability do
   defp normalize_key(key), do: inspect(key)
 
   defp normalize_value(value) when is_binary(value), do: encode_binary(value)
+  defp normalize_value(value) when is_boolean(value), do: value
   defp normalize_value(value) when is_atom(value), do: Atom.to_string(value)
   defp normalize_value(value) when is_integer(value), do: value
   defp normalize_value(value) when is_float(value), do: value
-  defp normalize_value(value) when is_boolean(value), do: value
   defp normalize_value(value) when is_list(value), do: Enum.map(value, &normalize_value/1)
 
   defp normalize_value(value) when is_map(value) do

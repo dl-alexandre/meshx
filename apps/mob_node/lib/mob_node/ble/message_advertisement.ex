@@ -134,7 +134,8 @@ defmodule Mob.Node.BLE.MessageAdvertisement do
   defp manufacturer_payloads(<<0, _rest::binary>>, acc), do: {:ok, Enum.reverse(acc)}
 
   defp manufacturer_payloads(<<len, rest::binary>>, acc) when byte_size(rest) >= len do
-    <<type, data::binary-size(len - 1), tail::binary>> = rest
+    data_len = len - 1
+    <<type, data::binary-size(^data_len), tail::binary>> = rest
 
     acc =
       case {type, data} do

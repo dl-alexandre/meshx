@@ -71,10 +71,10 @@ defmodule Mob.Node.ChatScreen do
   def handle_info({:tap, :send}, socket) do
     readiness = MeshStatus.readiness()
 
-    unless MeshStatus.ready_for_chat?(readiness) do
-      {:noreply, Mob.Socket.assign(socket, :status_line, readiness.detail)}
-    else
+    if MeshStatus.ready_for_chat?(readiness) do
       send_draft(socket)
+    else
+      {:noreply, Mob.Socket.assign(socket, :status_line, readiness.detail)}
     end
   end
 

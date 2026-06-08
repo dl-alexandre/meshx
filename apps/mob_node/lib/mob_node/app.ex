@@ -154,7 +154,7 @@ defmodule Mob.Node.App do
     suffix = System.get_env("MOB_NODE_SUFFIX") || "dev"
     node = :"mob_node_android_#{suffix}@127.0.0.1"
 
-    case Mob.Dist.ensure_started(node: node, cookie: :mob_node_secret) do
+    case apply(Mob.Dist, :ensure_started, [[node: node, cookie: :mob_node_secret]]) do
       :ok ->
         Logger.info("mob_node: distribution up as #{node}")
         rt_probe(:app, :distribution_started, %{node: inspect(node)})

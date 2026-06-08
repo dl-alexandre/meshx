@@ -37,7 +37,8 @@ defmodule Mob.Node.Chat.RouterIngressTest do
 
     assert :ok = RouterIngress.forward_received_message(event)
 
-    assert_receive {:mob_runtime, :packet, :ble, _peer_id, %Packet{channel_id: "#general"} = packet},
+    assert_receive {:mob_runtime, :packet, :ble, _peer_id,
+                    %Packet{channel_id: "#general"} = packet},
                    500
 
     assert {:ok, parsed} = MessageEnvelope.parse(packet.payload)
