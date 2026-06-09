@@ -76,7 +76,7 @@ Keep the data directory on persistent storage across releases.
 A minimal `Dockerfile`:
 
 ```dockerfile
-FROM hexpm/elixir:1.19.5-erlang-28.0-debian-bookworm-20251008-slim AS build
+FROM elixir:1.20.0-otp-29-slim AS build
 ENV MIX_ENV=prod
 WORKDIR /app
 

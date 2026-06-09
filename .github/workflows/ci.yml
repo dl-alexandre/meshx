@@ -22,8 +22,8 @@ jobs:
       - name: Set up BEAM
         uses: erlef/setup-beam@v1
         with:
-          otp-version: "28"
-          elixir-version: "1.19.5"
+          otp-version: "29"
+          elixir-version: "1.20.0"
 
       - name: Restore dependencies and build cache
         uses: actions/cache@v4
@@ -191,8 +191,8 @@ jobs:
           submodules: recursive
       - uses: erlef/setup-beam@v1
         with:
-          otp-version: "28"
-          elixir-version: "1.19.5"
+          otp-version: "29"
+          elixir-version: "1.20.0"
       - uses: actions/cache@v4
         with:
           path: |
@@ -213,8 +213,8 @@ jobs:
           submodules: recursive
       - uses: erlef/setup-beam@v1
         with:
-          otp-version: "28"
-          elixir-version: "1.19.5"
+          otp-version: "29"
+          elixir-version: "1.20.0"
       - uses: actions/cache@v4
         with:
           path: |
@@ -227,14 +227,14 @@ jobs:
         uses: actions/cache@v4
         with:
           path: _build/plts
-          key: ${{ runner.os }}-plt-otp28-elixir1.19.5-${{ hashFiles('**/mix.lock') }}
+          key: ${{ runner.os }}-plt-otp29-elixir1.20.0-${{ hashFiles('**/mix.lock') }}
           restore-keys: |
-            ${{ runner.os }}-plt-otp28-elixir1.19.5-
+            ${{ runner.os }}-plt-otp29-elixir1.20.0-
       - run: mix deps.get
       - name: Build PLTs
         run: mix dialyzer --plt
       - name: Run Dialyzer
-        # `--format short` crashes in dialyxir 1.4.7 on OTP 28 with
+        # `--format short` crashes in dialyxir 1.4.7 on OTP 28/29 with
         # {:error, :unknown_warning, :exact_compare} — the formatter
         # doesn't recognize the new warning kind. The default `dialyzer`
         # format passes through unchanged. Switch back when dialyxir
