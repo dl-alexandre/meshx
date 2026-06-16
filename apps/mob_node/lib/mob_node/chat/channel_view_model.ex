@@ -23,12 +23,13 @@ defmodule Mob.Node.Chat.ChannelViewModel do
 
   alias Mob.Node.BLE.MessageEnvelope
   alias Mob.Node.Chat.Composer
+  alias Mob.Node.Chat.GroupPayload
   alias Mob.Protocol.Packet
 
   defmodule Message do
     @moduledoc false
     @enforce_keys [:message_id, :sender_peer_id, :body, :at, :direction, :status]
-    defstruct [:message_id, :sender_peer_id, :body, :at, :direction, :status]
+    defstruct [:message_id, :sender_peer_id, :body, :at, :direction, :status, locked: false]
 
     @type direction :: :in | :out
     @type status :: :pending | :delivered | :failed
@@ -38,7 +39,8 @@ defmodule Mob.Node.Chat.ChannelViewModel do
             body: binary(),
             at: integer(),
             direction: direction(),
-            status: status()
+            status: status(),
+            locked: boolean()
           }
   end
 
@@ -85,10 +87,12 @@ defmodule Mob.Node.Chat.ChannelViewModel do
   def init(opts) do
     channel = Keyword.fetch!(opts, :channel)
     router = Keyword.get(opts, :router, Mob.Runtime.Router)
+    decryptor = Keyword.get(opts, :decryptor, &default_decryptor/4)
 
     state = %{
       channel: channel,
       router: router,
+      decryptor: decryptor,
       messages: [],
       subscribers: MapSet.new()
     }
@@ -142,7 +146,7 @@ defmodule Mob.Node.Chat.ChannelViewModel do
   @impl true
   def handle_info({:mob_runtime, :packet, _transport, _peer_id, %Packet{} = packet}, state) do
     state =
-      case maybe_chat_message(packet, state.channel) do
+      case maybe_chat_message(packet, state.channel, state.decryptor) do
         {:ok, message} -> append(state, message)
         :skip -> state
       end
@@ -154,27 +158,76 @@ defmodule Mob.Node.Chat.ChannelViewModel do
 
   # ── pure helpers (unit-testable without a process) ───────────────────────
 
+  @typedoc """
+  Opens an encrypted chat body. `(channel, sender_id, generation, blob)`
+  -> `{:ok, plaintext}` or `{:error, reason}` (notably `:no_sender`).
+  """
+  @type decryptor ::
+          (String.t(), binary(), non_neg_integer(), binary() ->
+             {:ok, binary()} | {:error, term()})
+
   @doc false
   @spec maybe_chat_message(Packet.t(), String.t()) :: {:ok, Message.t()} | :skip
-  def maybe_chat_message(%Packet{channel_id: channel_id, payload: payload}, channel)
+  def maybe_chat_message(packet, channel),
+    do: maybe_chat_message(packet, channel, &default_decryptor/4)
+
+  @doc false
+  @spec maybe_chat_message(Packet.t(), String.t(), decryptor()) :: {:ok, Message.t()} | :skip
+  def maybe_chat_message(%Packet{channel_id: channel_id, payload: payload}, channel, decryptor)
       when channel_id == channel do
-    with {:ok, envelope} <- MessageEnvelope.parse(payload),
-         true <- envelope.payload_type == Composer.payload_type() do
-      {:ok,
-       %Message{
-         message_id: envelope.message_id,
-         sender_peer_id: envelope.sender_peer_id,
-         body: envelope.payload,
-         at: envelope.created_at,
-         direction: :in,
-         status: :delivered
-       }}
+    with {:ok, envelope} <- MessageEnvelope.parse(payload) do
+      cond do
+        envelope.payload_type == Composer.payload_type() ->
+          {:ok, in_message(envelope, envelope.payload, false)}
+
+        envelope.payload_type == Composer.encrypted_payload_type() ->
+          decrypt_group(envelope, channel, decryptor)
+
+        true ->
+          :skip
+      end
     else
       _ -> :skip
     end
   end
 
-  def maybe_chat_message(_packet, _channel), do: :skip
+  def maybe_chat_message(_packet, _channel, _decryptor), do: :skip
+
+  # Encrypted body: decode the group payload, then ask the decryptor. A
+  # missing sender key yields a *locked* placeholder message (the UI shows
+  # "🔒 waiting for key") rather than dropping it, so the user sees that a
+  # message arrived they can't yet read.
+  defp decrypt_group(envelope, channel, decryptor) do
+    with {:ok, generation, blob} <- GroupPayload.decode(envelope.payload),
+         {:ok, plaintext} <-
+           decryptor.(channel, envelope.sender_peer_id, generation, blob) do
+      {:ok, in_message(envelope, plaintext, false)}
+    else
+      {:error, _reason} -> {:ok, in_message(envelope, "", true)}
+    end
+  end
+
+  defp in_message(envelope, body, locked?) do
+    %Message{
+      message_id: envelope.message_id,
+      sender_peer_id: envelope.sender_peer_id,
+      body: body,
+      at: envelope.created_at,
+      direction: :in,
+      status: :delivered,
+      locked: locked?
+    }
+  end
+
+  # When the group-key manager isn't running, treat encrypted messages as
+  # locked (no key) instead of crashing the receive loop.
+  defp default_decryptor(channel, sender_id, generation, blob) do
+    if Process.whereis(Mob.Runtime.GroupKeyManager) do
+      Mob.Runtime.GroupKeyManager.decrypt(channel, sender_id, generation, blob)
+    else
+      {:error, :no_sender}
+    end
+  end
 
   defp append(state, %Message{} = message) do
     state = %{state | messages: state.messages ++ [message]}

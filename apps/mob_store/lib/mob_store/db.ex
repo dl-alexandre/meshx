@@ -17,6 +17,7 @@ defmodule Mob.Store.DB do
   | `:trust`   | `{:trust, peer_id}`      | `Mob.Store.Trust`   |
   | `:message` | `{:message, msg_id}`     | `Mob.Store.Message` |
   | `:outbox`  | `{:outbox, id}`          | `Mob.Store.Outbox`  |
+  | `:group_keys` | `{:group_keys, channel_id}` | `Mob.Store.GroupKeys` |
   | `:mobile_local_inbox` | `{:mobile_local_inbox, snapshot_id}` | `Mob.Node.BLE.LocalInboxStore` |
 
   """

@@ -114,6 +114,37 @@ who want to filter at the envelope layer.
   `mix mob.deploy --native` must run with valid hex.pm auth before the
   new `.so` reaches a device. Until then the chat UI works locally but
   cross-device receive is untested.
-- **Encryption** — `%Packet{flags: flag_encrypted}` exists at the protocol
-  layer; chat MVP sends cleartext. Per-channel key management is a separate
-  workstream.
+- **Encryption** — **group (channel) encryption is implemented** via
+  Sender Keys (Signal-style symmetric ratchet), chosen over MLS/TreeKEM
+  because a lossy, server-less BLE mesh can't carry MLS's ordered-commit
+  delivery assumptions. Threat model: *confidential to current
+  key-holders* — new joiners can't read history (forward secrecy), no
+  enforced member removal.
+
+  Layers:
+    * `Mob.Noise.SenderKey` / `GroupCipher` / `GroupSession` /
+      `SenderKeyDistribution` — pure ratchet + ChaCha20-Poly1305 AEAD,
+      out-of-order tolerance, replay rejection.
+    * `Mob.Store.GroupKeys` — per-channel chain persistence (CubDB).
+    * `Mob.Runtime.GroupKeyManager` + `GroupKeyControl` — owns channel
+      state; `ensure_channel`/`encrypt`/`install_remote`/`decrypt` and the
+      distribution/request control codec (carried over the existing
+      pairwise Noise sessions, never broadcast).
+    * Chat path — `Composer` seals into a `CHATG` envelope
+      (`Mob.Node.Chat.GroupPayload`); `ChannelViewModel` decrypts on
+      receive and surfaces undecryptable messages as **locked**
+      ("🔒 waiting for key"); the channel surface shows a lock badge. The
+      packet stays cleartext so relay/TTL/ack are unaffected.
+
+  **Remaining integration:** automatic sender-key *distribution over the
+  live Router/BLE* — i.e. wiring `GroupKeyManager.ensure_channel`'s SKDM
+  and the request/reply control messages onto `Router.send_packet(..,
+  secure: true)` + a control-packet ingress branch, plus a join-time
+  "encrypt this channel" affordance. The engine + on-demand request/reply
+  logic are built and unit-tested; binding them to peer events is the
+  final mile (gated with the rest of live BLE on hardware — see
+  `remaining_items_audit.md`).
+
+  Accepted limitation: sender keys are symmetric, so a key-holder could
+  forge messages attributed to another member. Per-message signatures (a
+  versioned SKDM upgrade) would close it.
