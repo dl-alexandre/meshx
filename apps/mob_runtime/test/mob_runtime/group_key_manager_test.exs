@@ -51,15 +51,20 @@ defmodule Mob.Runtime.GroupKeyManagerTest do
     StoreA.reset()
     StoreB.reset()
 
-    {:ok, alice} =
-      GroupKeyManager.start_link(name: :gkm_alice, store: StoreA, local_sender_id: @alice_id)
+    # start_supervised! deterministically terminates each manager before
+    # the next test, so the fixed registered names can't collide across
+    # tests (a manual start_link + on_exit cleanup raced under --cover).
+    alice =
+      start_supervised!(
+        {GroupKeyManager, name: :gkm_alice, store: StoreA, local_sender_id: @alice_id},
+        id: :gkm_alice
+      )
 
-    {:ok, bob} =
-      GroupKeyManager.start_link(name: :gkm_bob, store: StoreB, local_sender_id: @bob_id)
-
-    on_exit(fn ->
-      for pid <- [alice, bob], Process.alive?(pid), do: GenServer.stop(pid)
-    end)
+    bob =
+      start_supervised!(
+        {GroupKeyManager, name: :gkm_bob, store: StoreB, local_sender_id: @bob_id},
+        id: :gkm_bob
+      )
 
     %{alice: alice, bob: bob}
   end
