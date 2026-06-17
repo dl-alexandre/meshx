@@ -75,7 +75,7 @@ defmodule Mob.Noise.GroupCipher do
       {:error, :malformed}
     else
       ciphertext_size = byte_size(blob) - @tag_size
-      <<ciphertext::binary-size(ciphertext_size), tag::binary-size(@tag_size)>> = blob
+      <<ciphertext::binary-size(^ciphertext_size), tag::binary-size(@tag_size)>> = blob
       {key, nonce} = derive(message_key)
 
       case :crypto.crypto_one_time_aead(@aead_cipher, key, nonce, ciphertext, aad, tag, false) do
