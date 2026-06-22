@@ -21,6 +21,7 @@ defmodule Mob.Routing.BLE.MixProject do
   defp package do
     [
       licenses: ["Apache-2.0"],
+      files: ~w(lib mix.exs README.md LICENSE),
       links: %{
         "GitHub" => @github_url,
         "Changelog" => "#{@github_url}/blob/master/CHANGELOG.md"
@@ -34,9 +35,11 @@ defmodule Mob.Routing.BLE.MixProject do
     ]
   end
 
+  # In-umbrella development resolves the sibling by path; a published build
+  # (sibling mix.exs absent) pins the corresponding Hex release.
   defp deps do
-    [
-      {:mob_routing, in_umbrella: true}
-    ]
+    if File.exists?(Path.expand("../mob_routing/mix.exs", __DIR__)),
+      do: [{:mob_routing, in_umbrella: true}],
+      else: [{:mob_routing, "~> 0.2"}]
   end
 end
