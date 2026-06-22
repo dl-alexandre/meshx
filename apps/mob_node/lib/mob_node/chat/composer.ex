@@ -17,26 +17,39 @@ defmodule Mob.Node.Chat.Composer do
   """
 
   alias Mob.Node.BLE.MessageEnvelope
+  alias Mob.Node.Chat.GroupPayload
   alias Mob.Node.Chat.Identity
   alias Mob.Protocol.Packet
 
   @default_ttl 8
   @payload_type "CHAT"
+  @encrypted_payload_type "CHATG"
+
+  @type encryptor :: (channel :: String.t(), text :: String.t() ->
+                        {:ok, non_neg_integer(), binary()} | :cleartext | {:error, term()})
 
   @type build_opts :: [
           recipient_peer_id: binary() | nil,
           ttl: 1..255,
           identity: Identity.t(),
-          now_ms: integer()
+          now_ms: integer(),
+          encryptor: encryptor()
         ]
 
   @doc """
-  Returns the chat payload-type marker (`"CHAT"`). Receivers can
-  filter on this in `MessageEnvelope.payload_type` to distinguish
+  Returns the cleartext chat payload-type marker (`"CHAT"`). Receivers
+  can filter on this in `MessageEnvelope.payload_type` to distinguish
   chat from other envelope traffic.
   """
   @spec payload_type() :: String.t()
   def payload_type, do: @payload_type
+
+  @doc """
+  Returns the encrypted chat payload-type marker (`"CHATG"`). An envelope
+  with this type carries a `Mob.Node.Chat.GroupPayload` body, not text.
+  """
+  @spec encrypted_payload_type() :: String.t()
+  def encrypted_payload_type, do: @encrypted_payload_type
 
   @doc """
   Builds a chat packet for `text` on `channel`.
@@ -71,14 +84,15 @@ defmodule Mob.Node.Chat.Composer do
     ttl = Keyword.get(opts, :ttl, @default_ttl)
 
     with {:ok, identity} <- get_identity(opts),
+         {:ok, payload_type, body} <- payload_for(channel, text, opts),
          {:ok, envelope} <-
            MessageEnvelope.build(
              sender_peer_id: sender_peer_id(identity),
              recipient_peer_id: Keyword.get(opts, :recipient_peer_id),
              created_at: now_ms(opts),
-             payload_type: @payload_type,
+             payload_type: payload_type,
              ttl: ttl,
-             payload: text
+             payload: body
            ) do
       packet = %Packet{
         version: Packet.version(),
@@ -91,6 +105,35 @@ defmodule Mob.Node.Chat.Composer do
       }
 
       {:ok, packet, envelope.message_id}
+    end
+  end
+
+  # Decides cleartext vs encrypted body. The encryptor (injected for
+  # tests, defaults to the group-key manager) returns `:cleartext` for
+  # an unencrypted channel, or `{:ok, generation, blob}` to seal.
+  defp payload_for(channel, text, opts) do
+    case encryptor(opts).(channel, text) do
+      :cleartext ->
+        {:ok, @payload_type, text}
+
+      {:ok, generation, blob} ->
+        {:ok, @encrypted_payload_type, GroupPayload.encode(generation, blob)}
+
+      {:error, _} = err ->
+        err
+    end
+  end
+
+  defp encryptor(opts), do: Keyword.get(opts, :encryptor, &default_encryptor/2)
+
+  # When the group-key manager isn't running (unit tests, legacy
+  # cleartext nodes), send cleartext rather than crashing the send.
+  defp default_encryptor(channel, text) do
+    if Process.whereis(Mob.Runtime.GroupKeyManager) &&
+         Mob.Runtime.GroupKeyManager.encrypted?(channel) do
+      Mob.Runtime.GroupKeyManager.encrypt(channel, text)
+    else
+      :cleartext
     end
   end
 

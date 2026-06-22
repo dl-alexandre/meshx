@@ -22,18 +22,24 @@ defmodule Mob.Node.Chat.ChannelNativeSurface do
           meta: binary(),
           direction: Message.direction(),
           status: Message.status(),
-          from_self?: boolean()
+          from_self?: boolean(),
+          locked?: boolean()
         }
 
   @type t :: %{
           title: binary(),
           channel: binary(),
+          encrypted?: boolean(),
           empty?: boolean(),
           empty_label: binary(),
           message_count: non_neg_integer(),
           rows: [row()],
           placeholder: binary()
         }
+
+  # Shown in place of a message body when the channel sender's key has
+  # not been received yet (see ChannelViewModel locked messages).
+  @locked_body "🔒 Encrypted message — waiting for key"
 
   @doc """
   Builds the screen surface from a ChannelViewModel `snapshot`.
@@ -45,6 +51,10 @@ defmodule Mob.Node.Chat.ChannelNativeSurface do
       defaults to the raw peer_id.
     * `:now_ms` — clock seam for "Xs ago" labels (test reproducibility);
       defaults to `System.system_time(:millisecond)`.
+    * `:encrypted?` — when `true`, the channel is end-to-end encrypted;
+      the title is prefixed with a lock. Defaults to `false`, but is
+      forced `true` if any message arrived locked (so the badge can't be
+      out of sync with reality).
   """
   @spec build(map(), keyword()) :: t()
   def build(snapshot, opts \\ []) do
@@ -56,9 +66,12 @@ defmodule Mob.Node.Chat.ChannelNativeSurface do
       snapshot.messages
       |> Enum.map(&to_row(&1, local_peer_id, nickname_for, now_ms))
 
+    encrypted? = Keyword.get(opts, :encrypted?, false) or Enum.any?(rows, & &1.locked?)
+
     %{
-      title: snapshot.channel,
+      title: title(snapshot.channel, encrypted?),
       channel: snapshot.channel,
+      encrypted?: encrypted?,
       empty?: rows == [],
       empty_label: empty_label(snapshot.channel),
       message_count: snapshot.message_count,
@@ -70,14 +83,18 @@ defmodule Mob.Node.Chat.ChannelNativeSurface do
   defp to_row(%Message{} = m, local_peer_id, nickname_for, now_ms) do
     %{
       message_id: m.message_id,
-      body: m.body,
+      body: if(m.locked, do: @locked_body, else: m.body),
       sender_label: safe_nickname(nickname_for, m.sender_peer_id),
       meta: meta_string(m, now_ms),
       direction: m.direction,
       status: m.status,
-      from_self?: m.sender_peer_id == local_peer_id
+      from_self?: m.sender_peer_id == local_peer_id,
+      locked?: m.locked
     }
   end
+
+  defp title(channel, true), do: "🔒 #{channel}"
+  defp title(channel, false), do: channel
 
   defp safe_nickname(fun, peer_id) when is_function(fun, 1) do
     case fun.(peer_id) do

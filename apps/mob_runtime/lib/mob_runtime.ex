@@ -50,6 +50,7 @@ defmodule Mob.Runtime do
         fallback_dependency_children() ++
           [
             Mob.Runtime.SessionManager,
+            Mob.Runtime.GroupKeyManager,
             Mob.Runtime.FragmentBuffer,
             Mob.Runtime.PeerRegistry,
             Mob.Runtime.Router,
