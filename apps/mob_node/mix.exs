@@ -72,7 +72,12 @@ defmodule Mob.Node.MixProject do
       # Bumped to first releases containing :ios_swift_sources / :static_nifs
       # support (mob_dev 0.5.11 series + corresponding mob 0.6.x).
       # Verified via `mix hex.info` and lock regen.
-      {:mob, "~> 0.6"},
+      #
+      # mob 0.7.x is the plugin-extraction line (Camera/Location/Notify/Photos/
+      # Biometric/Scanner/Bt/Background/Themes moved to standalone plugins, no
+      # shims). mob_node uses only core surface (Mob.App/Screen/Socket/Test/
+      # Dist/Ble), so none of the extracted modules are needed.
+      {:mob, "~> 0.7"},
       {:mob_dev, "~> 0.5.11", only: [:dev, :test], runtime: false}
     ]
   end
