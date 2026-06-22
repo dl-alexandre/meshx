@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added — group/channel chat encryption (Sender Keys)
 
-`mob_noise` and `mob_store` bump to `0.3.0`.
+`mob_noise`, `mob_store`, and `mob_runtime` bump to `0.3.0`.
 
 - `mob_noise`: Signal-style Sender Keys stack — `Mob.Noise.SenderKey` (HMAC
   ratchet), `Mob.Noise.GroupCipher` (ChaCha20-Poly1305), `Mob.Noise.GroupSession`
@@ -14,6 +14,9 @@ All notable changes to this project will be documented in this file.
   `Mob.Noise.SenderKeyDistribution` (40-byte SKDM wire format).
 - `mob_store`: `Mob.Store.GroupKeys` — per-channel group-session persistence
   over CubDB.
+- `mob_runtime`: `GroupKeyManager` (single-writer GenServer for
+  ensure/encrypt/install/decrypt) and `GroupKeyControl` (MXG1 distribution /
+  MXGR request codec), wired into the supervision tree.
 
 Threat model: group chat is confidential to current key-holders with forward
 secrecy via the one-way ratchet; there is no enforced member removal, and

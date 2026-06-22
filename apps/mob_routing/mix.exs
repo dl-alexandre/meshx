@@ -25,6 +25,7 @@ defmodule Mob.Routing.MixProject do
   defp package do
     [
       licenses: ["Apache-2.0"],
+      files: ~w(lib mix.exs README.md LICENSE),
       links: %{
         "GitHub" => @github_url,
         "Changelog" => "#{@github_url}/blob/master/CHANGELOG.md"
