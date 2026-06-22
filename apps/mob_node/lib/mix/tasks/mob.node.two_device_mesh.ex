@@ -99,10 +99,10 @@ defmodule Mix.Tasks.Mob.Node.TwoDeviceMesh do
     end
 
     devices =
-      devices
-      |> Enum.with_index()
-      |> Enum.map(fn {d, idx} ->
-        case Tunnel.setup(d, idx) do
+      Enum.map(devices, fn d ->
+        # mob_dev 0.6: Tunnel.setup/1 assigns the dist port internally
+        # (deterministic per-serial), so the old index arg is no longer needed.
+        case Tunnel.setup(d) do
           {:ok, tunneled} -> tunneled
           {:error, reason} -> Mix.raise("tunnel #{d.name}: #{reason}")
         end

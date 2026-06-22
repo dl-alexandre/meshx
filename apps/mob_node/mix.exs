@@ -78,7 +78,7 @@ defmodule Mob.Node.MixProject do
       # shims). mob_node uses only core surface (Mob.App/Screen/Socket/Test/
       # Dist/Ble), so none of the extracted modules are needed.
       {:mob, "~> 0.7"},
-      {:mob_dev, "~> 0.5.11", only: [:dev, :test], runtime: false}
+      {:mob_dev, "~> 0.6", only: [:dev, :test], runtime: false}
     ]
   end
 end
